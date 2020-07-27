@@ -31,14 +31,6 @@ const sim_options = {
 
 jest.setTimeout(25000)
 
-function compareSnapshots(snapshotPrefixTmp, snapshotPrefixGolden, snapshotCount) {
-    for (let i = 0; i < snapshotCount; i++) {
-        const img1 = Zemu.LoadPng2RGB(`${snapshotPrefixTmp}${i}.png`);
-        const img2 = Zemu.LoadPng2RGB(`${snapshotPrefixGolden}${i}.png`);
-        expect(img1).toEqual(img2);
-    }
-}
-
 describe('Basic checks', function () {
     it('can start and stop container', async function () {
         const sim = new Zemu(APP_PATH);
@@ -84,8 +76,8 @@ describe('Basic checks', function () {
             expect(resp.returnCode).toEqual(0x9000);
             expect(resp.errorMessage).toEqual("No errors");
 
-            const expected_address_string = "04e10e925ea1e65ec349cf5aebe0e098a4baec85cfd4952b032edf460989cf841749497bce54f67badd5ee12c86baf0874b2b9f46dcac8c9c962994499abda6cdb";
-            const expected_pk = "04e10e925ea1e65ec349cf5aebe0e098a4baec85cfd4952b032edf460989cf841749497bce54f67badd5ee12c86baf0874b2b9f46dcac8c9c962994499abda6cdb";
+            const expected_address_string = "044c301ff7be3fdd59e667219cb1e454e7d831fb01ff16970c3374821fc1035f8274f72645ec83cebd35d8513829756d0b1203f713115c93038620ec2da14b0a21";
+            const expected_pk = "044c301ff7be3fdd59e667219cb1e454e7d831fb01ff16970c3374821fc1035f8274f72645ec83cebd35d8513829756d0b1203f713115c93038620ec2da14b0a21";
 
             expect(resp.address).toEqual(expected_address_string);
             expect(resp.publicKey.toString('hex')).toEqual(expected_pk);
@@ -96,8 +88,6 @@ describe('Basic checks', function () {
     });
 
     it('show address', async function () {
-        const snapshotPrefixGolden = "snapshots/show-address/";
-        const snapshotPrefixTmp = "snapshots-tmp/show-address/";
         let snapshotCount = 0;
 
         const sim = new Zemu(APP_PATH);
@@ -114,23 +104,16 @@ describe('Basic checks', function () {
             await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
             // Now navigate the address / path
-            await sim.snapshot(`${snapshotPrefixTmp}${snapshotCount++}.png`);
-            await sim.clickRight(`${snapshotPrefixTmp}${snapshotCount++}.png`);
-            await sim.clickRight(`${snapshotPrefixTmp}${snapshotCount++}.png`);
-            await sim.clickRight(`${snapshotPrefixTmp}${snapshotCount++}.png`);
-            await sim.clickRight(`${snapshotPrefixTmp}${snapshotCount++}.png`);
-            await sim.clickBoth(`${snapshotPrefixTmp}${snapshotCount++}.png`);
+            await sim.compareSnapshotsAndAccept(".", "show_address", 6);
 
             const resp = await respRequest;
             console.log(resp);
 
-            compareSnapshots(snapshotPrefixTmp, snapshotPrefixGolden, snapshotCount);
-
             expect(resp.returnCode).toEqual(0x9000);
             expect(resp.errorMessage).toEqual("No errors");
 
-            const expected_address_string = "04e10e925ea1e65ec349cf5aebe0e098a4baec85cfd4952b032edf460989cf841749497bce54f67badd5ee12c86baf0874b2b9f46dcac8c9c962994499abda6cdb";
-            const expected_pk = "04e10e925ea1e65ec349cf5aebe0e098a4baec85cfd4952b032edf460989cf841749497bce54f67badd5ee12c86baf0874b2b9f46dcac8c9c962994499abda6cdb";
+            const expected_address_string = "044c301ff7be3fdd59e667219cb1e454e7d831fb01ff16970c3374821fc1035f8274f72645ec83cebd35d8513829756d0b1203f713115c93038620ec2da14b0a21";
+            const expected_pk = "044c301ff7be3fdd59e667219cb1e454e7d831fb01ff16970c3374821fc1035f8274f72645ec83cebd35d8513829756d0b1203f713115c93038620ec2da14b0a21";
 
             expect(resp.address).toEqual(expected_address_string);
             expect(resp.publicKey.toString('hex')).toEqual(expected_pk);
@@ -140,8 +123,6 @@ describe('Basic checks', function () {
     });
 
     it('show address - expert', async function () {
-        const snapshotPrefixGolden = "snapshots/show-address-expert/";
-        const snapshotPrefixTmp = "snapshots-tmp/show-address-expert/";
         let snapshotCount = 0;
 
         const sim = new Zemu(APP_PATH);
@@ -162,24 +143,16 @@ describe('Basic checks', function () {
             await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
             // Now navigate the address / path
-            await sim.snapshot(`${snapshotPrefixTmp}${snapshotCount++}.png`);
-            await sim.clickRight(`${snapshotPrefixTmp}${snapshotCount++}.png`);
-            await sim.clickRight(`${snapshotPrefixTmp}${snapshotCount++}.png`);
-            await sim.clickRight(`${snapshotPrefixTmp}${snapshotCount++}.png`);
-            await sim.clickRight(`${snapshotPrefixTmp}${snapshotCount++}.png`);
-            await sim.clickRight(`${snapshotPrefixTmp}${snapshotCount++}.png`);
-            await sim.clickBoth(`${snapshotPrefixTmp}${snapshotCount++}.png`);
+            await sim.compareSnapshotsAndAccept(".", "show_address_expert", 7);
 
             const resp = await respRequest;
             console.log(resp);
 
-            compareSnapshots(snapshotPrefixTmp, snapshotPrefixGolden, snapshotCount);
-
             expect(resp.returnCode).toEqual(0x9000);
             expect(resp.errorMessage).toEqual("No errors");
 
-            const expected_address_string = "04e10e925ea1e65ec349cf5aebe0e098a4baec85cfd4952b032edf460989cf841749497bce54f67badd5ee12c86baf0874b2b9f46dcac8c9c962994499abda6cdb";
-            const expected_pk = "04e10e925ea1e65ec349cf5aebe0e098a4baec85cfd4952b032edf460989cf841749497bce54f67badd5ee12c86baf0874b2b9f46dcac8c9c962994499abda6cdb";
+            const expected_address_string = "044c301ff7be3fdd59e667219cb1e454e7d831fb01ff16970c3374821fc1035f8274f72645ec83cebd35d8513829756d0b1203f713115c93038620ec2da14b0a21";
+            const expected_pk = "044c301ff7be3fdd59e667219cb1e454e7d831fb01ff16970c3374821fc1035f8274f72645ec83cebd35d8513829756d0b1203f713115c93038620ec2da14b0a21";
 
             expect(resp.address).toEqual(expected_address_string);
             expect(resp.publicKey.toString('hex')).toEqual(expected_pk);
@@ -216,17 +189,10 @@ describe('Basic checks', function () {
             // Wait until we are not in the main menu
             await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
-            // Reference window
-            await sim.snapshot(`${snapshotPrefixTmp}${snapshotCount++}.png`);
-            for (let i = 0; i < 8; i++) {
-                await sim.clickRight(Resolve(`${snapshotPrefixTmp}${snapshotCount++}.png`));
-            }
-            await sim.clickBoth();
+            await sim.compareSnapshotsAndAccept(".", "sign_basic_verify", 9);
 
             let resp = await signatureRequest;
             console.log(resp);
-
-            compareSnapshots(snapshotPrefixTmp, snapshotPrefixGolden, snapshotCount);
 
             expect(resp.returnCode).toEqual(0x9000);
             expect(resp.errorMessage).toEqual("No errors");
