@@ -55,7 +55,7 @@ ifeq ($(COIN),FLOW)
 # Main app configuration
 DEFINES += APP_CONSUMER
 APPNAME = "Flow"
-APPPATH = "44'/1'"
+APPPATH = "44'/539'"
 
 else ifeq ($(COIN),FLOW_2)
 else
