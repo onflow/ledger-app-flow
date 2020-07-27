@@ -27,7 +27,7 @@ async function beforeEnd() {
 
 async function debugScenario(sim, app) {
     // Here you can customize what you want to do :)
-    const path = "m/44'/1'/0'/0/1";
+    const path = "m/44'/539'/0'/0/1";
     const txBlob = Buffer.from(
       "1234567890",
         "hex",

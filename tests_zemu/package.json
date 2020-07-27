@@ -17,7 +17,7 @@
   ],
   "dependencies": {
     "@zondax/ledger-flow": "^0.0.1",
-    "@zondax/zemu": "^0.4.0"
+    "@zondax/zemu": "^0.5.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.10.5",
@@ -27,15 +27,15 @@
     "@babel/preset-env": "^7.10.4",
     "babel-eslint": "^10.1.0",
     "babel-jest": "26.1.0",
-    "eslint": "^7.4.0",
+    "crypto-js": "4.0.0",
+    "eslint": "^7.5.0",
     "eslint-config-airbnb-base": "^14.2.0",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-import": "^2.22.0",
-    "eslint-plugin-jest": "^23.18.0",
+    "eslint-plugin-jest": "^23.18.2",
     "eslint-plugin-prettier": "^3.1.4",
     "jest": "26.1.0",
     "jest-serial-runner": "^1.1.0",
-    "crypto-js": "4.0.0",
-    "secp256k1": "^4.0.1"
+    "secp256k1": "^4.0.2"
   }
 }

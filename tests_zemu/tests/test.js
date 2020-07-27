@@ -76,7 +76,7 @@ describe('Basic checks', function () {
             const app = new FlowApp(sim.getTransport());
 
             const scheme = 0x301;
-            const path = `m/44'/1'/${scheme}'/0/0`;
+            const path = `m/44'/539'/${scheme}'/0/0`;
             const resp = await app.getAddressAndPubKey(path);
 
             console.log(resp)
@@ -107,7 +107,7 @@ describe('Basic checks', function () {
 
             // Derivation path. First 3 items are automatically hardened!
             const scheme = 0x301;
-            const path = `m/44'/1'/${scheme}'/0/0`;
+            const path = `m/44'/539'/${scheme}'/0/0`;
 
             const respRequest = app.showAddressAndPubKey(path);
             // Wait until we are not in the main menu
@@ -155,7 +155,7 @@ describe('Basic checks', function () {
 
             // Derivation path. First 3 items are automatically hardened!
             const scheme = 0x301;
-            const path = `m/44'/1'/${scheme}'/0/0`;
+            const path = `m/44'/539'/${scheme}'/0/0`;
 
             const respRequest = app.showAddressAndPubKey(path);
             // Wait until we are not in the main menu
@@ -199,7 +199,7 @@ describe('Basic checks', function () {
             const app = new FlowApp(sim.getTransport());
 
             const scheme = 0x301;
-            const path = `m/44'/1'/${scheme}'/0/0`;
+            const path = `m/44'/539'/${scheme}'/0/0`;
 
             const txBlob = Buffer.from(
                 "1234567890",
@@ -249,7 +249,7 @@ describe('Basic checks', function () {
             const app = new FlowApp(sim.getTransport());
 
             const scheme = 0x301;
-            const path = `m/44'/1'/${scheme}'/0/0`;
+            const path = `m/44'/539'/${scheme}'/0/0`;
 
             let invalidMessage = Buffer.from(
                 "1234567890",
