@@ -10,3 +10,25 @@ We recommend using the npmjs package in order to receive updates/fixes.
 ## Notes
 
 Use `yarn install` to avoid issues.
+
+## Minimal example
+
+This is very simple. First you need to use one of the transport classes provided by Ledger.
+
+```js
+import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
+transport = await TransportWebUSB.create();
+const app = new FlowApp(transport);
+```
+
+the `FlowApp` object will provide
+
+```js
+const response = await app.getVersion();
+
+if (response.returnCode !== FlowApp.ERROR_CODE.NoError) {
+      console.log(`Error [${response.returnCode}] ${response.errorMessage}`);
+} else {
+    console.log(response);
+}
+```

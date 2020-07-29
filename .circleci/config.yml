@@ -6,7 +6,7 @@ jobs:
     steps:
       - checkout
       - run: git submodule update --init --recursive
-      - run: cmake -DDISABLE_DOCKER_BUILDS=ON -DCMAKE_BUILD_TYPE=Debug . && make
+      - run: cmake -DCMAKE_BUILD_TYPE=Debug . && make
       # Unfortunately need to disable leak sanitizer https://github.com/google/sanitizers/issues/916
       # Still run all other ASAN components
       - run: GTEST_COLOR=1 ASAN_OPTIONS=detect_leaks=0 ctest -VV
@@ -19,6 +19,7 @@ jobs:
       - BOLOS_ENV=/opt/bolos
     steps:
       - checkout
+      # Docker entrypoint is not considered
       - run: git submodule update --init --recursive
       - run:
           name: Build
@@ -30,12 +31,14 @@ jobs:
   test_zemu:
     machine:
       image: ubuntu-1604:201903-01
+    resource_class: large
     working_directory: ~/repo
     environment:
       BASH_ENV: "/opt/circleci/.nvm/nvm.sh"
     steps:
       - checkout
       - run: git submodule update --init --recursive
+      - run: sudo apt-get update -y && sudo apt-get install -y libusb-1.0.0 libudev-dev
       - run:
           name: Build Ledger app
           command: |
@@ -54,7 +57,7 @@ jobs:
       - run:
           name: Run zemu tests
           command: |
-            nvm use 13.12.0
+            nvm use 14.4.0
             make zemu_test
 
   build_package:

@@ -18,8 +18,8 @@
 # BOLOS_SDK IS  DEFINED	 	We use the plain Makefile for Ledger
 # BOLOS_SDK NOT DEFINED		We use a containerized build approach
 
-TESTS_ZEMU_JS_PACKAGE = "@zondax/ledger-flow"
-TESTS_ZEMU_JS_DIR = $(CURDIR)/js
+TESTS_JS_PACKAGE = "@zondax/ledger-flow"
+TESTS_JS_DIR = $(CURDIR)/js
 
 ifeq ($(BOLOS_SDK),)
 include $(CURDIR)/deps/ledger-zxlib/dockerized_build.mk
@@ -30,7 +30,3 @@ default:
 	$(info "Calling app Makefile for target $@")
 	COIN=$(COIN) $(MAKE) -C app $@
 endif
-
-vue:
-	cd $(TESTS_ZEMU_JS_DIR) && yarn install && yarn serve
-

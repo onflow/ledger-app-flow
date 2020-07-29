@@ -1,5 +1,5 @@
 /*******************************************************************************
-*   (c) 2018 Zondax GmbH
+*   (c) 2020 Zondax GmbH
 *
 *  Licensed under the Apache License, Version 2.0 (the "License");
 *  you may not use this file except in compliance with the License.
@@ -15,6 +15,15 @@
 ********************************************************************************/
 #pragma once
 
-#define ZXLIB_MAJOR     4
-#define ZXLIB_MINOR     0
-#define ZXLIB_PATCH     0
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <inttypes.h>
+#include <stdint.h>
+
+uint16_t base64_encode(char *out, uint16_t outlen, const uint8_t *in, uint16_t inlen);
+
+#ifdef __cplusplus
+}
+#endif

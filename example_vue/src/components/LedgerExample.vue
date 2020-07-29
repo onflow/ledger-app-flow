@@ -35,8 +35,7 @@
 
 <script>
 import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
-import FlowApp from "../../src";
-import { ERROR_CODE } from "../../src/common";
+import FlowApp from "@zondax/ledger-flow";
 
 const scheme = 0x301;
 const EXAMPLE_PATH = `m/44'/1'/${scheme}/0/0`;
@@ -81,7 +80,7 @@ export default {
 
         // now it is possible to access all commands in the app
         const response = await app.getVersion();
-        if (response.returnCode !== ERROR_CODE.NoError) {
+        if (response.returnCode !== FlowApp.ERROR_CODE.NoError) {
           this.log(`Error [${response.returnCode}] ${response.errorMessage}`);
           return;
         }
@@ -128,7 +127,7 @@ export default {
 
         // now it is possible to access all commands in the app
         response = await app.getAddressAndPubKey(EXAMPLE_PATH);
-        if (response.returnCode !== ERROR_CODE.NoError) {
+        if (response.returnCode !== FlowApp.ERROR_CODE.NoError) {
           this.log(`Error [${response.returnCode}] ${response.errorMessage}`);
           return;
         }
@@ -154,7 +153,7 @@ export default {
         // now it is possible to access all commands in the app
         this.log("Please click in the device");
         response = await app.showAddressAndPubKey(EXAMPLE_PATH);
-        if (response.returnCode !== ERROR_CODE.NoError) {
+        if (response.returnCode !== FlowApp.ERROR_CODE.NoError) {
           this.log(`Error [${response.returnCode}] ${response.errorMessage}`);
           return;
         }

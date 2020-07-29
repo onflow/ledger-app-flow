@@ -1,6 +1,6 @@
 {
   "name": "@zondax/ledger-flow",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Node API for Flow App (Ledger Nano S/X)",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -30,10 +30,6 @@
     "@babel/plugin-transform-runtime": "^7.10.5",
     "@babel/preset-env": "^7.10.4",
     "@ledgerhq/hw-transport-node-hid": "^5.19.1",
-    "@ledgerhq/hw-transport-webusb": "^5.19.1",
-    "@vue/cli-plugin-babel": "^4.4.6",
-    "@vue/cli-plugin-eslint": "^4.4.6",
-    "@vue/cli-service": "^4.4.6",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^26.1.0",
     "bip32": "^2.0.5",
@@ -42,22 +38,15 @@
     "crypto-js": "4.0.0",
     "eslint": "^7.4.0",
     "eslint-config-airbnb-base": "^14.2.0",
-    "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-import": "^2.22.0",
-    "eslint-plugin-jest": "^23.18.0",
-    "eslint-plugin-prettier": "^3.1.4",
-    "eslint-plugin-vue": "^6.2.2",
     "index.js": "^0.0.3",
     "jest": "^26.1.0",
     "jest-serial-runner": "^1.1.0",
     "prettier": "^2.0.5",
-    "secp256k1": "^4.0.1",
-    "vue": "^2.6.11",
-    "vue-template-compiler": "^2.6.11"
+    "secp256k1": "^4.0.1"
   },
   "scripts": {
-    "build": "babel src  --copy-files --out-dir dist",
-    "serve": "vue-cli-service serve vue_example/main.js"
+    "build": "babel src  --copy-files --out-dir dist"
   },
   "moduleDirectories": [
     "node_modules",
