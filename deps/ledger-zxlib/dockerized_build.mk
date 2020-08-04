@@ -190,8 +190,8 @@ vue_install_js_link:
 	@echo
 endif
 
-.PHONY: zemu
-vue:
+.PHONY: vue
+vue: vue_install_js_link
 	cd $(EXAMPLE_VUE_DIR) && yarn install && yarn serve
 
 ########################## VUE Section ###############################

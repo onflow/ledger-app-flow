@@ -27,6 +27,13 @@ extern "C" {
     CHECK_APP_CANARY()  \
     if (__err!=parser_ok) return __err;}
 
+#define CTX_CHECK_AND_ADVANCE(CTX, SIZE) \
+    CTX_CHECK_AVAIL((CTX), (SIZE))   \
+    (CTX)->offset += (SIZE);
+
+#define CTX_CHECK_AVAIL(CTX, SIZE) \
+    if ( (CTX) == NULL || ((CTX)->offset + SIZE) > (CTX)->bufferLen) { return parser_unexpected_buffer_end; }
+
 typedef enum {
     // Generic errors
     parser_ok = 0,
@@ -36,6 +43,12 @@ typedef enum {
     parser_display_page_out_of_range,
     parser_unexpected_error,
     // Coin specific
+    parser_rlp_error_invalid_kind,
+    parser_rlp_error_invalid_value_len,
+    parser_rlp_error_invalid_field_offset,
+    parser_rlp_error_buffer_too_small,
+    parser_rlp_error_invalid_page,
+    ///
     parser_unexpected_tx_version,
     parser_unexpected_type,
     parser_unexpected_method,

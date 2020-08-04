@@ -18,6 +18,7 @@
 #include "parser_impl.h"
 #include "parser_txdef.h"
 #include "app_mode.h"
+#include "rlp.h"
 
 parser_tx_t parser_tx_obj;
 
@@ -60,7 +61,17 @@ const char *parser_getErrorDescription(parser_error_t err) {
             return "display_page_out_of_range";
         case parser_unexpected_error:
             return "Unexepected internal error";
-        // Coin specific
+            // Coin specific
+        case parser_rlp_error_invalid_kind:
+            return "parser_rlp_error_invalid_kind";
+        case parser_rlp_error_invalid_value_len:
+            return "parser_rlp_error_invalid_value_len";
+        case parser_rlp_error_invalid_field_offset:
+            return "parser_rlp_error_invalid_field_offset";
+        case parser_rlp_error_buffer_too_small:
+            return "parser_rlp_error_buffer_too_small";
+        case parser_rlp_error_invalid_page:
+            return "parser_rlp_error_invalid_page";
         case parser_unexpected_tx_version:
             return "tx version is not supported";
         case parser_unexpected_type:
@@ -98,7 +109,69 @@ const char *parser_getErrorDescription(parser_error_t err) {
     }
 }
 
-parser_error_t _read(const parser_context_t *c, parser_tx_t *v) {
+parser_error_t _readScript(const parser_context_t *c, flow_script_t *v) {
+//    rlp_kind_e kind;
+//    uint16_t len;
+//    uint16_t valueOffset;
+//
+//    rlp_decode(c->buffer, &kind, &len, &valueOffset);
+//
+    return parser_ok;
+}
+
+parser_error_t _readArguments(const parser_context_t *c, flow_argument_list_t *v) {
+    return parser_ok;
+}
+
+parser_error_t _readGasLimit(const parser_context_t *c, flow_gaslimit_t *v) {
+    return parser_ok;
+}
+
+parser_error_t _readProposalKeyAddress(const parser_context_t *c, flow_proposal_key_address_t *v) {
+    return parser_ok;
+}
+
+parser_error_t _readProposalKeyId(const parser_context_t *c, flow_proposal_keyid_t *v) {
+    return parser_ok;
+}
+
+parser_error_t _readProposalKeySequenceNumber(const parser_context_t *c, flow_proposal_key_sequence_number_t *v) {
+    return parser_ok;
+}
+
+parser_error_t _readPayer(const parser_context_t *c, flow_payer_t *v) {
+    return parser_ok;
+}
+
+parser_error_t _readProposalAuthorizers(const parser_context_t *c, flow_proposal_authorizers_t *v) {
+    return parser_ok;
+}
+
+parser_error_t _read(parser_context_t *c, parser_tx_t *v) {
+    rlp_kind_e kind;
+    uint16_t len;
+    uint16_t valueOffset;
+    uint16_t bytesConsumed;
+    CHECK_PARSER_ERR(rlp_decode(c->buffer, &kind, &len, &valueOffset, &bytesConsumed));
+    CTX_CHECK_AND_ADVANCE(c, valueOffset)
+    if (kind != kind_list) {
+        return parser_rlp_error_invalid_kind;
+    }
+    if (bytesConsumed != c->bufferLen) {
+        // root list should consume the complete buffer
+        return parser_unexpected_buffer_end;
+    }
+
+    // TODO:
+//    CHECK_PARSER_ERR(_readScript(c, &v->script))
+//    CHECK_PARSER_ERR(_readArguments(c, &v->arguments))
+//    CHECK_PARSER_ERR(_readGasLimit(c, &v->gasLimit))
+//    CHECK_PARSER_ERR(_readProposalKeyAddress(c, &v->proposalKeyAddress))
+//    CHECK_PARSER_ERR(_readProposalKeyId(c, &v->proposalKeyId))
+//    CHECK_PARSER_ERR(_readProposalKeySequenceNumber(c, &v->proposalKeySequenceNumber))
+//    CHECK_PARSER_ERR(_readPayer(c, &v->payer))
+//    CHECK_PARSER_ERR(_readProposalAuthorizers(c, &v->authorizers))
+
     return parser_ok;
 }
 
@@ -107,7 +180,7 @@ parser_error_t _validateTx(const parser_context_t *c, const parser_tx_t *v) {
 }
 
 uint8_t _getNumItems(const parser_context_t *c, const parser_tx_t *v) {
-    uint8_t itemCount = 8;
+    uint8_t itemCount = 0;
 
     return itemCount;
 }

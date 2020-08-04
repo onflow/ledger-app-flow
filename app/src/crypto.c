@@ -71,15 +71,58 @@ typedef struct {
 
 
 uint16_t crypto_sign(uint8_t *buffer, uint16_t signatureMaxlen, const uint8_t *message, uint16_t messageLen) {
-    // TODO
-    int signatureLength = 0;
+    uint8_t message_digest[CX_SHA256_SIZE];
+    cx_hash_sha256(message, messageLen, message_digest, CX_SHA256_SIZE);
+
+    cx_ecfp_private_key_t cx_privateKey;
+    uint8_t privateKeyData[32];
+    int signatureLength;
+    unsigned int info = 0;
+
+    signature_t *const signature = (signature_t *) buffer;
+
+    BEGIN_TRY
+    {
+        TRY
+        {
+            // Generate keys
+            os_perso_derive_node_bip32(CX_CURVE_256K1,
+                                                      hdPath,
+                                                      HDPATH_LEN_DEFAULT,
+                                                      privateKeyData, NULL);
+
+            cx_ecfp_init_private_key(CX_CURVE_256K1, privateKeyData, 32, &cx_privateKey);
+
+            // Sign
+            signatureLength = cx_ecdsa_sign(&cx_privateKey,
+                                            CX_RND_RFC6979 | CX_LAST,
+                                            CX_SHA256,
+                                            message_digest,
+                                            CX_SHA256_SIZE,
+                                            signature->der_signature,
+                                            sizeof_field(signature_t, der_signature),
+                                            &info);
+        }
+        FINALLY {
+            MEMZERO(&cx_privateKey, sizeof(cx_privateKey));
+            MEMZERO(privateKeyData, 32);
+        }
+    }
+    END_TRY;
+
+    err_convert_e err = convertDERtoRSV(signature->der_signature, info,  signature->r, signature->s, &signature->v);
+    if (err != no_error) {
+        // Error while converting so return length 0
+        return 0;
+    }
+
     // return actual size using value from signatureLength
     return sizeof_field(signature_t, r) + sizeof_field(signature_t, s) + sizeof_field(signature_t, v) + signatureLength;
 }
 
 typedef struct {
     uint8_t publicKey[SECP256K1_PK_LEN];
-    uint8_t addrStr[SECP256K1_PK_LEN*2];
+    char addrStr[SECP256K1_PK_LEN*2];
     uint8_t padding[4];
 } __attribute__((packed)) answer_t;
 

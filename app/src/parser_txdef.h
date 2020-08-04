@@ -26,7 +26,55 @@ extern "C" {
 #include <stddef.h>
 
 typedef struct {
-    int64_t dummy;
+    uint8_t *ptr;
+    uint16_t len;
+} flow_script_t;
+
+typedef struct {
+    uint8_t *ptr;
+    uint16_t len;
+} flow_argument_t;
+
+typedef struct {
+    uint8_t *ptr;
+    uint16_t len;
+} flow_argument_list_t;
+
+typedef uint64_t flow_gaslimit_t;
+
+typedef struct {
+    uint8_t *ptr;
+    uint16_t len;
+} flow_proposal_key_address_t;
+
+typedef uint64_t flow_proposal_keyid_t;
+
+typedef struct {
+    uint8_t *ptr;
+    uint16_t len;
+} flow_payer_t;
+
+typedef uint64_t flow_proposal_key_sequence_number_t;
+
+typedef struct {
+    uint8_t *ptr;
+    uint16_t len;
+} flow_proposal_authorizer_t;
+
+typedef struct {
+    uint8_t *ptr;
+    uint16_t len;
+} flow_proposal_authorizers_t;
+
+typedef struct {
+    flow_script_t script;
+    flow_argument_list_t arguments;
+    flow_gaslimit_t gasLimit;
+    flow_proposal_key_address_t proposalKeyAddress;
+    flow_proposal_keyid_t proposalKeyId;
+    flow_proposal_key_sequence_number_t  proposalKeySequenceNumber;
+    flow_payer_t payer;
+    flow_proposal_authorizers_t authorizers;
 } parser_tx_t;
 
 #ifdef __cplusplus

@@ -38,6 +38,8 @@ file(GLOB_RECURSE LIB_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/deps/ledger-zxlib/src/zxmacros.c
         ${CMAKE_CURRENT_SOURCE_DIR}/deps/ledger-zxlib/src/app_mode.c
         #########
+        ${CMAKE_CURRENT_SOURCE_DIR}/app/src/rlp.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/app/src/uint256.c
         ${CMAKE_CURRENT_SOURCE_DIR}/app/src/parser.c
         ${CMAKE_CURRENT_SOURCE_DIR}/app/src/parser_impl.c
         app/src/base32.c

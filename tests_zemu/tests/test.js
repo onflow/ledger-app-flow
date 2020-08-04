@@ -17,6 +17,8 @@
 import jest, {expect} from "jest";
 import Zemu from "@zondax/zemu";
 import FlowApp from "@zondax/ledger-flow";
+import jsSHA from "jssha";
+import * as secp256k1 from "secp256k1";
 
 const Resolve = require("path").resolve;
 const APP_PATH = Resolve("../app/bin/app.elf");
@@ -88,8 +90,6 @@ describe('Basic checks', function () {
     });
 
     it('show address', async function () {
-        let snapshotCount = 0;
-
         const sim = new Zemu(APP_PATH);
         try {
             await sim.start(sim_options);
@@ -123,8 +123,6 @@ describe('Basic checks', function () {
     });
 
     it('show address - expert', async function () {
-        let snapshotCount = 0;
-
         const sim = new Zemu(APP_PATH);
         try {
             await sim.start(sim_options);
@@ -161,11 +159,7 @@ describe('Basic checks', function () {
         }
     });
 
-    it.skip('sign basic & verify', async function () {
-        const snapshotPrefixGolden = "snapshots/sign-basic/";
-        const snapshotPrefixTmp = "snapshots-tmp/sign-basic/";
-        let snapshotCount = 0;
-
+    it('sign basic & verify', async function () {
         const sim = new Zemu(APP_PATH);
         try {
             await sim.start(sim_options);
@@ -175,7 +169,7 @@ describe('Basic checks', function () {
             const path = `m/44'/539'/${scheme}'/0/0`;
 
             const txBlob = Buffer.from(
-                "1234567890",
+                "f8a1f89eb17472616e73616374696f6e286d73673a20537472696e6729207b2065786563757465207b206c6f67286d736729207d207debaa7b2274797065223a22537472696e67222c2276616c7565223a2248656c6c6f2c205a6f6e64617821227da0f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b2a88f8d6e0586b0a20c7040a88f8d6e0586b0a20c7c988f8d6e0586b0a20c7c0",
                 "hex",
             );
 
@@ -189,7 +183,7 @@ describe('Basic checks', function () {
             // Wait until we are not in the main menu
             await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
-            await sim.compareSnapshotsAndAccept(".", "sign_basic_verify", 9);
+            await sim.compareSnapshotsAndAccept(".", "sign_basic_verify", 0);
 
             let resp = await signatureRequest;
             console.log(resp);
@@ -198,17 +192,21 @@ describe('Basic checks', function () {
             expect(resp.errorMessage).toEqual("No errors");
 
             // Verify signature
-            // const pk = Uint8Array.from(pkResponse.compressed_pk)
-            // const digest = getDigest( txBlob );
-            // const signature = secp256k1.signatureImport(Uint8Array.from(resp.signature_der));
-            // const signatureOk = secp256k1.ecdsaVerify(signature, digest, pk);
-            // expect(signatureOk).toEqual(true);
+            const pk = Uint8Array.from(pkResponse.publicKey)
+
+            const hasher = new jsSHA("SHA-256", "UINT8ARRAY");
+            hasher.update(txBlob)
+            const digest = hasher.getHash("UINT8ARRAY")
+
+            const sigArray = Uint8Array.from(resp.signatureCompact.slice(0, 64));
+            const signatureOk = secp256k1.ecdsaVerify(sigArray, digest, pk);
+            expect(signatureOk).toEqual(true);
         } finally {
             await sim.close();
         }
     });
 
-    it.skip('sign basic - invalid', async function () {
+    it('sign basic - invalid', async function () {
         const sim = new Zemu(APP_PATH);
         try {
             await sim.start(sim_options);
@@ -233,7 +231,7 @@ describe('Basic checks', function () {
             console.log(signatureResponse);
 
             expect(signatureResponse.returnCode).toEqual(0x6984);
-            expect(signatureResponse.errorMessage).toEqual("Data is invalid : Unexpected data type");
+            expect(signatureResponse.errorMessage).toEqual("Data is invalid : parser_rlp_error_invalid_kind");
         } finally {
             await sim.close();
         }
