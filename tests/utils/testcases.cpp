@@ -20,38 +20,47 @@
 #include <algorithm>
 #include <hexutils.h>
 
+std::string CleanTestname(std::string s) {
+    s.erase(remove_if(s.begin(), s.end(), [](char v) -> bool {
+        return v == ':' || v == ' ' || v == '/' || v == '-' || v == '.' || v == '_' || v == '#';
+    }), s.end());
+    return s;
+}
+
 testcaseData_t ReadRawTestCase(const std::shared_ptr<Json::Value> &jsonSource, int index) {
     testcaseData_t answer;
     auto v = (*jsonSource)[index];
-    auto description = std::string("");
 
-    description = v["kind"].asString();
-    if (v.isMember("description")) {
-        description = v["description"].asString();
-    }
-    description.erase(remove_if(description.begin(), description.end(), isspace), description.end());
+    auto description = v["title"].asString();
+    description = CleanTestname(description);
 
-    auto bytes_hexstring = v["encoded_tx_hex"].asString();
+    auto bytes_hexstring = v["encodedTransactionEnvelopeHex"].asString();
     assert(bytes_hexstring.size() % 2 == 0);
     auto blob = std::vector<uint8_t>(bytes_hexstring.size() / 2);
     parseHexString(blob.data(), blob.size(), bytes_hexstring.c_str());
 
-    auto message = v["message"];
+
+    auto valid = v["valid"].asBool();
+    auto testnet = v["testnet"].asBool();
+    auto message = v["envelopeMessage"];
+    auto proposalKey = v["proposalKey"];
 
     return {
             description,
             //////
-            message["to"].asString(),
-            message["from"].asString(),
-            message["nonce"].asUInt64(),
-            message["value"].asString(),
-            message["gasprice"].asString(),
-            message["gaslimit"].asString(),
-            message["method"].asUInt64(),
-            v["encoded_tx"].asString(),
-            v["valid"].asBool(),
-            v["testnet"].asBool(),
-            v["expert"].asBool(),
+            valid,
+            testnet,
+            false,
+            message["script"].asString(),
+            std::vector<std::string>(),
+            message["refBlock"].asString(),
+            message["gaslimit"].asUInt64(),
+            proposalKey["address"].asString(),
+            proposalKey["keyId"].asUInt64(),
+            proposalKey["sequenceNum"].asUInt64(),
+            v["payer"].asString(),
+            std::vector<std::string>(),
+            v["encodedTransactionEnvelopeHex"].asString(),
             blob
     };
 }
@@ -88,13 +97,8 @@ std::vector<testcase_t> GetJsonTestCases(const std::string &filename) {
     for (int i = 0; i < obj->size(); i++) {
         auto v = (*obj)[i];
 
-        auto description = std::string("");
-
-        description = v["description"].asString();
-        description.erase(remove_if(description.begin(), description.end(), [](char v) -> bool {
-            return v == ':' || v == ' ' || v == '/';
-        }), description.end());
-
+        auto description = v["title"].asString();
+        description = CleanTestname(description);
         answer.push_back(testcase_t{obj, i, description});
     }
 

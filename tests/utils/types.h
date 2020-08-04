@@ -17,19 +17,24 @@
 
 typedef struct {
     std::string description;
-    std::string to;
-    std::string from;
-    uint64_t nonce;
-    std::string value;
-    std::string gasprice;
-    std::string gaslimit;
-    uint64_t method;
-
-    std::string encoded_tx;
     bool valid;
     bool testnet;
     bool expert;
 
+    std::string script;
+    std::vector<std::string> arguments;
+
+    std::string refBlock;
+    uint64_t gasLimit;
+
+    std::string proposalKeyAddress;
+    uint64_t proposalKeyId;
+    uint64_t proposalKeySequenceNumber;
+
+    std::string payer;
+    std::vector<std::string> authorizers;
+
+    std::string encoded_tx;
     std::vector<uint8_t> blob;
     std::vector<std::string> expected_ui_output;
 } testcaseData_t;
