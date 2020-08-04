@@ -159,7 +159,7 @@ export default class FlowApp {
 
   async sign(path, message) {
     return this.signGetChunks(path, message).then((chunks) => {
-      return this.signSendChunk(1, chunks.length, chunks[0], [ERROR_CODE.NoError]).then(async (response) => {
+      return this.signSendChunk(1, chunks.length, chunks[0]).then(async (response) => {
         let result = {
           returnCode: response.returnCode,
           errorMessage: response.errorMessage,
