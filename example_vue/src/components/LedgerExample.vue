@@ -79,8 +79,9 @@ export default {
         const app = new FlowApp(transport);
 
         // now it is possible to access all commands in the app
+        this.log("Sending Request..");
         const response = await app.getVersion();
-        if (response.returnCode !== FlowApp.ERROR_CODE.NoError) {
+        if (response.returnCode !== FlowApp.ErrorCode.NoError) {
           this.log(`Error [${response.returnCode}] ${response.errorMessage}`);
           return;
         }
@@ -102,8 +103,9 @@ export default {
         const app = new FlowApp(transport);
 
         // now it is possible to access all commands in the app
+        this.log("Sending Request..");
         const response = await app.appInfo();
-        if (response.returnCode !== 0x9000) {
+        if (response.returnCode !== FlowApp.ErrorCode.NoError) {
           this.log(`Error [${response.returnCode}] ${response.errorMessage}`);
           return;
         }
@@ -126,8 +128,9 @@ export default {
         this.log(`Test mode: ${response.testMode}`);
 
         // now it is possible to access all commands in the app
+        this.log("Sending Request..");
         response = await app.getAddressAndPubKey(EXAMPLE_PATH);
-        if (response.returnCode !== FlowApp.ERROR_CODE.NoError) {
+        if (response.returnCode !== FlowApp.ErrorCode.NoError) {
           this.log(`Error [${response.returnCode}] ${response.errorMessage}`);
           return;
         }
@@ -151,9 +154,10 @@ export default {
         this.log(`Test mode: ${response.testMode}`);
 
         // now it is possible to access all commands in the app
+        this.log("Sending Request..");
         this.log("Please click in the device");
         response = await app.showAddressAndPubKey(EXAMPLE_PATH);
-        if (response.returnCode !== FlowApp.ERROR_CODE.NoError) {
+        if (response.returnCode !== FlowApp.ErrorCode.NoError) {
           this.log(`Error [${response.returnCode}] ${response.errorMessage}`);
           return;
         }
@@ -178,6 +182,7 @@ export default {
         this.log(`Test mode: ${response.testMode}`);
 
         const message = Buffer.from("1234", "hex");
+        this.log("Sending Request..");
         response = await app.sign(EXAMPLE_PATH, message);
 
         this.log("Response received!");

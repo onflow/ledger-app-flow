@@ -1,6 +1,5 @@
 export const CLA = 0x33;
 export const CHUNK_SIZE = 250;
-export const APP_KEY = "FLO";
 
 export const INS = {
   GET_VERSION: 0x00,

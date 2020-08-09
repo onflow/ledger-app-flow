@@ -47,6 +47,10 @@ function processGetAddrResponse(response) {
 }
 
 export default class FlowApp {
+  static get ErrorCode() {
+    return ERROR_CODE;
+  }
+
   constructor(transport) {
     if (!transport) {
       throw new Error("Transport has not been defined");
