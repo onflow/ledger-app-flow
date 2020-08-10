@@ -41,14 +41,15 @@ all: bin/app.elf
 	@chmod +x $(CURDIR)/pkg/zxtool.sh
 
 include $(BOLOS_SDK)/Makefile.defines
+DEFINES += NDEBUG
 
 ifndef COIN
 COIN=FLOW
 endif
 
 APPVERSION_M=0
-APPVERSION_N=0
-APPVERSION_P=2
+APPVERSION_N=1
+APPVERSION_P=0
 
 $(info COIN  = [$(COIN)])
 ifeq ($(COIN),FLOW)
@@ -56,6 +57,9 @@ ifeq ($(COIN),FLOW)
 DEFINES += APP_CONSUMER
 APPNAME = "Flow"
 APPPATH = "44'/539'"
+ifeq ($(TARGET_NAME),TARGET_NANOS)
+SCRIPT_LD:=$(CURDIR)/script.ld
+endif
 
 else ifeq ($(COIN),FLOW_2)
 else
@@ -72,7 +76,6 @@ endif
 APP_LOAD_PARAMS = --appFlags 0x200 --delete $(COMMON_LOAD_PARAMS) --path ${APPPATH} --path "44'/1'"
 
 ifeq ($(TARGET_NAME),TARGET_NANOS)
-SCRIPT_LD:=$(CURDIR)/script.ld
 ICONNAME:=$(CURDIR)/nanos_icon.gif
 endif
 
@@ -127,6 +130,8 @@ DEFINES       += HAVE_BOLOS_UX COMPLIANCE_UX_160 HAVE_UX_LEGACY
 endif
 
 # X specific
+
+# App specific
 
 #Feature temporarily disabled
 DEFINES   += LEDGER_SPECIFIC

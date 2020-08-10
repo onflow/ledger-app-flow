@@ -15,6 +15,10 @@
 ********************************************************************************/
 #include <fmt/core.h>
 #include <coin.h>
+#include <crypto.h>
+#include <parser_common.h>
+#include <parser_txdef.h>
+#include <parser_impl.h>
 #include "testcases.h"
 #include "zxmacros.h"
 
@@ -27,18 +31,10 @@ void addTo(std::vector<std::string> &answer, const S &format_str, Args &&... arg
     answer.push_back(fmt::format(format_str, args...));
 }
 
-std::string FormatAddress(const std::string &address, uint8_t idx, uint8_t *pageCount) {
+std::string FormatHexString(const std::string &data, uint8_t idx, uint8_t *pageCount) {
     char outBuffer[40];
-    pageString(outBuffer, sizeof(outBuffer), address.c_str(), idx, pageCount);
-
+    pageString(outBuffer, sizeof(outBuffer), data.c_str(), idx, pageCount);
     return std::string(outBuffer);
-}
-
-std::string FormatAmount(const std::string &amount) {
-    char buffer[500];
-    MEMZERO(buffer, sizeof(buffer));
-    fpstr_to_str(buffer, sizeof(buffer), amount.c_str(), COIN_AMOUNT_DECIMAL_PLACES);
-    return std::string(buffer);
 }
 
 std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
@@ -47,6 +43,52 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
     if (!tcd.valid) {
         answer.emplace_back("Test case is not valid!");
         return answer;
+    }
+
+    uint8_t scriptHash[32];
+    script_type_e scriptType = script_unknown;
+    sha256((const uint8_t *) tcd.script.c_str(), tcd.script.length(), scriptHash);
+    _matchScriptType(scriptHash, &scriptType);
+
+    switch (scriptType) {
+        case script_unknown:
+            addTo(answer, "0 | Type :Unknown");
+            break;
+        case script_token_transfer:
+            addTo(answer, "0 | Type : Token Transfer");
+            break;
+        case script_create_account:
+            addTo(answer, "0 | Type : Create Account");
+            break;
+        default:
+            addTo(answer, "0 | Type : ERROR");
+            break;
+    }
+
+    uint8_t dummy;
+
+    // TODO: Complete
+    addTo(answer, "1 | Param : ?");
+    addTo(answer, "2 | Ref Block Id : {}", FormatHexString(tcd.refBlock, 0, &dummy));
+    addTo(answer, "2 | Ref Block Id : {}", FormatHexString(tcd.refBlock, 1, &dummy));
+    addTo(answer, "3 | Gas Limit : {}", tcd.gasLimit);
+    addTo(answer, "4 | Prop Key Addr : {}", FormatHexString(tcd.proposalKeyAddress, 0, &dummy));
+    addTo(answer, "5 | Prop Key Id : {}", tcd.proposalKeyId);
+    addTo(answer, "6 | Prop Key Seq Num : {}", tcd.proposalKeySequenceNumber);
+    addTo(answer, "7 | Payer : {}", FormatHexString(tcd.payer, 0, &dummy));
+
+    if (tcd.authorizers.size() > 1) {
+        addTo(answer, "8 | Authorizer : ERR");      // TODO: is this valid?
+        // FIXME: Missing test cases
+//        uint16_t count = 0;
+//        for (const auto& a: tcd.authorizers) {
+//            addTo(answer, "8 | Authorizer {}/{} : {}", count + 1, tcd.authorizers.size(), a);
+//            count++;
+//        }
+    } else {
+        for (const auto& a: tcd.authorizers) {
+            addTo(answer, "8 | Authorizer 1 : {}", a);
+        }
     }
 
     return answer;

@@ -1,7 +1,7 @@
 [
   {
     "title": "Example Transaction - Valid Envelope - Empty payloadSigs",
-    "valid": true,
+    "valid": false,
     "testnet": false,
     "envelopeMessage": {
       "script": "transaction(msg: String) { execute { log(msg) } }",
@@ -28,7 +28,7 @@
   },
   {
     "title": "Example Transaction - Valid Envelope - Zero payloadSigs.0.key",
-    "valid": true,
+    "valid": false,
     "testnet": false,
     "envelopeMessage": {
       "script": "transaction(msg: String) { execute { log(msg) } }",
@@ -61,7 +61,7 @@
   },
   {
     "title": "Example Transaction - Valid Envelope - Out-of-order payloadSigs -- By Signer",
-    "valid": true,
+    "valid": false,
     "testnet": false,
     "envelopeMessage": {
       "script": "transaction(msg: String) { execute { log(msg) } }",
@@ -106,7 +106,7 @@
   },
   {
     "title": "Example Transaction - Valid Envelope - Out-of-order payloadSigs -- By keyId",
-    "valid": true,
+    "valid": false,
     "testnet": false,
     "envelopeMessage": {
       "script": "transaction(msg: String) { execute { log(msg) } }",

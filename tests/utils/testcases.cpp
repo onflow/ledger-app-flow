@@ -43,7 +43,13 @@ testcaseData_t ReadRawTestCase(const std::shared_ptr<Json::Value> &jsonSource, i
     auto valid = v["valid"].asBool();
     auto testnet = v["testnet"].asBool();
     auto message = v["envelopeMessage"];
-    auto proposalKey = v["proposalKey"];
+    auto proposalKey = message["proposalKey"];
+
+    auto authorizers = std::vector<std::string>();
+    for(const auto& a : message["authorizers"]) {
+        auto tmp = a.asString();
+        authorizers.push_back(tmp);
+    }
 
     return {
             description,
@@ -54,12 +60,12 @@ testcaseData_t ReadRawTestCase(const std::shared_ptr<Json::Value> &jsonSource, i
             message["script"].asString(),
             std::vector<std::string>(),
             message["refBlock"].asString(),
-            message["gaslimit"].asUInt64(),
+            message["gasLimit"].asUInt64(),
             proposalKey["address"].asString(),
             proposalKey["keyId"].asUInt64(),
             proposalKey["sequenceNum"].asUInt64(),
-            v["payer"].asString(),
-            std::vector<std::string>(),
+            message["payer"].asString(),
+            authorizers,
             v["encodedTransactionEnvelopeHex"].asString(),
             blob
     };

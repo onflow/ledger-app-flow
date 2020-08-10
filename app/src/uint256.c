@@ -25,10 +25,10 @@
 static const char HEXDIGITS[] = "0123456789abcdef";
 
 static uint64_t readUint64BE(uint8_t *buffer) {
-    return (((uint64_t)buffer[0]) << 56) | (((uint64_t)buffer[1]) << 48) |
-           (((uint64_t)buffer[2]) << 40) | (((uint64_t)buffer[3]) << 32) |
-           (((uint64_t)buffer[4]) << 24) | (((uint64_t)buffer[5]) << 16) |
-           (((uint64_t)buffer[6]) << 8) | (((uint64_t)buffer[7]));
+    return (((uint64_t) buffer[0]) << 56u) | (((uint64_t) buffer[1]) << 48u) |
+           (((uint64_t) buffer[2]) << 40u) | (((uint64_t) buffer[3]) << 32u) |
+           (((uint64_t) buffer[4]) << 24u) | (((uint64_t) buffer[5]) << 16u) |
+           (((uint64_t) buffer[6]) << 8u) | (((uint64_t) buffer[7]));
 }
 
 void readu128BE(uint8_t *buffer, uint128_t *target) {
@@ -49,12 +49,12 @@ bool zero256(uint256_t *number) {
     return (zero128(&LOWER_P(number)) && zero128(&UPPER_P(number)));
 }
 
-void copy128(uint128_t *target, uint128_t *number) {
+void copy128(uint128_t *target, const uint128_t *number) {
     UPPER_P(target) = UPPER_P(number);
     LOWER_P(target) = LOWER_P(number);
 }
 
-void copy256(uint256_t *target, uint256_t *number) {
+void copy256(uint256_t *target, const uint256_t *number) {
     copy128(&UPPER_P(target), &UPPER_P(number));
     copy128(&LOWER_P(target), &LOWER_P(number));
 }
@@ -79,7 +79,7 @@ void shiftl128(uint128_t *number, uint32_t value, uint128_t *target) {
         copy128(target, number);
     } else if (value < 64) {
         UPPER_P(target) =
-            (UPPER_P(number) << value) + (LOWER_P(number) >> (64 - value));
+                (UPPER_P(number) << value) + (LOWER_P(number) >> (64 - value));
         LOWER_P(target) = (LOWER_P(number) << value);
     } else if ((128 > value) && (value > 64)) {
         UPPER_P(target) = LOWER_P(number) << (value - 64);
@@ -126,7 +126,7 @@ void shiftr128(uint128_t *number, uint32_t value, uint128_t *target) {
         uint128_t result;
         UPPER(result) = UPPER_P(number) >> value;
         LOWER(result) =
-            (UPPER_P(number) << (64 - value)) + (LOWER_P(number) >> value);
+                (UPPER_P(number) << (64 - value)) + (LOWER_P(number) >> value);
         copy128(target, &result);
     } else if ((128 > value) && (value > 64)) {
         LOWER_P(target) = UPPER_P(number) >> (value - 64);
@@ -235,8 +235,8 @@ bool gte256(uint256_t *number1, uint256_t *number2) {
 
 void add128(uint128_t *number1, uint128_t *number2, uint128_t *target) {
     UPPER_P(target) =
-        UPPER_P(number1) + UPPER_P(number2) +
-        ((LOWER_P(number1) + LOWER_P(number2)) < LOWER_P(number1));
+            UPPER_P(number1) + UPPER_P(number2) +
+            ((LOWER_P(number1) + LOWER_P(number2)) < LOWER_P(number1));
     LOWER_P(target) = LOWER_P(number1) + LOWER_P(number2);
 }
 
@@ -255,8 +255,8 @@ void add256(uint256_t *number1, uint256_t *number2, uint256_t *target) {
 
 void minus128(uint128_t *number1, uint128_t *number2, uint128_t *target) {
     UPPER_P(target) =
-        UPPER_P(number1) - UPPER_P(number2) -
-        ((LOWER_P(number1) - LOWER_P(number2)) > LOWER_P(number1));
+            UPPER_P(number1) - UPPER_P(number2) -
+            ((LOWER_P(number1) - LOWER_P(number2)) > LOWER_P(number1));
     LOWER_P(target) = LOWER_P(number1) - LOWER_P(number2);
 }
 
@@ -494,7 +494,7 @@ static void reverseString(char *str, uint32_t length) {
     }
 }
 
-bool tostring128(uint128_t *number, uint32_t baseParam, char *out,
+bool tostring128(const uint128_t *number, uint32_t baseParam, char *out,
                  uint32_t outLength) {
     uint128_t rDiv;
     uint128_t rMod;
@@ -512,14 +512,14 @@ bool tostring128(uint128_t *number, uint32_t baseParam, char *out,
             return false;
         }
         divmod128(&rDiv, &base, &rDiv, &rMod);
-        out[offset++] = HEXDIGITS[(uint8_t)LOWER(rMod)];
+        out[offset++] = HEXDIGITS[(uint8_t) LOWER(rMod)];
     } while (!zero128(&rDiv));
     out[offset] = '\0';
     reverseString(out, offset);
     return true;
 }
 
-bool tostring256(uint256_t *number, uint32_t baseParam, char *out,
+bool tostring256(const uint256_t *number, uint32_t baseParam, char *out,
                  uint32_t outLength) {
     uint256_t rDiv;
     uint256_t rMod;
@@ -541,7 +541,7 @@ bool tostring256(uint256_t *number, uint32_t baseParam, char *out,
             return false;
         }
         divmod256(&rDiv, &base, &rDiv, &rMod);
-        out[offset++] = HEXDIGITS[(uint8_t)LOWER(LOWER(rMod))];
+        out[offset++] = HEXDIGITS[(uint8_t) LOWER(LOWER(rMod))];
     } while (!zero256(&rDiv));
     out[offset] = '\0';
     reverseString(out, offset);

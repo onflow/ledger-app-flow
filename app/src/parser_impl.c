@@ -22,7 +22,8 @@
 
 parser_tx_t parser_tx_obj;
 
-#define PARSER_ASSERT_OR_ERROR(CALL, ERROR) if (!(CALL)) return ERROR;
+#define CHECK_KIND(KIND, EXPECTED_KIND) \
+    if (KIND != EXPECTED_KIND) { return parser_rlp_error_invalid_kind; }
 
 parser_error_t parser_init_context(parser_context_t *ctx,
                                    const uint8_t *buffer,
@@ -76,6 +77,8 @@ const char *parser_getErrorDescription(parser_error_t err) {
             return "tx version is not supported";
         case parser_unexpected_type:
             return "Unexpected data type";
+        case parser_unexpected_script:
+            return "Unexpected script";
         case parser_unexpected_method:
             return "Unexpected method";
         case parser_unexpected_buffer_end:
@@ -109,78 +112,231 @@ const char *parser_getErrorDescription(parser_error_t err) {
     }
 }
 
-parser_error_t _readScript(const parser_context_t *c, flow_script_t *v) {
-//    rlp_kind_e kind;
-//    uint16_t len;
-//    uint16_t valueOffset;
-//
-//    rlp_decode(c->buffer, &kind, &len, &valueOffset);
-//
+parser_error_t _matchScriptType(uint8_t scriptHash[32], script_type_e *scriptType) {
+    *scriptType = script_unknown;
+
+    char buffer[100];
+    MEMZERO(buffer, sizeof(buffer));
+
+    // Check it is a known script digest
+    if (array_to_hexstr(buffer, sizeof(buffer), scriptHash, CX_SHA256_SIZE) != 64) {
+        return parser_unexpected_error;
+    }
+
+    if (MEMCMP(CONTRACT_HASH_TOKEN_TRANSFER, buffer, 64) == 0) {
+        *scriptType = script_token_transfer;
+        return parser_ok;
+    }
+
+    if (MEMCMP(CONTRACT_HASH_CREATE_ACCOUNT, buffer, 64) == 0) {
+        *scriptType = script_create_account;
+        return parser_ok;
+    }
+
+    return parser_unexpected_script;
+}
+
+parser_error_t _readScript(parser_context_t *c, flow_script_t *v) {
+    rlp_kind_e kind;
+    uint16_t bytesConsumed;
+
+    MEMZERO(v, sizeof(flow_script_t));
+
+    CHECK_PARSER_ERR(rlp_decode(c, &v->ctx, &kind, &bytesConsumed));
+    CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
+    CHECK_KIND(kind, kind_string)
+
+    MEMZERO(v->digest, sizeof(v->digest));
+    sha256(v->ctx.buffer, v->ctx.bufferLen, v->digest);
+
+    CHECK_PARSER_ERR(_matchScriptType(v->digest, &v->type))
+
     return parser_ok;
 }
 
-parser_error_t _readArguments(const parser_context_t *c, flow_argument_list_t *v) {
+parser_error_t _readArguments(parser_context_t *c, flow_argument_list_t *v) {
+    rlp_kind_e kind;
+    uint16_t bytesConsumed;
+
+    MEMZERO(v, sizeof(flow_argument_list_t));
+
+    // Consume external list
+    CHECK_PARSER_ERR(rlp_decode(c, &v->ctx, &kind, &bytesConsumed));
+    CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
+    CHECK_KIND(kind, kind_list)
+
     return parser_ok;
 }
 
-parser_error_t _readGasLimit(const parser_context_t *c, flow_gaslimit_t *v) {
+parser_error_t _readReferenceBlockId(parser_context_t *c, flow_reference_block_id_t *v) {
+    rlp_kind_e kind;
+    uint16_t bytesConsumed;
+
+    MEMZERO(v, sizeof(flow_reference_block_id_t));
+
+    // Consume external list
+    CHECK_PARSER_ERR(rlp_decode(c, &v->ctx, &kind, &bytesConsumed));
+    CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
+    CHECK_KIND(kind, kind_string)
     return parser_ok;
 }
 
-parser_error_t _readProposalKeyAddress(const parser_context_t *c, flow_proposal_key_address_t *v) {
+parser_error_t _readGasLimit(parser_context_t *c, flow_gaslimit_t *v) {
+    rlp_kind_e kind;
+    uint16_t bytesConsumed;
+    parser_context_t ctx_local;
+
+    MEMZERO(v, sizeof(flow_gaslimit_t));
+
+    CHECK_PARSER_ERR(rlp_decode(c, &ctx_local, &kind, &bytesConsumed));
+    CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
+    CHECK_KIND(kind, kind_byte)
+
+    CHECK_PARSER_ERR(rlp_readUInt256(&ctx_local, kind, v))
+
     return parser_ok;
 }
 
-parser_error_t _readProposalKeyId(const parser_context_t *c, flow_proposal_keyid_t *v) {
+parser_error_t _readProposalKeyAddress(parser_context_t *c, flow_proposal_key_address_t *v) {
+    rlp_kind_e kind;
+    uint16_t bytesConsumed;
+
+    MEMZERO(v, sizeof(flow_proposal_key_address_t));
+
+    CHECK_PARSER_ERR(rlp_decode(c, &v->ctx, &kind, &bytesConsumed));
+    CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
+    CHECK_KIND(kind, kind_string)
     return parser_ok;
 }
 
-parser_error_t _readProposalKeySequenceNumber(const parser_context_t *c, flow_proposal_key_sequence_number_t *v) {
+parser_error_t _readProposalKeyId(parser_context_t *c, flow_proposal_keyid_t *v) {
+    rlp_kind_e kind;
+    uint16_t bytesConsumed;
+    parser_context_t ctx_local;
+
+    MEMZERO(v, sizeof(flow_proposal_keyid_t));
+
+    CHECK_PARSER_ERR(rlp_decode(c, &ctx_local, &kind, &bytesConsumed));
+    CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
+    CHECK_KIND(kind, kind_byte)
+
+    CHECK_PARSER_ERR(rlp_readUInt256(&ctx_local, kind, v))
+
     return parser_ok;
 }
 
-parser_error_t _readPayer(const parser_context_t *c, flow_payer_t *v) {
+parser_error_t _readProposalKeySequenceNumber(parser_context_t *c, flow_proposal_key_sequence_number_t *v) {
+    rlp_kind_e kind;
+    uint16_t bytesConsumed;
+    parser_context_t ctx_local;
+
+    MEMZERO(v, sizeof(flow_proposal_key_sequence_number_t));
+
+    CHECK_PARSER_ERR(rlp_decode(c, &ctx_local, &kind, &bytesConsumed));
+    CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
+    CHECK_KIND(kind, kind_byte)
+
+    CHECK_PARSER_ERR(rlp_readUInt256(&ctx_local, kind, v))
+
     return parser_ok;
 }
 
-parser_error_t _readProposalAuthorizers(const parser_context_t *c, flow_proposal_authorizers_t *v) {
+parser_error_t _readPayer(parser_context_t *c, flow_payer_t *v) {
+    rlp_kind_e kind;
+    uint16_t bytesConsumed;
+
+    MEMZERO(v, sizeof(flow_payer_t));
+
+    CHECK_PARSER_ERR(rlp_decode(c, &v->ctx, &kind, &bytesConsumed));
+    CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
+    CHECK_KIND(kind, kind_string)
+    return parser_ok;
+}
+
+parser_error_t _readProposalAuthorizer(parser_context_t *c, flow_proposal_authorizer_t *v) {
+
+    rlp_kind_e kind;
+    uint16_t bytesConsumed;
+
+    MEMZERO(v, sizeof(flow_proposal_authorizer_t));
+
+    CHECK_PARSER_ERR(rlp_decode(c, &v->ctx, &kind, &bytesConsumed));
+    CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
+    CHECK_KIND(kind, kind_string)
+
+    return parser_ok;
+}
+
+parser_error_t _readProposalAuthorizers(parser_context_t *c, flow_proposal_authorizers_t *v) {
+
+    rlp_kind_e kind;
+    uint16_t bytesConsumed;
+
+    MEMZERO(v, sizeof(flow_proposal_authorizers_t));
+
+    CHECK_PARSER_ERR(rlp_decode(c, &v->ctx, &kind, &bytesConsumed));
+    CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
+    CHECK_KIND(kind, kind_list)
+
+    if (v->ctx.bufferLen > 0) {
+        while (v->ctx.offset < v->ctx.bufferLen) {
+            CHECK_PARSER_ERR(_readProposalAuthorizer(&v->ctx, &v->authorizer[v->authorizer_count]))
+            v->authorizer_count++;
+        }
+    }
+
     return parser_ok;
 }
 
 parser_error_t _read(parser_context_t *c, parser_tx_t *v) {
     rlp_kind_e kind;
-    uint16_t len;
-    uint16_t valueOffset;
     uint16_t bytesConsumed;
-    CHECK_PARSER_ERR(rlp_decode(c->buffer, &kind, &len, &valueOffset, &bytesConsumed));
-    CTX_CHECK_AND_ADVANCE(c, valueOffset)
-    if (kind != kind_list) {
-        return parser_rlp_error_invalid_kind;
-    }
+
+    parser_context_t ctx_rootList;
+    parser_context_t ctx_rootInnerList;
+
+    // Consume external list
+    CHECK_PARSER_ERR(rlp_decode(c, &ctx_rootList, &kind, &bytesConsumed));
+    CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
+    CHECK_KIND(kind, kind_list)
     if (bytesConsumed != c->bufferLen) {
         // root list should consume the complete buffer
         return parser_unexpected_buffer_end;
     }
 
-    // TODO:
-//    CHECK_PARSER_ERR(_readScript(c, &v->script))
-//    CHECK_PARSER_ERR(_readArguments(c, &v->arguments))
-//    CHECK_PARSER_ERR(_readGasLimit(c, &v->gasLimit))
-//    CHECK_PARSER_ERR(_readProposalKeyAddress(c, &v->proposalKeyAddress))
-//    CHECK_PARSER_ERR(_readProposalKeyId(c, &v->proposalKeyId))
-//    CHECK_PARSER_ERR(_readProposalKeySequenceNumber(c, &v->proposalKeySequenceNumber))
-//    CHECK_PARSER_ERR(_readPayer(c, &v->payer))
-//    CHECK_PARSER_ERR(_readProposalAuthorizers(c, &v->authorizers))
+    // Consume external list
+    CHECK_PARSER_ERR(rlp_decode(&ctx_rootList, &ctx_rootInnerList, &kind, &bytesConsumed));
+    CTX_CHECK_AND_ADVANCE(&ctx_rootList, bytesConsumed)
+    CHECK_KIND(kind, kind_list)
 
+    // Go through the inner list
+    CHECK_PARSER_ERR(_readScript(&ctx_rootInnerList, &v->script))
+    CHECK_PARSER_ERR(_readArguments(&ctx_rootInnerList, &v->arguments))
+    CHECK_PARSER_ERR(_readReferenceBlockId(&ctx_rootInnerList, &v->referenceBlockId))
+    CHECK_PARSER_ERR(_readGasLimit(&ctx_rootInnerList, &v->gasLimit))
+    CHECK_PARSER_ERR(_readProposalKeyAddress(&ctx_rootInnerList, &v->proposalKeyAddress))
+    CHECK_PARSER_ERR(_readProposalKeyId(&ctx_rootInnerList, &v->proposalKeyId))
+    CHECK_PARSER_ERR(_readProposalKeySequenceNumber(&ctx_rootInnerList, &v->proposalKeySequenceNumber))
+    CHECK_PARSER_ERR(_readPayer(&ctx_rootInnerList, &v->payer))
+    CHECK_PARSER_ERR(_readProposalAuthorizers(&ctx_rootInnerList, &v->authorizers))
+
+    if (ctx_rootInnerList.offset != ctx_rootInnerList.bufferLen) {
+        // ctx_rootInnerList should be consumed completely
+        return parser_unexpected_buffer_end;
+    }
+
+    // Check last item? signers?
+    // TODO: Do we want to show signers too?
+    // TODO: confirm that things are not completed
     return parser_ok;
 }
 
 parser_error_t _validateTx(const parser_context_t *c, const parser_tx_t *v) {
+    // Placeholded to run any coin specific validation
     return parser_ok;
 }
 
 uint8_t _getNumItems(const parser_context_t *c, const parser_tx_t *v) {
-    uint8_t itemCount = 0;
-
+    const uint8_t itemCount = 8 + v->authorizers.authorizer_count;
     return itemCount;
 }

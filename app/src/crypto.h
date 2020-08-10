@@ -25,6 +25,13 @@ extern "C" {
 #include <stdbool.h>
 #include <sigutils.h>
 
+#if defined(TARGET_NANOS) || defined(TARGET_NANOX)
+#else
+#define CX_SHA256_SIZE 32
+#endif
+
+void sha256(const uint8_t *message, uint16_t messageLen, uint8_t message_digest[CX_SHA256_SIZE]);
+
 extern uint32_t hdPath[HDPATH_LEN_DEFAULT];
 
 bool isTestnet();

@@ -1,7 +1,7 @@
 [
   {
     "title": "Example Transaction - Valid Payload - Complete Transaction",
-    "valid": true,
+    "valid": false,
     "testnet": false,
     "payloadMessage": {
       "script": "transaction(msg: String) { execute { log(msg) } }",
@@ -55,7 +55,7 @@
   },
   {
     "title": "Example Transaction - Valid Payload - Empty Script",
-    "valid": true,
+    "valid": false,
     "testnet": false,
     "payloadMessage": {
       "script": "",
@@ -109,7 +109,7 @@
   },
   {
     "title": "Example Transaction - Valid Payload - Null Reference Block",
-    "valid": true,
+    "valid": false,
     "testnet": false,
     "payloadMessage": {
       "script": "transaction(msg: String) { execute { log(msg) } }",
@@ -163,7 +163,7 @@
   },
   {
     "title": "Example Transaction - Valid Payload - Zero Gas Limit",
-    "valid": true,
+    "valid": false,
     "testnet": false,
     "payloadMessage": {
       "script": "transaction(msg: String) { execute { log(msg) } }",
@@ -217,7 +217,7 @@
   },
   {
     "title": "Example Transaction - Valid Payload - Zero proposerKey.keyId",
-    "valid": true,
+    "valid": false,
     "testnet": false,
     "payloadMessage": {
       "script": "transaction(msg: String) { execute { log(msg) } }",
@@ -271,7 +271,7 @@
   },
   {
     "title": "Example Transaction - Valid Payload - Zero proposalKey.sequenceNum",
-    "valid": true,
+    "valid": false,
     "testnet": false,
     "payloadMessage": {
       "script": "transaction(msg: String) { execute { log(msg) } }",
@@ -325,7 +325,7 @@
   },
   {
     "title": "Example Transaction - Valid Payload - Empty Authorizers",
-    "valid": true,
+    "valid": false,
     "testnet": false,
     "payloadMessage": {
       "script": "transaction(msg: String) { execute { log(msg) } }",
@@ -375,7 +375,7 @@
   },
   {
     "title": "Example Transaction - Valid Payload - Multiple Authorizers",
-    "valid": true,
+    "valid": false,
     "testnet": false,
     "payloadMessage": {
       "script": "transaction(msg: String) { execute { log(msg) } }",

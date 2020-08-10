@@ -69,10 +69,13 @@ typedef struct {
     uint8_t der_signature[73];
 } __attribute__((packed)) signature_t;
 
+void sha256(const uint8_t *message, uint16_t messageLen, uint8_t message_digest[CX_SHA256_SIZE]) {
+    cx_hash_sha256(message, messageLen, message_digest, CX_SHA256_SIZE);
+}
 
 uint16_t crypto_sign(uint8_t *buffer, uint16_t signatureMaxlen, const uint8_t *message, uint16_t messageLen) {
     uint8_t message_digest[CX_SHA256_SIZE];
-    cx_hash_sha256(message, messageLen, message_digest, CX_SHA256_SIZE);
+    sha256(message, messageLen, message_digest);
 
     cx_ecfp_private_key_t cx_privateKey;
     uint8_t privateKeyData[32];

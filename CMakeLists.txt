@@ -61,6 +61,7 @@ target_include_directories(app_lib PUBLIC
 ##############################################################
 #  Tests
 file(GLOB_RECURSE TESTS_SRC
+        ${CMAKE_CURRENT_SOURCE_DIR}/utils/sha256.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
 
 add_executable(unittests ${TESTS_SRC})
@@ -69,6 +70,7 @@ target_include_directories(unittests PUBLIC
         ${gmock_SOURCE_DIR}/include
         ${CONAN_INCLUDE_DIRS_FMT}
         ${CONAN_INCLUDE_DIRS_JSONCPP}
+        deps/PicoSHA2
         )
 
 target_link_libraries(unittests PRIVATE

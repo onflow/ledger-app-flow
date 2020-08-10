@@ -17,6 +17,7 @@
 
 #include <coin.h>
 #include <zxtypes.h>
+#include "uint256.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,10 +25,19 @@ extern "C" {
 
 #include <stdint.h>
 #include <stddef.h>
+#include "crypto.h"
+#include "coin_script_hashes.h"
+
+typedef enum {
+    script_unknown,
+    script_token_transfer,
+    script_create_account
+} script_type_e;
 
 typedef struct {
-    uint8_t *ptr;
-    uint16_t len;
+    parser_context_t ctx;
+    uint8_t digest[CX_SHA256_SIZE];
+    script_type_e type;
 } flow_script_t;
 
 typedef struct {
@@ -36,39 +46,41 @@ typedef struct {
 } flow_argument_t;
 
 typedef struct {
-    uint8_t *ptr;
-    uint16_t len;
+    parser_context_t ctx;
+} flow_reference_block_id_t;
+
+typedef struct {
+    parser_context_t ctx;
 } flow_argument_list_t;
 
-typedef uint64_t flow_gaslimit_t;
+typedef uint256_t flow_gaslimit_t;
 
 typedef struct {
-    uint8_t *ptr;
-    uint16_t len;
+    parser_context_t ctx;
 } flow_proposal_key_address_t;
 
-typedef uint64_t flow_proposal_keyid_t;
+typedef uint256_t flow_proposal_keyid_t;
+
+typedef uint256_t flow_proposal_key_sequence_number_t;
 
 typedef struct {
-    uint8_t *ptr;
-    uint16_t len;
+    parser_context_t ctx;
 } flow_payer_t;
 
-typedef uint64_t flow_proposal_key_sequence_number_t;
-
 typedef struct {
-    uint8_t *ptr;
-    uint16_t len;
+    parser_context_t ctx;
 } flow_proposal_authorizer_t;
 
 typedef struct {
-    uint8_t *ptr;
-    uint16_t len;
+    parser_context_t ctx;
+    uint16_t authorizer_count;
+    flow_proposal_authorizer_t authorizer[16];
 } flow_proposal_authorizers_t;
 
 typedef struct {
     flow_script_t script;
     flow_argument_list_t arguments;
+    flow_reference_block_id_t referenceBlockId;
     flow_gaslimit_t gasLimit;
     flow_proposal_key_address_t proposalKeyAddress;
     flow_proposal_keyid_t proposalKeyId;
