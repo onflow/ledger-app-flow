@@ -16,13 +16,12 @@
 #include <fmt/core.h>
 #include <coin.h>
 #include <crypto.h>
-#include <parser_common.h>
 #include <parser_txdef.h>
 #include <parser_impl.h>
 #include "testcases.h"
 #include "zxmacros.h"
 
-bool TestcaseIsValid(const Json::Value &tc) {
+bool TestcaseIsValid(const Json::Value &) {
     return true;
 }
 
@@ -69,8 +68,8 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
 
     // TODO: Complete
     addTo(answer, "1 | Param : ?");
-    addTo(answer, "2 | Ref Block Id : {}", FormatHexString(tcd.refBlock, 0, &dummy));
-    addTo(answer, "2 | Ref Block Id : {}", FormatHexString(tcd.refBlock, 1, &dummy));
+    addTo(answer, "2 | Ref Block Id [1/2] : {}", FormatHexString(tcd.refBlock, 0, &dummy));
+    addTo(answer, "2 | Ref Block Id [2/2] : {}", FormatHexString(tcd.refBlock, 1, &dummy));
     addTo(answer, "3 | Gas Limit : {}", tcd.gasLimit);
     addTo(answer, "4 | Prop Key Addr : {}", FormatHexString(tcd.proposalKeyAddress, 0, &dummy));
     addTo(answer, "5 | Prop Key Id : {}", tcd.proposalKeyId);
