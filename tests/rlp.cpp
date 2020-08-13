@@ -70,7 +70,7 @@ TEST_P(RLPDecodeTest, decodeElement) {
     ctx_in.bufferLen = sizeof(data);
 
     rlp_kind_e kind;
-    uint16_t bytesConsumed;
+    uint32_t bytesConsumed;
 
     parser_error_t err = rlp_decode(&ctx_in, &ctx_out, &kind, &bytesConsumed);
 

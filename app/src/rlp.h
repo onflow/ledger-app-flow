@@ -41,7 +41,7 @@ typedef struct {
 parser_error_t rlp_decode(const parser_context_t *input,
                           parser_context_t *outputPayload,
                           rlp_kind_e *outputKind,
-                          uint16_t *bytesConsumed);
+                          uint32_t *bytesConsumed);
 
 // reads a byte from the field
 parser_error_t rlp_readByte(const parser_context_t *ctx, rlp_kind_e kind, uint8_t *value);

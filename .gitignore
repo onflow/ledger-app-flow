@@ -84,3 +84,6 @@ cmake-build-fuzz/
 !\deps/PicoSHA2
 
 node_modules/.yarn-integrity
+/build
+/fuzz-*.log
+/fuzz/corpora

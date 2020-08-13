@@ -17,11 +17,15 @@
 #include "rlp.h"
 #include "uint256.h"
 
+#define CHECK_AVAILABLE(ctx, size) \
+    if (ctx->offset > ctx->bufferLen) return parser_unexpected_buffer_end; \
+    if (ctx->bufferLen - ctx->offset < size ) return parser_unexpected_buffer_end;
+
 parser_error_t rlp_decode(
         const parser_context_t *input,
         parser_context_t *outputPayload,
         rlp_kind_e *outputKind,
-        uint16_t *bytesConsumed) {
+        uint32_t *bytesConsumed) {
 
     outputPayload->buffer = input->buffer + input->offset;
     outputPayload->bufferLen = 0;
@@ -29,12 +33,15 @@ parser_error_t rlp_decode(
     *outputKind = kind_unknown;
     *bytesConsumed = 0;
 
+    CHECK_AVAILABLE(input, 1)
     uint8_t p = *outputPayload->buffer;
+
     if (p >= 0 && p <= 0x7F) {
         *outputKind = kind_byte;
         outputPayload->bufferLen = 1;
         outputPayload->buffer += 0;
         *bytesConsumed = 1; // 1 byte to consume from the stream
+        CHECK_AVAILABLE(input, *bytesConsumed)
         return parser_ok;
     }
 
@@ -43,12 +50,15 @@ parser_error_t rlp_decode(
         outputPayload->bufferLen = p - 0x80;
         outputPayload->buffer += 1;
         *bytesConsumed = 1 + outputPayload->bufferLen;
+        CHECK_AVAILABLE(input, *bytesConsumed)
         return parser_ok;
     }
 
     if (p >= 0xb8 && p <= 0xbf) {
         *outputKind = kind_string;
-        uint8_t len_len = p - 0xb7;
+        const uint8_t len_len = p - 0xb7;
+        CHECK_AVAILABLE(input, 1 + len_len)
+
         outputPayload->bufferLen = 0;
         for (uint8_t i = 0; i < len_len; i++) {
             outputPayload->bufferLen <<= 8u;
@@ -56,6 +66,7 @@ parser_error_t rlp_decode(
         }
         outputPayload->buffer += 1 + len_len;
         *bytesConsumed = 1 + len_len + outputPayload->bufferLen;
+        CHECK_AVAILABLE(input, *bytesConsumed)
         return parser_ok;
     }
 
@@ -64,19 +75,24 @@ parser_error_t rlp_decode(
         outputPayload->bufferLen = p - 0xc0;
         outputPayload->buffer += 1;
         *bytesConsumed = 1 + outputPayload->bufferLen;
+        CHECK_AVAILABLE(input, *bytesConsumed)
         return parser_ok;
     }
 
     if (p >= 0xf8 && p <= 0xff) {
         *outputKind = kind_list;
-        uint8_t len_len = p - 0xf7;
+        const uint8_t len_len = p - 0xf7;
+        CHECK_AVAILABLE(input, 1 + len_len)
+
         outputPayload->bufferLen = 0;
         for (uint8_t i = 0; i < len_len; i++) {
             outputPayload->bufferLen <<= 8u;
             outputPayload->bufferLen += *(outputPayload->buffer + 1 + i);
         }
+
         outputPayload->buffer += 1 + len_len;
         *bytesConsumed = 1 + len_len + outputPayload->bufferLen;
+        CHECK_AVAILABLE(input, *bytesConsumed)
         return parser_ok;
     }
 
