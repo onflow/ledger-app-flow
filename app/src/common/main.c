@@ -57,6 +57,12 @@ main(void) {
                 handleApdu(&flags, &tx, rx);
                 CHECK_APP_CANARY()
             }
+            CATCH(EXCEPTION_IO_RESET)
+            {
+                // reset IO and UX before continuing
+                app_init();
+                continue;
+            }
             CATCH_OTHER(e)
             {
                 if (app_init_done) {

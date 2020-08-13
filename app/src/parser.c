@@ -208,8 +208,10 @@ parser_error_t parser_getItem(const parser_context_t *ctx,
             }
             return parser_ok;
         case 1:
-            // TODO: Params
             snprintf(outKey, outKeyLen, "Param");
+            pageStringExt(outVal, outValLen,
+                          (const char *) parser_tx_obj.arguments.ctx.buffer,
+                          parser_tx_obj.arguments.ctx.bufferLen, pageIdx, pageCount);
             return parser_ok;
         case 2:
             snprintf(outKey, outKeyLen, "Ref Block Id");

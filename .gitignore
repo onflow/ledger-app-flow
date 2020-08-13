@@ -82,6 +82,7 @@ cmake-build-fuzz/
 \deps/nano2-sdk
 !\deps/ledger-zxlib
 !\deps/PicoSHA2
+!\deps/jsmn
 
 node_modules/.yarn-integrity
 /build
