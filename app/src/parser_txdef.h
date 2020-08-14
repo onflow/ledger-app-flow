@@ -18,6 +18,7 @@
 #include <coin.h>
 #include <zxtypes.h>
 #include "uint256.h"
+#include "parser_common.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -138,7 +138,7 @@ parser_error_t _matchScriptType(uint8_t scriptHash[32], script_type_e *scriptTyp
 
 parser_error_t _readScript(parser_context_t *c, flow_script_t *v) {
     rlp_kind_e kind;
-    uint16_t bytesConsumed;
+    uint32_t bytesConsumed;
 
     MEMZERO(v, sizeof(flow_script_t));
 
@@ -156,7 +156,7 @@ parser_error_t _readScript(parser_context_t *c, flow_script_t *v) {
 
 parser_error_t _readArguments(parser_context_t *c, flow_argument_list_t *v) {
     rlp_kind_e kind;
-    uint16_t bytesConsumed;
+    uint32_t bytesConsumed;
 
     MEMZERO(v, sizeof(flow_argument_list_t));
 
@@ -170,7 +170,7 @@ parser_error_t _readArguments(parser_context_t *c, flow_argument_list_t *v) {
 
 parser_error_t _readReferenceBlockId(parser_context_t *c, flow_reference_block_id_t *v) {
     rlp_kind_e kind;
-    uint16_t bytesConsumed;
+    uint32_t bytesConsumed;
 
     MEMZERO(v, sizeof(flow_reference_block_id_t));
 
@@ -183,7 +183,7 @@ parser_error_t _readReferenceBlockId(parser_context_t *c, flow_reference_block_i
 
 parser_error_t _readGasLimit(parser_context_t *c, flow_gaslimit_t *v) {
     rlp_kind_e kind;
-    uint16_t bytesConsumed;
+    uint32_t bytesConsumed;
     parser_context_t ctx_local;
 
     MEMZERO(v, sizeof(flow_gaslimit_t));
@@ -199,7 +199,7 @@ parser_error_t _readGasLimit(parser_context_t *c, flow_gaslimit_t *v) {
 
 parser_error_t _readProposalKeyAddress(parser_context_t *c, flow_proposal_key_address_t *v) {
     rlp_kind_e kind;
-    uint16_t bytesConsumed;
+    uint32_t bytesConsumed;
 
     MEMZERO(v, sizeof(flow_proposal_key_address_t));
 
@@ -211,7 +211,7 @@ parser_error_t _readProposalKeyAddress(parser_context_t *c, flow_proposal_key_ad
 
 parser_error_t _readProposalKeyId(parser_context_t *c, flow_proposal_keyid_t *v) {
     rlp_kind_e kind;
-    uint16_t bytesConsumed;
+    uint32_t bytesConsumed;
     parser_context_t ctx_local;
 
     MEMZERO(v, sizeof(flow_proposal_keyid_t));
@@ -227,7 +227,7 @@ parser_error_t _readProposalKeyId(parser_context_t *c, flow_proposal_keyid_t *v)
 
 parser_error_t _readProposalKeySequenceNumber(parser_context_t *c, flow_proposal_key_sequence_number_t *v) {
     rlp_kind_e kind;
-    uint16_t bytesConsumed;
+    uint32_t bytesConsumed;
     parser_context_t ctx_local;
 
     MEMZERO(v, sizeof(flow_proposal_key_sequence_number_t));
@@ -243,7 +243,7 @@ parser_error_t _readProposalKeySequenceNumber(parser_context_t *c, flow_proposal
 
 parser_error_t _readPayer(parser_context_t *c, flow_payer_t *v) {
     rlp_kind_e kind;
-    uint16_t bytesConsumed;
+    uint32_t bytesConsumed;
 
     MEMZERO(v, sizeof(flow_payer_t));
 
@@ -256,7 +256,7 @@ parser_error_t _readPayer(parser_context_t *c, flow_payer_t *v) {
 parser_error_t _readProposalAuthorizer(parser_context_t *c, flow_proposal_authorizer_t *v) {
 
     rlp_kind_e kind;
-    uint16_t bytesConsumed;
+    uint32_t bytesConsumed;
 
     MEMZERO(v, sizeof(flow_proposal_authorizer_t));
 
@@ -270,7 +270,7 @@ parser_error_t _readProposalAuthorizer(parser_context_t *c, flow_proposal_author
 parser_error_t _readProposalAuthorizers(parser_context_t *c, flow_proposal_authorizers_t *v) {
 
     rlp_kind_e kind;
-    uint16_t bytesConsumed;
+    uint32_t bytesConsumed;
 
     MEMZERO(v, sizeof(flow_proposal_authorizers_t));
 
@@ -290,13 +290,13 @@ parser_error_t _readProposalAuthorizers(parser_context_t *c, flow_proposal_autho
 
 parser_error_t _read(parser_context_t *c, parser_tx_t *v) {
     rlp_kind_e kind;
-    uint16_t bytesConsumed;
+    uint32_t bytesConsumed;
 
     parser_context_t ctx_rootList;
     parser_context_t ctx_rootInnerList;
 
     // Consume external list
-    CHECK_PARSER_ERR(rlp_decode(c, &ctx_rootList, &kind, &bytesConsumed));
+    CHECK_PARSER_ERR(rlp_decode(c, &ctx_rootList, &kind, &bytesConsumed))
     CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
     CHECK_KIND(kind, kind_list)
     if (bytesConsumed != c->bufferLen) {
@@ -305,7 +305,7 @@ parser_error_t _read(parser_context_t *c, parser_tx_t *v) {
     }
 
     // Consume external list
-    CHECK_PARSER_ERR(rlp_decode(&ctx_rootList, &ctx_rootInnerList, &kind, &bytesConsumed));
+    CHECK_PARSER_ERR(rlp_decode(&ctx_rootList, &ctx_rootInnerList, &kind, &bytesConsumed))
     CTX_CHECK_AND_ADVANCE(&ctx_rootList, bytesConsumed)
     CHECK_KIND(kind, kind_list)
 

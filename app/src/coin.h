@@ -48,7 +48,7 @@ typedef enum {
 #define MENU_MAIN_APP_LINE1 "Flow"
 #define MENU_MAIN_APP_LINE2 "DO NOT USE"
 #define APPVERSION_LINE1 "Version"
-#define APPVERSION_LINE2 "v"APPVERSION
+#define APPVERSION_LINE2 "v" APPVERSION
 
 #ifdef __cplusplus
 }

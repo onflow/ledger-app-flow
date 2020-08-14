@@ -26,7 +26,6 @@
 #include "utils/common.h"
 
 using ::testing::TestWithParam;
-using ::testing::Values;
 
 void check_testcase(const testcase_t &testcase) {
     auto tc = ReadTestCaseData(testcase.testcases, testcase.index);
