@@ -159,7 +159,7 @@ describe('Basic checks', function () {
         }
     });
 
-    it('sign basic & verify', async function () {
+    it('sign basic & verify - transfer', async function () {
         const sim = new Zemu(APP_PATH);
         try {
             await sim.start(sim_options);
@@ -183,7 +183,54 @@ describe('Basic checks', function () {
             // Wait until we are not in the main menu
             await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
-            await sim.compareSnapshotsAndAccept(".", "sign_basic_verify", 11);
+            await sim.compareSnapshotsAndAccept(".", "sign_basic_verify_transfer", 12);
+
+            let resp = await signatureRequest;
+            console.log(resp);
+
+            expect(resp.returnCode).toEqual(0x9000);
+            expect(resp.errorMessage).toEqual("No errors");
+
+            // Verify signature
+            const pk = Uint8Array.from(pkResponse.publicKey)
+
+            const hasher = new jsSHA("SHA-256", "UINT8ARRAY");
+            hasher.update(txBlob)
+            const digest = hasher.getHash("UINT8ARRAY")
+
+            const sigArray = Uint8Array.from(resp.signatureCompact.slice(0, 64));
+            const signatureOk = secp256k1.ecdsaVerify(sigArray, digest, pk);
+            expect(signatureOk).toEqual(true);
+        } finally {
+            await sim.close();
+        }
+    });
+
+    it('sign basic & verify - create', async function () {
+        const sim = new Zemu(APP_PATH);
+        try {
+            await sim.start(sim_options);
+            const app = new FlowApp(sim.getTransport());
+
+            const scheme = 0x301;
+            const path = `m/44'/539'/${scheme}'/0/0`;
+
+            const txBlob = Buffer.from(
+                "f902b5f9028db89e7472616e73616374696f6e287075626c69634b6579733a205b5b55496e74385d5d29207b0a70726570617265287369676e65723a20417574684163636f756e7429207b0a6c65742061636374203d20417574684163636f756e742870617965723a207369676e6572290a666f72206b657920696e207075626c69634b657973207b0a616363742e6164645075626c69634b6579286b6579290a7d0a7d0a7df901aab901a77b2274797065223a224172726179222c2276616c7565223a5b7b2274797065223a224172726179222c2276616c7565223a5b7b2274797065223a2255496e7438222c2276616c7565223a38377d2c7b2274797065223a2255496e7438222c2276616c7565223a3134397d2c7b2274797065223a2255496e7438222c2276616c7565223a3132367d2c7b2274797065223a2255496e7438222c2276616c7565223a3233387d5d7d2c7b2274797065223a224172726179222c2276616c7565223a5b7b2274797065223a2255496e7438222c2276616c7565223a3232317d2c7b2274797065223a2255496e7438222c2276616c7565223a3132337d2c7b2274797065223a2255496e7438222c2276616c7565223a37387d2c7b2274797065223a2255496e7438222c2276616c7565223a357d2c7b2274797065223a2255496e7438222c2276616c7565223a33347d2c7b2274797065223a2255496e7438222c2276616c7565223a3232357d2c7b2274797065223a2255496e7438222c2276616c7565223a3230317d2c7b2274797065223a2255496e7438222c2276616c7565223a3230317d5d7d5d7da0f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b2a88f8d6e0586b0a20c7040a88f8d6e0586b0a20c7c988f8d6e0586b0a20c7e4e38004a0f7225388c1d69d57e6251c9fda50cbbf9e05131e5adb81e5aa0422402f048162",
+                "hex",
+            );
+
+            const pkResponse = await app.getAddressAndPubKey(path);
+            console.log(pkResponse);
+            expect(pkResponse.returnCode).toEqual(0x9000);
+            expect(pkResponse.errorMessage).toEqual("No errors");
+
+            // do not wait here..
+            const signatureRequest = app.sign(path, txBlob);
+            // Wait until we are not in the main menu
+            await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
+
+            await sim.compareSnapshotsAndAccept(".", "sign_basic_verify_create", 12);
 
             let resp = await signatureRequest;
             console.log(resp);
