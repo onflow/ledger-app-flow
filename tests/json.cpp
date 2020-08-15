@@ -16,150 +16,13 @@
 
 #include "gmock/gmock.h"
 #include <iostream>
+#include <stdlib.h>
 #include <hexutils.h>
 #include <json/json_parser.h>
+#include <parser_impl.h>
 #include "rlp.h"
 
 const auto sendToken = "{\"type\":\"UFix64\",\"value\":\"545.77\"}";
-
-parser_error_t json_validateToken(parsed_json_t *parsedJson, uint16_t tokenIdx) {
-    if (!parsedJson->isValid) {
-        return parser_json_invalid;
-    }
-
-    if (tokenIdx >= parsedJson->numberOfTokens) {
-        return parser_json_invalid_token_idx;
-    }
-
-    const jsmntok_t token = parsedJson->tokens[tokenIdx];
-    if (token.start < 0) {
-        return parser_json_unexpected_error;
-    }
-
-    if (token.end > parsedJson->bufferLen) {
-        return parser_unexpected_buffer_end;
-    }
-
-    return parser_ok;
-}
-
-parser_error_t json_extractToken(char *outVal, uint16_t outValLen, parsed_json_t *parsedJson, uint16_t tokenIdx) {
-    MEMZERO(outVal, outValLen);
-    CHECK_PARSER_ERR(json_validateToken(parsedJson, tokenIdx))
-
-    const jsmntok_t token = parsedJson->tokens[tokenIdx];
-    if (token.end - token.start > outValLen - 1) {
-        return parser_unexpected_buffer_end;
-    }
-
-
-    MEMCPY(outVal, parsedJson->buffer + token.start, token.end - token.start);
-    return parser_ok;
-}
-
-parser_error_t json_matchToken(parsed_json_t *parsedJson, uint16_t tokenIdx, char *expectedValue) {
-    CHECK_PARSER_ERR(json_validateToken(parsedJson, tokenIdx))
-
-    const jsmntok_t token = parsedJson->tokens[tokenIdx];
-    if (token.type != jsmntype_t::JSMN_STRING) {
-        return parser_unexpected_type;
-    }
-
-    if (strlen(expectedValue) != token.end - token.start) {
-        return parser_unexpected_value;
-    }
-
-    if (MEMCMP(expectedValue, parsedJson->buffer + token.start, token.end - token.start) != 0) {
-        return parser_unexpected_value;
-    }
-
-    return parser_ok;
-}
-
-parser_error_t json_matchKeyValue(parsed_json_t *parsedJson,
-                                  uint16_t tokenIdx, char *expectedType, jsmntype_t jsonType, uint16_t *valueTokenIdx) {
-    CHECK_PARSER_ERR(json_validateToken(parsedJson, tokenIdx))
-
-    if (tokenIdx + 4 >= parsedJson->numberOfTokens) {
-        // we need this token a 4 more
-        return parser_json_invalid_token_idx;
-    }
-
-    if (parsedJson->tokens[tokenIdx].type != jsmntype_t::JSMN_OBJECT) {
-        return parser_unexpected_type;
-    }
-
-    if (parsedJson->tokens[tokenIdx].size != 2) {
-        return parser_unexpected_number_items;
-    }
-
-    // Type key/value
-    CHECK_PARSER_ERR(json_matchToken(parsedJson, tokenIdx + 1, (char *) "type"))
-    CHECK_PARSER_ERR(json_matchToken(parsedJson, tokenIdx + 2, expectedType))
-    CHECK_PARSER_ERR(json_matchToken(parsedJson, tokenIdx + 3, (char *) "value"))
-    if (parsedJson->tokens[tokenIdx + 4].type != jsonType) {
-        return parser_unexpected_number_items;
-    }
-
-    *valueTokenIdx = tokenIdx + 4;
-
-    return parser_ok;
-}
-
-parser_error_t
-json_extractFormattedPubKey(char *outVal, uint16_t outValLen, parsed_json_t *parsedJson, uint16_t tokenIdx) {
-    MEMZERO(outVal, outValLen);
-    CHECK_PARSER_ERR(json_validateToken(parsedJson, tokenIdx))
-
-    uint16_t internalTokenElementIdx;
-    CHECK_PARSER_ERR(json_matchKeyValue(parsedJson,
-                                        tokenIdx, (char *) "Array", jsmntype_t::JSMN_ARRAY, &internalTokenElementIdx))
-
-    // Extract values
-
-    return parser_ok;
-}
-
-TEST(JSON, basicSingleKeyValue) {
-    parsed_json_t parsedJson = {false};
-
-    auto err = json_parse(&parsedJson, sendToken, strlen(sendToken));
-
-    // We could parse valid JSON
-    EXPECT_THAT(err, parser_ok);
-    EXPECT_TRUE(parsedJson.isValid);
-    EXPECT_EQ(5, parsedJson.numberOfTokens);
-
-    EXPECT_EQ(parsedJson.tokens[0].type, jsmntype_t::JSMN_OBJECT);
-    EXPECT_EQ(parsedJson.tokens[1].type, jsmntype_t::JSMN_STRING);
-    EXPECT_EQ(parsedJson.tokens[2].type, jsmntype_t::JSMN_STRING);
-    EXPECT_EQ(parsedJson.tokens[3].type, jsmntype_t::JSMN_STRING);
-    EXPECT_EQ(parsedJson.tokens[4].type, jsmntype_t::JSMN_STRING);
-
-    char tmpBuffer[100];
-
-    ASSERT_THAT(json_extractToken(tmpBuffer, sizeof(tmpBuffer), &parsedJson, 1), parser_ok);
-    EXPECT_STREQ(tmpBuffer, "type");
-    ASSERT_THAT(json_matchToken(&parsedJson, 1, (char *) "type"), parser_ok);
-
-    ASSERT_THAT(json_extractToken(tmpBuffer, sizeof(tmpBuffer), &parsedJson, 2), parser_ok);
-    EXPECT_STREQ(tmpBuffer, "UFix64");
-    ASSERT_THAT(json_matchToken(&parsedJson, 2, (char *) "UFix64"), parser_ok);
-
-    ASSERT_THAT(json_extractToken(tmpBuffer, sizeof(tmpBuffer), &parsedJson, 3), parser_ok);
-    EXPECT_STREQ(tmpBuffer, "value");
-    ASSERT_THAT(json_matchToken(&parsedJson, 3, (char *) "value"), parser_ok);
-
-    ASSERT_THAT(json_extractToken(tmpBuffer, sizeof(tmpBuffer), &parsedJson, 4), parser_ok);
-    EXPECT_STREQ(tmpBuffer, "545.77");
-    ASSERT_THAT(json_matchToken(&parsedJson, 4, (char *) "545.77"), parser_ok);
-
-    uint16_t internalTokenElementIdx;
-    ASSERT_THAT(
-            json_matchKeyValue(&parsedJson, 0, (char *) "UFix64", JSMN_STRING, &internalTokenElementIdx),
-            parser_ok);
-    ASSERT_THAT(internalTokenElementIdx, 4);
-}
 
 const auto validCreationInput = "{\n"
                                 "  \"type\": \"Array\",\n"
@@ -214,48 +77,79 @@ const auto validCreationInput = "{\n"
                                 "  ]\n"
                                 "}";
 
-TEST(JSON, basicArrayOfArrays) {
+TEST(JSON, basicSingleKeyValue) {
     parsed_json_t parsedJson = {false};
 
-    auto err = json_parse(&parsedJson, validCreationInput, strlen(validCreationInput));
+    auto err = json_parse(&parsedJson, sendToken, strlen(sendToken));
 
     // We could parse valid JSON
     EXPECT_THAT(err, parser_ok);
     EXPECT_TRUE(parsedJson.isValid);
-    EXPECT_EQ(160, parsedJson.numberOfTokens);
+    EXPECT_EQ(5, parsedJson.numberOfTokens);
 
     EXPECT_EQ(parsedJson.tokens[0].type, jsmntype_t::JSMN_OBJECT);
-    EXPECT_EQ(parsedJson.tokens[0].size, 2);    // type and value
-    // Type key/value
     EXPECT_EQ(parsedJson.tokens[1].type, jsmntype_t::JSMN_STRING);
     EXPECT_EQ(parsedJson.tokens[2].type, jsmntype_t::JSMN_STRING);
-    // Value key/value
     EXPECT_EQ(parsedJson.tokens[3].type, jsmntype_t::JSMN_STRING);
-    EXPECT_EQ(parsedJson.tokens[4].type, jsmntype_t::JSMN_ARRAY);
+    EXPECT_EQ(parsedJson.tokens[4].type, jsmntype_t::JSMN_STRING);
 
     char tmpBuffer[100];
 
-    // Check first group
     ASSERT_THAT(json_extractToken(tmpBuffer, sizeof(tmpBuffer), &parsedJson, 1), parser_ok);
     EXPECT_STREQ(tmpBuffer, "type");
+    ASSERT_THAT(json_matchToken(&parsedJson, 1, (char *) "type"), parser_ok);
+
     ASSERT_THAT(json_extractToken(tmpBuffer, sizeof(tmpBuffer), &parsedJson, 2), parser_ok);
-    EXPECT_STREQ(tmpBuffer, "Array");
+    EXPECT_STREQ(tmpBuffer, "UFix64");
+    ASSERT_THAT(json_matchToken(&parsedJson, 2, (char *) "UFix64"), parser_ok);
+
     ASSERT_THAT(json_extractToken(tmpBuffer, sizeof(tmpBuffer), &parsedJson, 3), parser_ok);
     EXPECT_STREQ(tmpBuffer, "value");
+    ASSERT_THAT(json_matchToken(&parsedJson, 3, (char *) "value"), parser_ok);
 
-    const uint16_t arrayTokenIdx = 4;
+    ASSERT_THAT(json_extractToken(tmpBuffer, sizeof(tmpBuffer), &parsedJson, 4), parser_ok);
+    EXPECT_STREQ(tmpBuffer, "545.77");
+    ASSERT_THAT(json_matchToken(&parsedJson, 4, (char *) "545.77"), parser_ok);
+
+    uint16_t internalTokenElementIdx;
+    ASSERT_THAT(
+            json_matchKeyValue(&parsedJson, 0, (char *) "UFix64", JSMN_STRING, &internalTokenElementIdx),
+            parser_ok);
+    ASSERT_THAT(internalTokenElementIdx, 4);
+}
+
+TEST(JSON, basicArrayOfArrays) {
+    parsed_json_t parsedJson = {false};
+
+    auto err = json_parse(&parsedJson, validCreationInput, strlen(validCreationInput));
+    EXPECT_THAT(err, parser_ok);
+
+    uint16_t internalTokenElementIdx;
+    ASSERT_THAT(
+            json_matchKeyValue(&parsedJson, 0, (char *) "Array", jsmntype_t::JSMN_ARRAY, &internalTokenElementIdx),
+            parser_ok);
+    ASSERT_THAT(internalTokenElementIdx, 4);
+
+    // Internally there should be 4 items
     uint16_t arrayTokenCount;
-    ASSERT_THAT(array_get_element_count(&parsedJson, arrayTokenIdx, &arrayTokenCount), parser_ok);
+    ASSERT_THAT(array_get_element_count(&parsedJson, internalTokenElementIdx, &arrayTokenCount), parser_ok);
     EXPECT_EQ(arrayTokenCount, 4);
 
+    // Extract all public keys
+    char tmpBuffer[4][100];
     for (int arrayElementIdx = 0; arrayElementIdx < 4; arrayElementIdx++) {
         uint16_t arrayElementToken;
-        ASSERT_THAT(array_get_nth_element(&parsedJson, arrayTokenIdx, arrayElementIdx, &arrayElementToken),
+        ASSERT_THAT(array_get_nth_element(&parsedJson, internalTokenElementIdx, arrayElementIdx, &arrayElementToken),
                     parser_ok);
-        EXPECT_EQ(parsedJson.tokens[arrayElementToken].type, jsmntype_t::JSMN_OBJECT);
 
-        ASSERT_THAT(json_extractFormattedPubKey(tmpBuffer, sizeof(tmpBuffer), &parsedJson, arrayElementToken),
-                    parser_ok);
-        fprintf(stderr, "%s\n", tmpBuffer);
+        ASSERT_THAT(json_extractPubKey(tmpBuffer[arrayElementIdx], sizeof(tmpBuffer[arrayElementIdx]),
+                                       &parsedJson, arrayElementToken), parser_ok);
+
+        fprintf(stderr, "%s\n", tmpBuffer[arrayElementIdx]);
     }
+
+    EXPECT_STREQ(tmpBuffer[0], "e916a89840ccc2");
+    EXPECT_STREQ(tmpBuffer[1], "fbf589bc3aa4e5ae");
+    EXPECT_STREQ(tmpBuffer[2], "ac4491f39ad334");
+    EXPECT_STREQ(tmpBuffer[3], "4f9012acc9");
 }

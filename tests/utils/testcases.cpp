@@ -58,7 +58,7 @@ testcaseData_t ReadRawTestCase(const std::shared_ptr<Json::Value> &jsonSource, i
             testnet,
             false,
             message["script"].asString(),
-            std::vector<std::string>(),
+            message["arguments"],
             message["refBlock"].asString(),
             message["gasLimit"].asUInt64(),
             proposalKey["address"].asString(),
