@@ -22,7 +22,7 @@ typedef struct {
     bool expert;
 
     std::string script;
-    std::vector<std::string> arguments;
+    Json::Value arguments;
 
     std::string refBlock;
     uint64_t gasLimit;

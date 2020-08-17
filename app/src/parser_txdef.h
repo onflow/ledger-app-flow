@@ -17,6 +17,7 @@
 
 #include <coin.h>
 #include <zxtypes.h>
+#include <json/json_parser.h>
 #include "uint256.h"
 #include "parser_common.h"
 
@@ -28,6 +29,8 @@ extern "C" {
 #include <stddef.h>
 #include "crypto.h"
 #include "coin_script_hashes.h"
+
+#define PARSER_MAX_ARGCOUNT 10
 
 typedef enum {
     script_unknown,
@@ -42,16 +45,13 @@ typedef struct {
 } flow_script_t;
 
 typedef struct {
-    uint8_t *ptr;
-    uint16_t len;
-} flow_argument_t;
-
-typedef struct {
     parser_context_t ctx;
 } flow_reference_block_id_t;
 
 typedef struct {
     parser_context_t ctx;
+    parser_context_t argCtx[PARSER_MAX_ARGCOUNT];
+    uint16_t count;
 } flow_argument_list_t;
 
 typedef uint256_t flow_gaslimit_t;

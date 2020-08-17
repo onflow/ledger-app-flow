@@ -1,5 +1,5 @@
 /*******************************************************************************
-*  (c) 2019 Zondax GmbH
+*  (c) 2019-2020 Zondax GmbH
 *
 *  Licensed under the Apache License, Version 2.0 (the "License");
 *  you may not use this file except in compliance with the License.
@@ -48,6 +48,12 @@ typedef enum {
     parser_rlp_error_invalid_field_offset,
     parser_rlp_error_buffer_too_small,
     parser_rlp_error_invalid_page,
+    parser_json_invalid,
+    parser_json_invalid_token_idx,
+    parser_json_too_many_tokens,
+    parser_json_incomplete_json,
+    parser_json_unexpected_error,
+    parser_json_zero_tokens,
     ///
     parser_unexpected_tx_version,
     parser_unexpected_type,

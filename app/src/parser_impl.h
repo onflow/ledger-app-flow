@@ -18,6 +18,8 @@
 #include "parser_common.h"
 #include "parser_txdef.h"
 #include "crypto.h"
+#include "jsmn.h"
+#include <json/json_parser.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,6 +36,20 @@ parser_error_t _read(parser_context_t *c, parser_tx_t *v);
 parser_error_t _validateTx(const parser_context_t *c, const parser_tx_t *v);
 
 uint8_t _getNumItems(const parser_context_t *c, const parser_tx_t *v);
+
+parser_error_t json_validateToken(parsed_json_t *parsedJson, uint16_t tokenIdx);
+
+parser_error_t json_extractToken(char *outVal, uint16_t outValLen, parsed_json_t *parsedJson, uint16_t tokenIdx);
+
+parser_error_t json_matchToken(parsed_json_t *parsedJson, uint16_t tokenIdx, char *expectedValue);
+
+parser_error_t json_matchKeyValue(parsed_json_t *parsedJson,
+                                  uint16_t tokenIdx, char *expectedType, jsmntype_t jsonType, uint16_t *valueTokenIdx);
+
+parser_error_t formatStrUInt8AsHex(const char *decStr, char *hexStr);
+
+parser_error_t json_extractPubKey(char *outVal, uint16_t outValLen, parsed_json_t *parsedJson, uint16_t tokenIdx);
+
 
 #ifdef __cplusplus
 }

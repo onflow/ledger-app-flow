@@ -18,6 +18,7 @@
 #include <crypto.h>
 #include <parser_txdef.h>
 #include <parser_impl.h>
+#include <iomanip>
 #include "testcases.h"
 #include "zxmacros.h"
 
@@ -36,6 +37,14 @@ std::string FormatHexString(const std::string &data, uint8_t idx, uint8_t *pageC
     return std::string(outBuffer);
 }
 
+std::string FormatPubKey(const Json::Value &v) {
+    std::stringstream s;
+    for (const auto &c : v) {
+        s << std::hex << std::setfill('0') << std::setw(2) << c["value"].asInt64();
+    }
+    return s.str();
+}
+
 std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
     auto answer = std::vector<std::string>();
 
@@ -49,35 +58,49 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
     sha256((const uint8_t *) tcd.script.c_str(), tcd.script.length(), scriptHash);
     _matchScriptType(scriptHash, &scriptType);
 
+    uint16_t item = 0;
+
     switch (scriptType) {
         case script_unknown:
-            addTo(answer, "0 | Type :Unknown");
+            addTo(answer, "{} | Type :Unknown", item++);
             break;
-        case script_token_transfer:
-            addTo(answer, "0 | Type : Token Transfer");
+        case script_token_transfer: {
+            addTo(answer, "{} | Type : Token Transfer", item++);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
+            addTo(answer, "{} | Destination : {}", item++, tcd.arguments[1]["value"].asString());
             break;
-        case script_create_account:
-            addTo(answer, "0 | Type : Create Account");
+        }
+        case script_create_account: {
+            addTo(answer, "{} | Type : Create Account", item++);
+            const auto pks = tcd.arguments[0]["value"];
+
+            if (pks.size() > 1) {
+                for (uint16_t i = 0; i < (uint16_t) pks.size(); i++) {
+                    addTo(answer, "{} | Public keys [{}/{}] : {}", item, i + 1, pks.size(), FormatPubKey(pks[i]["value"]));
+                }
+            } else {
+                addTo(answer, "{} | Public key : {}", item, FormatPubKey(pks[0]["value"]));
+            }
+            item++;
             break;
+        }
         default:
-            addTo(answer, "0 | Type : ERROR");
+            addTo(answer, "{} | Type : ERROR", item++);
             break;
     }
 
     uint8_t dummy;
 
-    // TODO: Complete
-    addTo(answer, "1 | Param : ?");
-    addTo(answer, "2 | Ref Block Id [1/2] : {}", FormatHexString(tcd.refBlock, 0, &dummy));
-    addTo(answer, "2 | Ref Block Id [2/2] : {}", FormatHexString(tcd.refBlock, 1, &dummy));
-    addTo(answer, "3 | Gas Limit : {}", tcd.gasLimit);
-    addTo(answer, "4 | Prop Key Addr : {}", FormatHexString(tcd.proposalKeyAddress, 0, &dummy));
-    addTo(answer, "5 | Prop Key Id : {}", tcd.proposalKeyId);
-    addTo(answer, "6 | Prop Key Seq Num : {}", tcd.proposalKeySequenceNumber);
-    addTo(answer, "7 | Payer : {}", FormatHexString(tcd.payer, 0, &dummy));
+    addTo(answer, "{} | Ref Block Id [1/2] : {}", item, FormatHexString(tcd.refBlock, 0, &dummy));
+    addTo(answer, "{} | Ref Block Id [2/2] : {}", item++, FormatHexString(tcd.refBlock, 1, &dummy));
+    addTo(answer, "{} | Gas Limit : {}", item++, tcd.gasLimit);
+    addTo(answer, "{} | Prop Key Addr : {}", item++, FormatHexString(tcd.proposalKeyAddress, 0, &dummy));
+    addTo(answer, "{} | Prop Key Id : {}", item++, tcd.proposalKeyId);
+    addTo(answer, "{} | Prop Key Seq Num : {}", item++, tcd.proposalKeySequenceNumber);
+    addTo(answer, "{} | Payer : {}", item++, FormatHexString(tcd.payer, 0, &dummy));
 
     if (tcd.authorizers.size() > 1) {
-        addTo(answer, "8 | Authorizer : ERR");      // TODO: is this valid?
+        addTo(answer, "{} | Authorizer : ERR", item++);      // TODO: is this valid?
         // FIXME: Missing test cases
 //        uint16_t count = 0;
 //        for (const auto& a: tcd.authorizers) {
@@ -85,8 +108,8 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
 //            count++;
 //        }
     } else {
-        for (const auto& a: tcd.authorizers) {
-            addTo(answer, "8 | Authorizer 1 : {}", a);
+        for (const auto &a: tcd.authorizers) {
+            addTo(answer, "{} | Authorizer 1 : {}", item++, a);
         }
     }
 
