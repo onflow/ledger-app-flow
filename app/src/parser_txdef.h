@@ -34,7 +34,8 @@ extern "C" {
 typedef enum {
     script_unknown,
     script_token_transfer,
-    script_create_account
+    script_create_account,
+    script_add_new_key
 } script_type_e;
 
 typedef struct {
@@ -50,7 +51,7 @@ typedef struct {
 typedef struct {
     parser_context_t ctx;
     parser_context_t argCtx[PARSER_MAX_ARGCOUNT];
-    uint16_t count;
+    uint16_t argCount;
 } flow_argument_list_t;
 
 typedef uint64_t flow_gaslimit_t;

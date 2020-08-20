@@ -63,7 +63,7 @@ __Z_INLINE parser_error_t parser_printArgument(const flow_argument_list_t *v,
                                                uint8_t pageIdx, uint8_t *pageCount) {
     MEMZERO(outVal, outValLen);
 
-    if (argIndex >= v->count) {
+    if (argIndex >= v->argCount) {
         return parser_unexpected_number_items;
     }
 
@@ -78,19 +78,33 @@ __Z_INLINE parser_error_t parser_printArgument(const flow_argument_list_t *v,
     return parser_ok;
 }
 
-__Z_INLINE parser_error_t parser_printArgumentPublicKeys(const flow_argument_list_t *v,
+__Z_INLINE parser_error_t parser_printArgumentPublicKey(const parser_context_t *argumentCtx,
+                                                        char *outVal, uint16_t outValLen,
+                                                        uint8_t pageIdx, uint8_t *pageCount) {
+    MEMZERO(outVal, outValLen);
+
+    parsed_json_t parsedJson = {false};
+    CHECK_PARSER_ERR(json_parse(&parsedJson, (char *) argumentCtx->buffer, argumentCtx->bufferLen));
+
+    char bufferUI[200];
+    CHECK_PARSER_ERR(json_extractPubKey(bufferUI, sizeof(bufferUI), &parsedJson, 0))
+    pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
+
+    // Check requested page is in range
+    if (pageIdx > *pageCount) {
+        return parser_display_page_out_of_range;
+    }
+
+    return parser_ok;
+}
+
+__Z_INLINE parser_error_t parser_printArgumentPublicKeys(const parser_context_t *argumentCtx, uint8_t argumentIndex,
                                                          char *outVal, uint16_t outValLen,
                                                          uint8_t pageIdx, uint8_t *pageCount) {
     MEMZERO(outVal, outValLen);
 
-    if (v->count < 1) {
-        snprintf(outVal, outValLen, "None");
-        *pageCount = 1;
-        return parser_unexpected_number_items;
-    }
-
     parsed_json_t parsedJson = {false};
-    CHECK_PARSER_ERR(json_parse(&parsedJson, (char *) v->argCtx[0].buffer, v->argCtx[0].bufferLen));
+    CHECK_PARSER_ERR(json_parse(&parsedJson, (char *) argumentCtx->buffer, argumentCtx->bufferLen));
 
     // Estimate number of pages
     uint16_t internalTokenElementIdx;
@@ -100,16 +114,17 @@ __Z_INLINE parser_error_t parser_printArgumentPublicKeys(const flow_argument_lis
     if (arrayTokenCount > 64) {
         return parser_unexpected_number_items;
     }
-    *pageCount = (uint8_t) arrayTokenCount;
+
+    uint16_t arrayElementToken;
+    char bufferUI[200];
+    CHECK_PARSER_ERR(array_get_nth_element(&parsedJson, internalTokenElementIdx, argumentIndex, &arrayElementToken))
+    CHECK_PARSER_ERR(json_extractPubKey(bufferUI, sizeof(bufferUI), &parsedJson, arrayElementToken))
+    pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
 
     // Check requested page is in range
     if (pageIdx > *pageCount) {
         return parser_display_page_out_of_range;
     }
-
-    uint16_t arrayElementToken;
-    CHECK_PARSER_ERR(array_get_nth_element(&parsedJson, internalTokenElementIdx, pageIdx, &arrayElementToken))
-    CHECK_PARSER_ERR(json_extractPubKey(outVal, outValLen, &parsedJson, arrayElementToken))
 
     return parser_ok;
 }
@@ -289,18 +304,76 @@ __Z_INLINE parser_error_t parser_getItemCreateAccount(const parser_context_t *ct
                                                       char *outKey, uint16_t outKeyLen,
                                                       char *outVal, uint16_t outValLen,
                                                       uint8_t pageIdx, uint8_t *pageCount) {
+
+    if (displayIdx == 0) {
+        snprintf(outKey, outKeyLen, "Type");
+        snprintf(outVal, outValLen, "Create Account");
+        return parser_ok;
+    }
+    displayIdx--;
+
+    const uint8_t pkCount = _countArgumentItems(&parser_tx_obj.arguments, 0);
+    if (displayIdx < pkCount) {
+        snprintf(outKey, outKeyLen, "Public key %d", displayIdx + 1);
+        CHECK_PARSER_ERR(
+                parser_printArgumentPublicKeys(
+                        &parser_tx_obj.arguments.argCtx[0],
+                        displayIdx, outVal, outValLen,
+                        pageIdx, pageCount))
+        return parser_ok;
+    }
+    displayIdx -= pkCount;
+
+    switch (displayIdx) {
+        case 0:
+            snprintf(outKey, outKeyLen, "Ref Block Id");
+            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
+        case 1:
+            snprintf(outKey, outKeyLen, "Gas Limit");
+            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
+        case 2:
+            snprintf(outKey, outKeyLen, "Prop Key Addr");
+            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
+        case 3:
+            snprintf(outKey, outKeyLen, "Prop Key Id");
+            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
+        case 4:
+            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
+            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
+                                          pageCount);
+        case 5:
+            snprintf(outKey, outKeyLen, "Payer");
+            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
+        default:
+            break;
+    }
+    displayIdx -= 6;
+
+    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
+        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
+        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
+                                      pageCount);
+    }
+
+    return parser_ok;
+}
+
+__Z_INLINE parser_error_t parser_getItemAddNewKey(const parser_context_t *ctx,
+                                                  uint16_t displayIdx,
+                                                  char *outKey, uint16_t outKeyLen,
+                                                  char *outVal, uint16_t outValLen,
+                                                  uint8_t pageIdx, uint8_t *pageCount) {
     switch (displayIdx) {
         case 0:
             snprintf(outKey, outKeyLen, "Type");
-            snprintf(outVal, outValLen, "Create Account");
+            snprintf(outVal, outValLen, "Add New Key");
             return parser_ok;
         case 1: {
             CHECK_PARSER_ERR(
-                    parser_printArgumentPublicKeys(&parser_tx_obj.arguments, outVal, outValLen, pageIdx, pageCount))
+                    parser_printArgumentPublicKey(
+                            &parser_tx_obj.arguments.argCtx[0], outVal, outValLen,
+                            pageIdx, pageCount))
             snprintf(outKey, outKeyLen, "Public key");
-            if (*pageCount > 1) {
-                snprintf(outKey, outKeyLen, "Public keys");
-            }
             return parser_ok;
         }
         case 2:
@@ -365,6 +438,9 @@ parser_error_t parser_getItem(const parser_context_t *ctx,
         case script_create_account:
             return parser_getItemCreateAccount(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx,
                                                pageCount);
+        case script_add_new_key:
+            return parser_getItemAddNewKey(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx,
+                                           pageCount);
     }
 
     return parser_unexpected_script;

@@ -74,13 +74,16 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             addTo(answer, "{} | Type : Create Account", item++);
             const auto pks = tcd.arguments[0]["value"];
 
-            if (pks.size() > 1) {
-                for (uint16_t i = 0; i < (uint16_t) pks.size(); i++) {
-                    addTo(answer, "{} | Public keys [{}/{}] : {}", item, i + 1, pks.size(), FormatPubKey(pks[i]["value"]));
-                }
-            } else {
-                addTo(answer, "{} | Public key : {}", item, FormatPubKey(pks[0]["value"]));
+            for (uint16_t i = 0; i < (uint16_t) pks.size(); i++) {
+                addTo(answer, "{} | Public key {} : {}", item, i + 1, FormatPubKey(pks[i]["value"]));
+                item++;
             }
+            break;
+        }
+        case script_add_new_key: {
+            addTo(answer, "{} | Type : Add New Key", item++);
+            const auto pk = tcd.arguments[0]["value"];
+            addTo(answer, "{} | Public key : {}", item, FormatPubKey(pk));
             item++;
             break;
         }
