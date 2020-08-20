@@ -18,7 +18,6 @@
 #include <coin.h>
 #include <zxtypes.h>
 #include <json/json_parser.h>
-#include "uint256.h"
 #include "parser_common.h"
 
 #ifdef __cplusplus
@@ -54,15 +53,15 @@ typedef struct {
     uint16_t count;
 } flow_argument_list_t;
 
-typedef uint256_t flow_gaslimit_t;
+typedef uint64_t flow_gaslimit_t;
 
 typedef struct {
     parser_context_t ctx;
 } flow_proposal_key_address_t;
 
-typedef uint256_t flow_proposal_keyid_t;
+typedef uint64_t flow_proposal_keyid_t;
 
-typedef uint256_t flow_proposal_key_sequence_number_t;
+typedef uint64_t flow_proposal_key_sequence_number_t;
 
 typedef struct {
     parser_context_t ctx;

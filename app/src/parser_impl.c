@@ -357,7 +357,7 @@ parser_error_t _readGasLimit(parser_context_t *c, flow_gaslimit_t *v) {
     CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
     CHECK_KIND(kind, kind_byte)
 
-    CHECK_PARSER_ERR(rlp_readUInt256(&ctx_local, kind, v))
+    CHECK_PARSER_ERR(rlp_readUInt64(&ctx_local, kind, v))
 
     return parser_ok;
 }
@@ -385,7 +385,7 @@ parser_error_t _readProposalKeyId(parser_context_t *c, flow_proposal_keyid_t *v)
     CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
     CHECK_KIND(kind, kind_byte)
 
-    CHECK_PARSER_ERR(rlp_readUInt256(&ctx_local, kind, v))
+    CHECK_PARSER_ERR(rlp_readUInt64(&ctx_local, kind, v))
 
     return parser_ok;
 }
@@ -401,7 +401,7 @@ parser_error_t _readProposalKeySequenceNumber(parser_context_t *c, flow_proposal
     CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
     CHECK_KIND(kind, kind_byte)
 
-    CHECK_PARSER_ERR(rlp_readUInt256(&ctx_local, kind, v))
+    CHECK_PARSER_ERR(rlp_readUInt64(&ctx_local, kind, v))
 
     return parser_ok;
 }
