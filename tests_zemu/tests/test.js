@@ -141,7 +141,7 @@ describe('Basic checks', function () {
             await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
             // Now navigate the address / path
-            await sim.compareSnapshotsAndAccept(".", "show_address_expert", 7);
+            await sim.compareSnapshotsAndAccept(".", "show_address_expert", 6);
 
             const resp = await respRequest;
             console.log(resp);
