@@ -78,15 +78,15 @@ __Z_INLINE parser_error_t parser_printArgument(const flow_argument_list_t *v,
     return parser_ok;
 }
 
-__Z_INLINE parser_error_t parser_printArgumentPublicKey(const parser_context_t *argumentCtx,
-                                                        char *outVal, uint16_t outValLen,
-                                                        uint8_t pageIdx, uint8_t *pageCount) {
+parser_error_t parser_printArgumentPublicKey(const parser_context_t *argumentCtx,
+                                             char *outVal, uint16_t outValLen,
+                                             uint8_t pageIdx, uint8_t *pageCount) {
     MEMZERO(outVal, outValLen);
 
     parsed_json_t parsedJson = {false};
     CHECK_PARSER_ERR(json_parse(&parsedJson, (char *) argumentCtx->buffer, argumentCtx->bufferLen));
 
-    char bufferUI[200];
+    char bufferUI[128];
     CHECK_PARSER_ERR(json_extractPubKey(bufferUI, sizeof(bufferUI), &parsedJson, 0))
     pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
 
@@ -98,9 +98,9 @@ __Z_INLINE parser_error_t parser_printArgumentPublicKey(const parser_context_t *
     return parser_ok;
 }
 
-__Z_INLINE parser_error_t parser_printArgumentPublicKeys(const parser_context_t *argumentCtx, uint8_t argumentIndex,
-                                                         char *outVal, uint16_t outValLen,
-                                                         uint8_t pageIdx, uint8_t *pageCount) {
+parser_error_t parser_printArgumentPublicKeys(const parser_context_t *argumentCtx, uint8_t argumentIndex,
+                                              char *outVal, uint16_t outValLen,
+                                              uint8_t pageIdx, uint8_t *pageCount) {
     MEMZERO(outVal, outValLen);
 
     parsed_json_t parsedJson = {false};
@@ -115,8 +115,10 @@ __Z_INLINE parser_error_t parser_printArgumentPublicKeys(const parser_context_t 
         return parser_unexpected_number_items;
     }
 
+    zemu_log_stack("PublicKeys");
+
     uint16_t arrayElementToken;
-    char bufferUI[200];
+    char bufferUI[128];
     CHECK_PARSER_ERR(array_get_nth_element(&parsedJson, internalTokenElementIdx, argumentIndex, &arrayElementToken))
     CHECK_PARSER_ERR(json_extractPubKey(bufferUI, sizeof(bufferUI), &parsedJson, arrayElementToken))
     pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
@@ -129,9 +131,9 @@ __Z_INLINE parser_error_t parser_printArgumentPublicKeys(const parser_context_t 
     return parser_ok;
 }
 
-__Z_INLINE parser_error_t parser_printBlockId(const flow_reference_block_id_t *v,
-                                              char *outVal, uint16_t outValLen,
-                                              uint8_t pageIdx, uint8_t *pageCount) {
+parser_error_t parser_printBlockId(const flow_reference_block_id_t *v,
+                                   char *outVal, uint16_t outValLen,
+                                   uint8_t pageIdx, uint8_t *pageCount) {
     if (v->ctx.bufferLen != 32) {
         return parser_invalid_address;
     }
@@ -147,9 +149,9 @@ __Z_INLINE parser_error_t parser_printBlockId(const flow_reference_block_id_t *v
     return parser_ok;
 }
 
-__Z_INLINE parser_error_t parser_printGasLimit(const flow_gaslimit_t *v,
-                                               char *outVal, uint16_t outValLen,
-                                               uint8_t pageIdx, uint8_t *pageCount) {
+parser_error_t parser_printGasLimit(const flow_gaslimit_t *v,
+                                    char *outVal, uint16_t outValLen,
+                                    uint8_t pageIdx, uint8_t *pageCount) {
     char outBuffer[100];
     MEMZERO(outBuffer, sizeof(outBuffer));
 
@@ -179,9 +181,9 @@ __Z_INLINE parser_error_t parser_printPropKeyAddr(const flow_proposal_key_addres
     return parser_ok;
 }
 
-__Z_INLINE parser_error_t parser_printPropKeyId(const flow_proposal_keyid_t *v,
-                                                char *outVal, uint16_t outValLen,
-                                                uint8_t pageIdx, uint8_t *pageCount) {
+parser_error_t parser_printPropKeyId(const flow_proposal_keyid_t *v,
+                                     char *outVal, uint16_t outValLen,
+                                     uint8_t pageIdx, uint8_t *pageCount) {
     char outBuffer[100];
     MEMZERO(outBuffer, sizeof(outBuffer));
 
@@ -193,9 +195,9 @@ __Z_INLINE parser_error_t parser_printPropKeyId(const flow_proposal_keyid_t *v,
     return parser_ok;
 }
 
-__Z_INLINE parser_error_t parser_printPropSeqNum(const flow_proposal_key_sequence_number_t *v,
-                                                 char *outVal, uint16_t outValLen,
-                                                 uint8_t pageIdx, uint8_t *pageCount) {
+parser_error_t parser_printPropSeqNum(const flow_proposal_key_sequence_number_t *v,
+                                      char *outVal, uint16_t outValLen,
+                                      uint8_t pageIdx, uint8_t *pageCount) {
     char outBuffer[100];
     MEMZERO(outBuffer, sizeof(outBuffer));
 
@@ -207,9 +209,9 @@ __Z_INLINE parser_error_t parser_printPropSeqNum(const flow_proposal_key_sequenc
     return parser_ok;
 }
 
-__Z_INLINE parser_error_t parser_printPayer(const flow_payer_t *v,
-                                            char *outVal, uint16_t outValLen,
-                                            uint8_t pageIdx, uint8_t *pageCount) {
+parser_error_t parser_printPayer(const flow_payer_t *v,
+                                 char *outVal, uint16_t outValLen,
+                                 uint8_t pageIdx, uint8_t *pageCount) {
     if (v->ctx.bufferLen != 8) {
         return parser_invalid_address;
     }
@@ -225,9 +227,9 @@ __Z_INLINE parser_error_t parser_printPayer(const flow_payer_t *v,
     return parser_ok;
 }
 
-__Z_INLINE parser_error_t parser_printAuthorizer(const flow_proposal_authorizer_t *v,
-                                                 char *outVal, uint16_t outValLen,
-                                                 uint8_t pageIdx, uint8_t *pageCount) {
+parser_error_t parser_printAuthorizer(const flow_proposal_authorizer_t *v,
+                                      char *outVal, uint16_t outValLen,
+                                      uint8_t pageIdx, uint8_t *pageCount) {
     if (v->ctx.bufferLen != 8) {
         return parser_invalid_address;
     }
@@ -243,11 +245,11 @@ __Z_INLINE parser_error_t parser_printAuthorizer(const flow_proposal_authorizer_
     return parser_ok;
 }
 
-__Z_INLINE parser_error_t parser_getItemTokenTransfer(const parser_context_t *ctx,
-                                                      uint16_t displayIdx,
-                                                      char *outKey, uint16_t outKeyLen,
-                                                      char *outVal, uint16_t outValLen,
-                                                      uint8_t pageIdx, uint8_t *pageCount) {
+parser_error_t parser_getItemTokenTransfer(const parser_context_t *ctx,
+                                           uint16_t displayIdx,
+                                           char *outKey, uint16_t outKeyLen,
+                                           char *outVal, uint16_t outValLen,
+                                           uint8_t pageIdx, uint8_t *pageCount) {
     if (displayIdx == 0) {
         snprintf(outKey, outKeyLen, "Type");
         snprintf(outVal, outValLen, "Token Transfer");
@@ -299,11 +301,12 @@ __Z_INLINE parser_error_t parser_getItemTokenTransfer(const parser_context_t *ct
     return parser_ok;
 }
 
-__Z_INLINE parser_error_t parser_getItemCreateAccount(const parser_context_t *ctx,
-                                                      uint16_t displayIdx,
-                                                      char *outKey, uint16_t outKeyLen,
-                                                      char *outVal, uint16_t outValLen,
-                                                      uint8_t pageIdx, uint8_t *pageCount) {
+parser_error_t parser_getItemCreateAccount(const parser_context_t *ctx,
+                                           uint16_t displayIdx,
+                                           char *outKey, uint16_t outKeyLen,
+                                           char *outVal, uint16_t outValLen,
+                                           uint8_t pageIdx, uint8_t *pageCount) {
+    zemu_log_stack("parser_getItemCreateAccount");
 
     if (displayIdx == 0) {
         snprintf(outKey, outKeyLen, "Type");
@@ -358,11 +361,11 @@ __Z_INLINE parser_error_t parser_getItemCreateAccount(const parser_context_t *ct
     return parser_ok;
 }
 
-__Z_INLINE parser_error_t parser_getItemAddNewKey(const parser_context_t *ctx,
-                                                  uint16_t displayIdx,
-                                                  char *outKey, uint16_t outKeyLen,
-                                                  char *outVal, uint16_t outValLen,
-                                                  uint8_t pageIdx, uint8_t *pageCount) {
+parser_error_t parser_getItemAddNewKey(const parser_context_t *ctx,
+                                       uint16_t displayIdx,
+                                       char *outKey, uint16_t outKeyLen,
+                                       char *outVal, uint16_t outValLen,
+                                       uint8_t pageIdx, uint8_t *pageCount) {
     switch (displayIdx) {
         case 0:
             snprintf(outKey, outKeyLen, "Type");

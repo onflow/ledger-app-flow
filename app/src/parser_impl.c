@@ -500,7 +500,7 @@ parser_error_t _read(parser_context_t *c, parser_tx_t *v) {
 }
 
 parser_error_t _validateTx(const parser_context_t *c, const parser_tx_t *v) {
-    // Placeholded to run any coin specific validation
+    // Placeholder to run any coin specific validation
     return parser_ok;
 }
 
