@@ -165,7 +165,7 @@ parser_error_t json_matchToken(parsed_json_t *parsedJson, uint16_t tokenIdx, cha
         return parser_unexpected_type;
     }
 
-    if (strlen(expectedValue) != token.end - token.start) {
+    if (token.end < token.start || strlen(expectedValue) != (size_t)(token.end - token.start)) {
         return parser_unexpected_value;
     }
 
