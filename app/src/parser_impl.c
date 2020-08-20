@@ -165,7 +165,7 @@ parser_error_t json_matchToken(parsed_json_t *parsedJson, uint16_t tokenIdx, cha
         return parser_unexpected_type;
     }
 
-    if (strlen(expectedValue) != token.end - token.start) {
+    if (token.end < token.start || strlen(expectedValue) != (size_t)(token.end - token.start)) {
         return parser_unexpected_value;
     }
 
@@ -286,6 +286,11 @@ parser_error_t _matchScriptType(uint8_t scriptHash[32], script_type_e *scriptTyp
         return parser_ok;
     }
 
+    if (MEMCMP(CONTRACT_HASH_ADD_NEW_KEY, buffer, 64) == 0) {
+        *scriptType = script_add_new_key;
+        return parser_ok;
+    }
+
     return parser_unexpected_script;
 }
 
@@ -318,15 +323,15 @@ parser_error_t _readArguments(parser_context_t *c, flow_argument_list_t *v) {
     CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
     CHECK_KIND(kind, kind_list)
 
-    v->count = 0;
-    while (v->ctx.offset < v->ctx.bufferLen && v->count < PARSER_MAX_ARGCOUNT) {
-        CHECK_PARSER_ERR(rlp_decode(&v->ctx, &v->argCtx[v->count], &kind, &bytesConsumed))
+    v->argCount = 0;
+    while (v->ctx.offset < v->ctx.bufferLen && v->argCount < PARSER_MAX_ARGCOUNT) {
+        CHECK_PARSER_ERR(rlp_decode(&v->ctx, &v->argCtx[v->argCount], &kind, &bytesConsumed))
         CTX_CHECK_AND_ADVANCE(&v->ctx, bytesConsumed)
         CHECK_KIND(kind, kind_string)
-        v->count++;
+        v->argCount++;
     }
     v->ctx.offset = 0;
-    if (v->count >= PARSER_MAX_ARGCOUNT) {
+    if (v->argCount >= PARSER_MAX_ARGCOUNT) {
         return parser_unexpected_number_items;
     }
 
@@ -495,8 +500,30 @@ parser_error_t _read(parser_context_t *c, parser_tx_t *v) {
 }
 
 parser_error_t _validateTx(const parser_context_t *c, const parser_tx_t *v) {
-    // Placeholded to run any coin specific validation
+    // Placeholder to run any coin specific validation
     return parser_ok;
+}
+
+uint8_t _countArgumentItems(const flow_argument_list_t *v, uint8_t argumentIndex) {
+    parsed_json_t parsedJson = {false};
+
+    if (argumentIndex >= v->argCount) {
+        return 0;
+    }
+
+    const parser_context_t argCtx = v->argCtx[argumentIndex];
+    CHECK_PARSER_ERR(json_parse(&parsedJson, (char *) argCtx.buffer, argCtx.bufferLen));
+
+    // Get numnber of items
+    uint16_t internalTokenElementIdx;
+    CHECK_PARSER_ERR(json_matchKeyValue(&parsedJson, 0, (char *) "Array", JSMN_ARRAY, &internalTokenElementIdx));
+    uint16_t arrayTokenCount;
+    CHECK_PARSER_ERR(array_get_element_count(&parsedJson, internalTokenElementIdx, &arrayTokenCount));
+    if (arrayTokenCount > 64) {
+        return parser_unexpected_number_items;
+    }
+
+    return arrayTokenCount;
 }
 
 uint8_t _getNumItems(const parser_context_t *c, const parser_tx_t *v) {
@@ -504,6 +531,8 @@ uint8_t _getNumItems(const parser_context_t *c, const parser_tx_t *v) {
         case script_token_transfer:
             return 9 + v->authorizers.authorizer_count;
         case script_create_account:
+            return 7 + _countArgumentItems(&v->arguments, 0) + v->authorizers.authorizer_count;
+        case script_add_new_key:
             return 8 + v->authorizers.authorizer_count;
         case script_unknown:
         default:

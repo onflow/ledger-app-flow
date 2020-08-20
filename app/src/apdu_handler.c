@@ -22,6 +22,7 @@
 #include <os.h>
 
 #include "view.h"
+#include "addr.h"
 #include "actions.h"
 #include "tx.h"
 #include "crypto.h"
@@ -35,7 +36,10 @@ __Z_INLINE void handleGetAddrSecp256K1(volatile uint32_t *flags, volatile uint32
 
     if (requireConfirmation) {
         app_fill_address();
-        view_address_show();
+
+        view_review_init(addr_getItem, addr_getNumItems, app_reply_address);
+        view_review_show();
+
         *flags |= IO_ASYNCH_REPLY;
         return;
     }
@@ -45,8 +49,9 @@ __Z_INLINE void handleGetAddrSecp256K1(volatile uint32_t *flags, volatile uint32
 }
 
 __Z_INLINE void handleSignSecp256K1(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
-    if (!process_chunk(tx, rx))
+    if (!process_chunk(tx, rx)) {
         THROW(APDU_CODE_OK);
+    }
 
     CHECK_APP_CANARY()
 
@@ -61,8 +66,8 @@ __Z_INLINE void handleSignSecp256K1(volatile uint32_t *flags, volatile uint32_t 
     }
 
     CHECK_APP_CANARY()
-
-    view_sign_show();
+    view_review_init(tx_getItem, tx_getNumItems, app_sign);
+    view_review_show();
     *flags |= IO_ASYNCH_REPLY;
 }
 
