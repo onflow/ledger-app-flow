@@ -138,7 +138,7 @@ __Z_INLINE parser_error_t parser_printGasLimit(const flow_gaslimit_t *v,
     char outBuffer[100];
     MEMZERO(outBuffer, sizeof(outBuffer));
 
-    if (!tostring256(v, 10, outBuffer, sizeof(outBuffer))) {
+    if (uint64_to_str(outBuffer, sizeof(outBuffer), *v) != NULL) {
         return parser_unexpected_value;
     }
 
@@ -170,7 +170,7 @@ __Z_INLINE parser_error_t parser_printPropKeyId(const flow_proposal_keyid_t *v,
     char outBuffer[100];
     MEMZERO(outBuffer, sizeof(outBuffer));
 
-    if (!tostring256(v, 10, outBuffer, sizeof(outBuffer))) {
+    if (uint64_to_str(outBuffer, sizeof(outBuffer), *v) != NULL) {
         return parser_unexpected_value;
     }
 
@@ -184,7 +184,7 @@ __Z_INLINE parser_error_t parser_printPropSeqNum(const flow_proposal_key_sequenc
     char outBuffer[100];
     MEMZERO(outBuffer, sizeof(outBuffer));
 
-    if (!tostring256(v, 10, outBuffer, sizeof(outBuffer))) {
+    if (uint64_to_str(outBuffer, sizeof(outBuffer), *v) != NULL) {
         return parser_unexpected_value;
     }
 
@@ -295,7 +295,8 @@ __Z_INLINE parser_error_t parser_getItemCreateAccount(const parser_context_t *ct
             snprintf(outVal, outValLen, "Create Account");
             return parser_ok;
         case 1: {
-            CHECK_PARSER_ERR(parser_printArgumentPublicKeys(&parser_tx_obj.arguments, outVal, outValLen, pageIdx, pageCount))
+            CHECK_PARSER_ERR(
+                    parser_printArgumentPublicKeys(&parser_tx_obj.arguments, outVal, outValLen, pageIdx, pageCount))
             snprintf(outKey, outKeyLen, "Public key");
             if (*pageCount > 1) {
                 snprintf(outKey, outKeyLen, "Public keys");

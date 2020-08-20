@@ -15,7 +15,6 @@
 ********************************************************************************/
 
 #include "rlp.h"
-#include "uint256.h"
 
 #define CHECK_AVAILABLE(ctx, size) \
     if (ctx->offset > ctx->bufferLen) return parser_unexpected_buffer_end; \
@@ -100,39 +99,45 @@ parser_error_t rlp_decode(
 }
 
 parser_error_t rlp_readByte(const parser_context_t *ctx, rlp_kind_e kind, uint8_t *value) {
-    if (kind != kind_byte)
+    if (kind != kind_byte) {
         return parser_rlp_error_invalid_kind;
+    }
 
-    if (ctx->bufferLen != 1)
+    if (ctx->bufferLen != 1) {
         return parser_rlp_error_invalid_value_len;
+    }
 
-    if (ctx->offset != 0)
+    if (ctx->offset != 0) {
         return parser_rlp_error_invalid_field_offset;
-
+    }
     *value = *ctx->buffer;
 
     return parser_ok;
 }
 
-parser_error_t rlp_readUInt256(const parser_context_t *ctx,
-                               rlp_kind_e kind,
-                               uint256_t *value) {
+parser_error_t rlp_readUInt64(const parser_context_t *ctx,
+                              rlp_kind_e kind,
+                              uint64_t *value) {
     if (kind == kind_string) {
-        uint8_t tmpBuffer[32];
+        *value = 0;
 
-        MEMSET(tmpBuffer, 0, 32);
-        MEMMOVE(tmpBuffer - ctx->bufferLen + 32, ctx->buffer + ctx->offset, ctx->bufferLen);
-        readu256BE(tmpBuffer, value);
+        if (ctx->bufferLen != 8) {
+            return parser_rlp_error_invalid_value_len;
+        }
+
+        for (uint8_t i = 0; i < 8; i++) {
+            *value <<= 8u;
+            *value += *(ctx->buffer + ctx->offset + i);
+        }
+
+        *value <<= 8u;
         return parser_ok;
     }
 
     if (kind == kind_byte) {
-        uint8_t tmpBuffer[32];
-
-        MEMSET(tmpBuffer, 0, 32);
-        CHECK_PARSER_ERR(rlp_readByte(ctx, kind, tmpBuffer + 31))
-
-        readu256BE(tmpBuffer, value);
+        uint8_t tmp;
+        CHECK_PARSER_ERR(rlp_readByte(ctx, kind, &tmp))
+        *value = tmp;
         return parser_ok;
     }
 

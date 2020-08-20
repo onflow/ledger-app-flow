@@ -17,7 +17,6 @@
 #pragma once
 
 #include <zxmacros.h>
-#include "uint256.h"
 #include "parser_common.h"
 
 #ifdef __cplusplus
@@ -47,7 +46,7 @@ parser_error_t rlp_decode(const parser_context_t *input,
 parser_error_t rlp_readByte(const parser_context_t *ctx, rlp_kind_e kind, uint8_t *value);
 
 // reads a variable uint256
-parser_error_t rlp_readUInt256(const parser_context_t *ctx, rlp_kind_e kind, uint256_t *value);
+parser_error_t rlp_readUInt64(const parser_context_t *ctx, rlp_kind_e kind, uint64_t *value);
 
 #ifdef __cplusplus
 }
