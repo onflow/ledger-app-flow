@@ -15,7 +15,7 @@
  *  limitations under the License.
  ******************************************************************************* */
 
-import { serializePathv1, signSendChunkv1 } from "./helperV1";
+import {serializePathv1, signSendChunkv1} from "./helperV1";
 import {
   CHUNK_SIZE,
   CLA,
@@ -49,6 +49,20 @@ function processGetAddrResponse(response) {
 export default class FlowApp {
   static get ErrorCode() {
     return ERROR_CODE;
+  }
+
+  static get Hash() {
+    return {
+      SHA2_256: 0x01,
+      SHA3_256: 0x03,
+    }
+  }
+
+  static get Signature() {
+    return {
+      SECP256K1: 0x0200,
+      P256: 0x0300,
+    }
   }
 
   constructor(transport) {

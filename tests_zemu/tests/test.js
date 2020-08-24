@@ -19,6 +19,7 @@ import Zemu from "@zondax/zemu";
 import FlowApp from "@zondax/ledger-flow";
 import jsSHA from "jssha";
 import * as secp256k1 from "secp256k1";
+import * as secp256r1 from "secp256r1";
 
 const Resolve = require("path").resolve;
 const APP_PATH = Resolve("../app/bin/app.elf");
@@ -69,7 +70,7 @@ describe('Basic checks', function () {
             await sim.start(sim_options);
             const app = new FlowApp(sim.getTransport());
 
-            const scheme = 0x301;
+            const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
             const path = `m/44'/539'/${scheme}'/0/0`;
             const resp = await app.getAddressAndPubKey(path);
 
@@ -78,8 +79,8 @@ describe('Basic checks', function () {
             expect(resp.returnCode).toEqual(0x9000);
             expect(resp.errorMessage).toEqual("No errors");
 
-            const expected_address_string = "044c301ff7be3fdd59e667219cb1e454e7d831fb01ff16970c3374821fc1035f8274f72645ec83cebd35d8513829756d0b1203f713115c93038620ec2da14b0a21";
-            const expected_pk = "044c301ff7be3fdd59e667219cb1e454e7d831fb01ff16970c3374821fc1035f8274f72645ec83cebd35d8513829756d0b1203f713115c93038620ec2da14b0a21";
+            const expected_address_string = "04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be";
+            const expected_pk = "04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be";
 
             expect(resp.address).toEqual(expected_address_string);
             expect(resp.publicKey.toString('hex')).toEqual(expected_pk);
@@ -96,7 +97,7 @@ describe('Basic checks', function () {
             const app = new FlowApp(sim.getTransport());
 
             // Derivation path. First 3 items are automatically hardened!
-            const scheme = 0x301;
+            const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
             const path = `m/44'/539'/${scheme}'/0/0`;
 
             const respRequest = app.showAddressAndPubKey(path);
@@ -112,8 +113,8 @@ describe('Basic checks', function () {
             expect(resp.returnCode).toEqual(0x9000);
             expect(resp.errorMessage).toEqual("No errors");
 
-            const expected_address_string = "044c301ff7be3fdd59e667219cb1e454e7d831fb01ff16970c3374821fc1035f8274f72645ec83cebd35d8513829756d0b1203f713115c93038620ec2da14b0a21";
-            const expected_pk = "044c301ff7be3fdd59e667219cb1e454e7d831fb01ff16970c3374821fc1035f8274f72645ec83cebd35d8513829756d0b1203f713115c93038620ec2da14b0a21";
+            const expected_address_string = "04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be";
+            const expected_pk = "04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be";
 
             expect(resp.address).toEqual(expected_address_string);
             expect(resp.publicKey.toString('hex')).toEqual(expected_pk);
@@ -133,7 +134,7 @@ describe('Basic checks', function () {
             await sim.clickBoth();
 
             // Derivation path. First 3 items are automatically hardened!
-            const scheme = 0x301;
+            const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
             const path = `m/44'/539'/${scheme}'/0/0`;
 
             const respRequest = app.showAddressAndPubKey(path);
@@ -149,8 +150,8 @@ describe('Basic checks', function () {
             expect(resp.returnCode).toEqual(0x9000);
             expect(resp.errorMessage).toEqual("No errors");
 
-            const expected_address_string = "044c301ff7be3fdd59e667219cb1e454e7d831fb01ff16970c3374821fc1035f8274f72645ec83cebd35d8513829756d0b1203f713115c93038620ec2da14b0a21";
-            const expected_pk = "044c301ff7be3fdd59e667219cb1e454e7d831fb01ff16970c3374821fc1035f8274f72645ec83cebd35d8513829756d0b1203f713115c93038620ec2da14b0a21";
+            const expected_address_string = "04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be";
+            const expected_pk = "04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be";
 
             expect(resp.address).toEqual(expected_address_string);
             expect(resp.publicKey.toString('hex')).toEqual(expected_pk);
@@ -159,13 +160,46 @@ describe('Basic checks', function () {
         }
     });
 
+    it('sign basic - invalid', async function () {
+        const sim = new Zemu(APP_PATH);
+        try {
+            await sim.start(sim_options);
+            const app = new FlowApp(sim.getTransport());
+
+            const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
+            const path = `m/44'/539'/${scheme}'/0/0`;
+
+            let invalidMessage = Buffer.from(
+                "1234567890",
+                "hex",
+            );
+            invalidMessage += "1";
+
+            const pkResponse = await app.getAddressAndPubKey(path);
+            console.log(pkResponse);
+            expect(pkResponse.returnCode).toEqual(0x9000);
+            expect(pkResponse.errorMessage).toEqual("No errors");
+
+            // do not wait here..
+            const signatureResponse = await app.sign(path, invalidMessage);
+            console.log(signatureResponse);
+
+            expect(signatureResponse.returnCode).toEqual(0x6984);
+            expect(signatureResponse.errorMessage).toEqual("Data is invalid : parser_rlp_error_invalid_kind");
+        } finally {
+            await sim.close();
+        }
+    });
+
+    // secp256k1
+
     it('sign basic & verify SHA2-256 - transfer', async function () {
         const sim = new Zemu(APP_PATH);
         try {
             await sim.start(sim_options);
             const app = new FlowApp(sim.getTransport());
 
-            const scheme = 0x301;
+            const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
             const path = `m/44'/539'/${scheme}'/0/0`;
 
             const txBlob = Buffer.from(
@@ -212,7 +246,7 @@ describe('Basic checks', function () {
             await sim.start(sim_options);
             const app = new FlowApp(sim.getTransport());
 
-            const scheme = 0x301;
+            const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
             const path = `m/44'/539'/${scheme}'/0/0`;
 
             const txBlob = Buffer.from(
@@ -259,7 +293,7 @@ describe('Basic checks', function () {
             await sim.start(sim_options);
             const app = new FlowApp(sim.getTransport());
 
-            const scheme = 0x301;
+            const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
             const path = `m/44'/539'/${scheme}'/0/0`;
 
             const txBlob = Buffer.from(
@@ -306,7 +340,7 @@ describe('Basic checks', function () {
             await sim.start(sim_options);
             const app = new FlowApp(sim.getTransport());
 
-            const scheme = 0x303;
+            const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA3_256;
             const path = `m/44'/539'/${scheme}'/0/0`;
 
             const txBlob = Buffer.from(
@@ -353,7 +387,7 @@ describe('Basic checks', function () {
             await sim.start(sim_options);
             const app = new FlowApp(sim.getTransport());
 
-            const scheme = 0x303;
+            const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA3_256;
             const path = `m/44'/539'/${scheme}'/0/0`;
 
             const txBlob = Buffer.from(
@@ -400,7 +434,7 @@ describe('Basic checks', function () {
             await sim.start(sim_options);
             const app = new FlowApp(sim.getTransport());
 
-            const scheme = 0x303;
+            const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA3_256;
             const path = `m/44'/539'/${scheme}'/0/0`;
 
             const txBlob = Buffer.from(
@@ -441,20 +475,21 @@ describe('Basic checks', function () {
         }
     });
 
-    it('sign basic - invalid', async function () {
+    // p256
+
+    it('sign basic & verify P256 | SHA2-256 - transfer', async function () {
         const sim = new Zemu(APP_PATH);
         try {
             await sim.start(sim_options);
             const app = new FlowApp(sim.getTransport());
 
-            const scheme = 0x301;
+            const scheme = FlowApp.Signature.P256 | FlowApp.Hash.SHA3_256;
             const path = `m/44'/539'/${scheme}'/0/0`;
 
-            let invalidMessage = Buffer.from(
-                "1234567890",
+            const txBlob = Buffer.from(
+                "f9027ef90256b901be696d706f72742046756e6769626c65546f6b656e2066726f6d203078663233336463656538386665306162650a696d706f727420466c6f77546f6b656e2066726f6d203078313635343635333339393034306136310a7472616e73616374696f6e28616d6f756e743a205546697836342c20746f3a204164647265737329207b0a6c6574207661756c743a204046756e6769626c65546f6b656e2e5661756c740a70726570617265287369676e65723a20417574684163636f756e7429207b0a73656c662e7661756c74203c2d207369676e65720a2e626f72726f773c267b46756e6769626c65546f6b656e2e50726f76696465727d3e2866726f6d3a202f73746f726167652f666c6f77546f6b656e5661756c7429210a2e776974686472617728616d6f756e743a20616d6f756e74290a7d0a65786563757465207b0a6765744163636f756e7428746f290a2e6765744361706162696c697479282f7075626c69632f666c6f77546f6b656e526563656976657229210a2e626f72726f773c267b46756e6769626c65546f6b656e2e52656365697665727d3e2829210a2e6465706f7369742866726f6d3a203c2d73656c662e7661756c74290a7d0a7df853a27b2274797065223a22554669783634222c2276616c7565223a223534352e3737227daf7b2274797065223a2241646472657373222c2276616c7565223a22307866386436653035383662306132306337227da0f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b2a88f8d6e0586b0a20c7040a88f8d6e0586b0a20c7c988f8d6e0586b0a20c7e4e38004a0f7225388c1d69d57e6251c9fda50cbbf9e05131e5adb81e5aa0422402f048162",
                 "hex",
             );
-            invalidMessage += "1";
 
             const pkResponse = await app.getAddressAndPubKey(path);
             console.log(pkResponse);
@@ -462,13 +497,31 @@ describe('Basic checks', function () {
             expect(pkResponse.errorMessage).toEqual("No errors");
 
             // do not wait here..
-            const signatureResponse = await app.sign(path, invalidMessage);
-            console.log(signatureResponse);
+            const signatureRequest = app.sign(path, txBlob);
+            // Wait until we are not in the main menu
+            await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
-            expect(signatureResponse.returnCode).toEqual(0x6984);
-            expect(signatureResponse.errorMessage).toEqual("Data is invalid : parser_rlp_error_invalid_kind");
+            await sim.compareSnapshotsAndAccept(".", "sign_basic_verify_transfer_p256_sha2_256", 12);
+
+            let resp = await signatureRequest;
+            console.log(resp);
+
+            expect(resp.returnCode).toEqual(0x9000);
+            expect(resp.errorMessage).toEqual("No errors");
+
+            // Verify signature
+            const pk = pkResponse.publicKey
+
+            const hasher = new jsSHA("SHA-256", "UINT8ARRAY");
+            hasher.update(txBlob)
+            const digest = Buffer.from(hasher.getHash("UINT8ARRAY"));
+            const sigArray = resp.signatureCompact.slice(0, 64);
+
+            const signatureOk = secp256r1.verify(digest, sigArray, pk);
+            expect(signatureOk).toEqual(true);
         } finally {
             await sim.close();
         }
     });
+
 });
