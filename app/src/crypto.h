@@ -25,6 +25,12 @@ extern "C" {
 #include <stdbool.h>
 #include <sigutils.h>
 
+typedef enum {
+    hash_unknown,
+    sha2_256,
+    sha3_256
+} digest_type_e;
+
 #if defined(TARGET_NANOS) || defined(TARGET_NANOX)
 #else
 #define CX_SHA256_SIZE 32

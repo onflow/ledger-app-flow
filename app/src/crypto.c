@@ -73,9 +73,70 @@ void sha256(const uint8_t *message, uint16_t messageLen, uint8_t message_digest[
     cx_hash_sha256(message, messageLen, message_digest, CX_SHA256_SIZE);
 }
 
+__Z_INLINE digest_type_e get_hash_type() {
+    const uint8_t hash_type = (uint8_t) (hdPath[2] & 0xFF);
+    switch(hash_type) {
+        case 0x01:
+            zemu_log_stack("path: sha2_256");
+            return sha2_256;
+        case 0x03:
+            zemu_log_stack("path: sha3_256");
+            return sha3_256;
+        default:
+            zemu_log_stack("path: unknown");
+            return hash_unknown;
+    }
+}
+
+__Z_INLINE enum cx_md_e get_cx_hash_kind() {
+    switch(get_hash_type()) {
+        case sha2_256: {
+            return CX_SHA256;
+        }
+        case sha3_256: {
+            return CX_SHA3;
+        }
+        default:
+            return CX_NONE;
+    }
+}
+
+uint16_t digest_message(uint8_t *digest, uint16_t digestMax, const uint8_t *message, uint16_t messageLen) {
+    switch(get_hash_type()) {
+        case sha2_256: {
+            zemu_log_stack("sha2_256");
+            if (digestMax < CX_SHA256_SIZE) {
+                return 0;
+            }
+            sha256(message, messageLen, digest);
+            return CX_SHA256_SIZE;
+        }
+        case sha3_256: {
+            if (digestMax < 32) {
+                return 0;
+            }
+            zemu_log_stack("sha3_256");
+            cx_sha3_t sha3;
+            cx_sha3_init(&sha3, 256);
+            cx_hash((cx_hash_t*)&sha3, CX_LAST, message, messageLen, digest, 32);
+            zemu_log_stack("sha3_256 ready");
+            return 32;
+        }
+        default:
+            return 0;
+    }
+}
+
 uint16_t crypto_sign(uint8_t *buffer, uint16_t signatureMaxlen, const uint8_t *message, uint16_t messageLen) {
-    uint8_t message_digest[CX_SHA256_SIZE];
-    sha256(message, messageLen, message_digest);
+    uint8_t messageDigest[128];
+
+    const enum cx_md_e cxhash_kind = get_cx_hash_kind();
+    const uint16_t messageDigestSize = digest_message(messageDigest, sizeof(messageDigest), message, messageLen );
+    if (cxhash_kind == CX_NONE || messageDigestSize == 0) {
+        return 0;
+    }
+
+    zemu_log_stack("before tryblock");
 
     cx_ecfp_private_key_t cx_privateKey;
     uint8_t privateKeyData[32];
@@ -89,22 +150,25 @@ uint16_t crypto_sign(uint8_t *buffer, uint16_t signatureMaxlen, const uint8_t *m
         TRY
         {
             // Generate keys
+            zemu_log_stack("derive path");
             os_perso_derive_node_bip32(CX_CURVE_256K1,
-                                                      hdPath,
-                                                      HDPATH_LEN_DEFAULT,
-                                                      privateKeyData, NULL);
+                                       hdPath,
+                                       HDPATH_LEN_DEFAULT,
+                                       privateKeyData, NULL);
 
             cx_ecfp_init_private_key(CX_CURVE_256K1, privateKeyData, 32, &cx_privateKey);
 
             // Sign
+            zemu_log_stack("cx_ecdsa_sign");
             signatureLength = cx_ecdsa_sign(&cx_privateKey,
                                             CX_RND_RFC6979 | CX_LAST,
-                                            CX_SHA256,
-                                            message_digest,
-                                            CX_SHA256_SIZE,
+                                            cxhash_kind,
+                                            messageDigest,
+                                            messageDigestSize,
                                             signature->der_signature,
                                             sizeof_field(signature_t, der_signature),
                                             &info);
+            zemu_log_stack("signed");
         }
         FINALLY {
             MEMZERO(&cx_privateKey, sizeof(cx_privateKey));

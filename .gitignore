@@ -88,3 +88,4 @@ node_modules/.yarn-integrity
 /build
 /fuzz-*.log
 /fuzz/corpora
+/tests_zemu/snapshots-tmp/
