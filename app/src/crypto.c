@@ -43,15 +43,19 @@ __Z_INLINE digest_type_e get_hash_type() {
     }
 }
 
-__Z_INLINE curve_e get_curve() {
-    const uint8_t curve_code = (uint8_t) (hdPath[2] & 0xFF);
+__Z_INLINE cx_curve_t get_cx_curve() {
+    const uint8_t curve_code = (uint8_t) ((hdPath[2] >> 8) & 0xFF);
     switch(curve_code) {
-        case 0x02:
-            return secp256k1;
-        case 0x03:
-            return secp256r1;
+        case 0x02: {
+            zemu_log_stack("curve: secp256k1");
+            return CX_CURVE_SECP256K1;
+        }
+        case 0x03: {
+            zemu_log_stack("curve: secp256r1");
+            return CX_CURVE_SECP256R1;
+        }
         default:
-            return curve_unknown;
+            return CX_CURVE_NONE;
     }
 }
 
@@ -68,35 +72,44 @@ __Z_INLINE enum cx_md_e get_cx_hash_kind() {
     }
 }
 
-void crypto_extractPublicKey(const uint32_t path[HDPATH_LEN_DEFAULT], uint8_t *pubKey, uint16_t pubKeyLen) {
+uint8_t crypto_extractPublicKey(const uint32_t path[HDPATH_LEN_DEFAULT], uint8_t *pubKey, uint16_t pubKeyLen) {
+    MEMZERO(pubKey, pubKeyLen);
+    cx_curve_t curve = get_cx_curve();
+    if (curve==CX_CURVE_NONE) {
+        return 0;
+    }
+
+    const uint32_t domainSize = 32;
+    const uint32_t pkSize = 1 + 2 * domainSize;
+    if (pubKeyLen < pkSize) {
+        return 0;
+    }
+
     cx_ecfp_public_key_t cx_publicKey;
     cx_ecfp_private_key_t cx_privateKey;
     uint8_t privateKeyData[32];
 
-    if (pubKeyLen < SECP256K1_PK_LEN) {
-        return;
-    }
-
     BEGIN_TRY
     {
         TRY {
-            os_perso_derive_node_bip32(CX_CURVE_256K1,
+            os_perso_derive_node_bip32(curve,
                                        path,
                                        HDPATH_LEN_DEFAULT,
                                        privateKeyData, NULL);
 
-            cx_ecfp_init_private_key(CX_CURVE_256K1, privateKeyData, 32, &cx_privateKey);
-            cx_ecfp_init_public_key(CX_CURVE_256K1, NULL, 0, &cx_publicKey);
-            cx_ecfp_generate_pair(CX_CURVE_256K1, &cx_publicKey, &cx_privateKey, 1);
+            cx_ecfp_init_private_key(curve, privateKeyData, 32, &cx_privateKey);
+            cx_ecfp_init_public_key(curve, NULL, 0, &cx_publicKey);
+            cx_ecfp_generate_pair(curve, &cx_publicKey, &cx_privateKey, 1);
         }
         FINALLY {
             MEMZERO(&cx_privateKey, sizeof(cx_privateKey));
-            MEMZERO(privateKeyData, 32);
+            MEMZERO(privateKeyData, domainSize);
         }
     }
     END_TRY;
 
-    memcpy(pubKey, cx_publicKey.W, SECP256K1_PK_LEN);
+    memcpy(pubKey, cx_publicKey.W, pkSize);
+    return pkSize;
 }
 
 typedef struct {
@@ -140,6 +153,12 @@ uint16_t digest_message(uint8_t *digest, uint16_t digestMax, const uint8_t *mess
 }
 
 uint16_t crypto_sign(uint8_t *buffer, uint16_t signatureMaxlen, const uint8_t *message, uint16_t messageLen) {
+    cx_curve_t curve = get_cx_curve();
+    if (curve==CX_CURVE_NONE) {
+        return 0;
+    }
+
+    const uint32_t domainSize = 32;
     uint8_t messageDigest[128];
 
     const enum cx_md_e cxhash_kind = get_cx_hash_kind();
@@ -147,8 +166,6 @@ uint16_t crypto_sign(uint8_t *buffer, uint16_t signatureMaxlen, const uint8_t *m
     if (cxhash_kind == CX_NONE || messageDigestSize == 0) {
         return 0;
     }
-
-    zemu_log_stack("before tryblock");
 
     cx_ecfp_private_key_t cx_privateKey;
     uint8_t privateKeyData[32];
@@ -163,12 +180,12 @@ uint16_t crypto_sign(uint8_t *buffer, uint16_t signatureMaxlen, const uint8_t *m
         {
             // Generate keys
             zemu_log_stack("derive path");
-            os_perso_derive_node_bip32(CX_CURVE_256K1,
+            os_perso_derive_node_bip32(curve,
                                        hdPath,
                                        HDPATH_LEN_DEFAULT,
                                        privateKeyData, NULL);
 
-            cx_ecfp_init_private_key(CX_CURVE_256K1, privateKeyData, 32, &cx_privateKey);
+            cx_ecfp_init_private_key(curve, privateKeyData, 32, &cx_privateKey);
 
             // Sign
             zemu_log_stack("cx_ecdsa_sign");
@@ -184,7 +201,7 @@ uint16_t crypto_sign(uint8_t *buffer, uint16_t signatureMaxlen, const uint8_t *m
         }
         FINALLY {
             MEMZERO(&cx_privateKey, sizeof(cx_privateKey));
-            MEMZERO(privateKeyData, 32);
+            MEMZERO(privateKeyData, domainSize);
         }
     }
     END_TRY;
@@ -206,16 +223,20 @@ typedef struct {
 } __attribute__((packed)) answer_t;
 
 uint16_t crypto_fillAddress(uint8_t *buffer, uint16_t buffer_len) {
+    MEMZERO(buffer, buffer_len);
+
     if (buffer_len < sizeof(answer_t)) {
         return 0;
     }
-    MEMZERO(buffer, buffer_len);
+
     answer_t *const answer = (answer_t *) buffer;
 
-    crypto_extractPublicKey(hdPath, answer->publicKey, sizeof_field(answer_t, publicKey));
+    if (crypto_extractPublicKey(hdPath, answer->publicKey, sizeof_field(answer_t, publicKey)) == 0 ) {
+        return 0;
+    }
+
     array_to_hexstr(answer->addrStr, sizeof_field(answer_t, addrStr) + 2, answer->publicKey, sizeof_field(answer_t, publicKey) );
 
-    // TODO: Should we encode the public key in any special way? encoding as hexstring for now
     return sizeof(answer_t) - sizeof_field(answer_t, padding);
 }
 

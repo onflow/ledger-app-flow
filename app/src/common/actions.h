@@ -47,6 +47,16 @@ __Z_INLINE uint8_t app_fill_address() {
     // Put data directly in the apdu buffer
     MEMZERO(G_io_apdu_buffer, IO_APDU_BUFFER_SIZE);
     action_addr_len = crypto_fillAddress(G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 2);
+
+    char buffer[100];
+    snprintf(buffer, 100, "???? %d", action_addr_len);
+    zemu_log_stack(buffer);
+
+    if (action_addr_len == 0) {
+        zemu_log_stack("crypto_fillAddress");
+        THROW(APDU_CODE_EXECUTION_ERROR);
+    }
+
     return action_addr_len;
 }
 

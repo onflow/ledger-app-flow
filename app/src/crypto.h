@@ -48,7 +48,7 @@ extern uint32_t hdPath[HDPATH_LEN_DEFAULT];
 
 bool isTestnet();
 
-void crypto_extractPublicKey(const uint32_t path[HDPATH_LEN_DEFAULT], uint8_t *pubKey, uint16_t pubKeyLen);
+uint8_t crypto_extractPublicKey(const uint32_t path[HDPATH_LEN_DEFAULT], uint8_t *pubKey, uint16_t pubKeyLen);
 
 uint16_t crypto_fillAddress(uint8_t *buffer, uint16_t bufferLen);
 
