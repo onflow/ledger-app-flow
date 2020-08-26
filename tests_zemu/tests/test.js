@@ -477,7 +477,7 @@ describe('Basic checks', function () {
 
     // p256
 
-    it('sign basic & verify P256 | SHA2-256 - transfer', async function () {
+    it.skip('sign basic & verify P256 | SHA2-256 - transfer', async function () {
         const sim = new Zemu(APP_PATH);
         try {
             await sim.start(sim_options);

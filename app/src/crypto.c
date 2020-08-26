@@ -28,6 +28,46 @@ bool isTestnet() {
 #if defined(TARGET_NANOS) || defined(TARGET_NANOX)
 #include "cx.h"
 
+__Z_INLINE digest_type_e get_hash_type() {
+    const uint8_t hash_type = (uint8_t) (hdPath[2] & 0xFF);
+    switch(hash_type) {
+        case 0x01:
+            zemu_log_stack("path: sha2_256");
+            return sha2_256;
+        case 0x03:
+            zemu_log_stack("path: sha3_256");
+            return sha3_256;
+        default:
+            zemu_log_stack("path: unknown");
+            return hash_unknown;
+    }
+}
+
+__Z_INLINE curve_e get_curve() {
+    const uint8_t curve_code = (uint8_t) (hdPath[2] & 0xFF);
+    switch(curve_code) {
+        case 0x02:
+            return secp256k1;
+        case 0x03:
+            return secp256r1;
+        default:
+            return curve_unknown;
+    }
+}
+
+__Z_INLINE enum cx_md_e get_cx_hash_kind() {
+    switch(get_hash_type()) {
+        case sha2_256: {
+            return CX_SHA256;
+        }
+        case sha3_256: {
+            return CX_SHA3;
+        }
+        default:
+            return CX_NONE;
+    }
+}
+
 void crypto_extractPublicKey(const uint32_t path[HDPATH_LEN_DEFAULT], uint8_t *pubKey, uint16_t pubKeyLen) {
     cx_ecfp_public_key_t cx_publicKey;
     cx_ecfp_private_key_t cx_privateKey;
@@ -71,34 +111,6 @@ typedef struct {
 
 void sha256(const uint8_t *message, uint16_t messageLen, uint8_t message_digest[CX_SHA256_SIZE]) {
     cx_hash_sha256(message, messageLen, message_digest, CX_SHA256_SIZE);
-}
-
-__Z_INLINE digest_type_e get_hash_type() {
-    const uint8_t hash_type = (uint8_t) (hdPath[2] & 0xFF);
-    switch(hash_type) {
-        case 0x01:
-            zemu_log_stack("path: sha2_256");
-            return sha2_256;
-        case 0x03:
-            zemu_log_stack("path: sha3_256");
-            return sha3_256;
-        default:
-            zemu_log_stack("path: unknown");
-            return hash_unknown;
-    }
-}
-
-__Z_INLINE enum cx_md_e get_cx_hash_kind() {
-    switch(get_hash_type()) {
-        case sha2_256: {
-            return CX_SHA256;
-        }
-        case sha3_256: {
-            return CX_SHA3;
-        }
-        default:
-            return CX_NONE;
-    }
 }
 
 uint16_t digest_message(uint8_t *digest, uint16_t digestMax, const uint8_t *message, uint16_t messageLen) {

@@ -31,6 +31,12 @@ typedef enum {
     sha3_256
 } digest_type_e;
 
+typedef enum {
+    curve_unknown,
+    secp256k1,
+    secp256r1
+} curve_e;
+
 #if defined(TARGET_NANOS) || defined(TARGET_NANOX)
 #else
 #define CX_SHA256_SIZE 32
