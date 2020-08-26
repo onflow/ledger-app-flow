@@ -94,8 +94,8 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
 
     uint8_t dummy;
 
-    addTo(answer, "{} | Ref Block Id [1/2] : {}", item, FormatHexString(tcd.refBlock, 0, &dummy));
-    addTo(answer, "{} | Ref Block Id [2/2] : {}", item++, FormatHexString(tcd.refBlock, 1, &dummy));
+    addTo(answer, "{} | Ref Block [1/2] : {}", item, FormatHexString(tcd.refBlock, 0, &dummy));
+    addTo(answer, "{} | Ref Block [2/2] : {}", item++, FormatHexString(tcd.refBlock, 1, &dummy));
     addTo(answer, "{} | Gas Limit : {}", item++, tcd.gasLimit);
     addTo(answer, "{} | Prop Key Addr : {}", item++, FormatHexString(tcd.proposalKeyAddress, 0, &dummy));
     addTo(answer, "{} | Prop Key Id : {}", item++, tcd.proposalKeyId);
