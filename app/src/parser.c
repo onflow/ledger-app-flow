@@ -269,7 +269,7 @@ parser_error_t parser_getItemTokenTransfer(const parser_context_t *ctx,
                                         "Address", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
         case 2:
-            snprintf(outKey, outKeyLen, "Ref Block Id");
+            snprintf(outKey, outKeyLen, "Ref Block");
             return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
         case 3:
             snprintf(outKey, outKeyLen, "Gas Limit");
@@ -329,7 +329,7 @@ parser_error_t parser_getItemCreateAccount(const parser_context_t *ctx,
 
     switch (displayIdx) {
         case 0:
-            snprintf(outKey, outKeyLen, "Ref Block Id");
+            snprintf(outKey, outKeyLen, "Ref Block");
             return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
         case 1:
             snprintf(outKey, outKeyLen, "Gas Limit");
@@ -380,7 +380,7 @@ parser_error_t parser_getItemAddNewKey(const parser_context_t *ctx,
             return parser_ok;
         }
         case 2:
-            snprintf(outKey, outKeyLen, "Ref Block Id");
+            snprintf(outKey, outKeyLen, "Ref Block");
             return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
         case 3:
             snprintf(outKey, outKeyLen, "Gas Limit");
