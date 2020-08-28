@@ -225,15 +225,19 @@ describe('Basic checks', function () {
             expect(resp.returnCode).toEqual(0x9000);
             expect(resp.errorMessage).toEqual("No errors");
 
-            // Verify signature
-            const pk = Uint8Array.from(pkResponse.publicKey)
-
+            // Prepare digest
             const hasher = new jsSHA("SHA-256", "UINT8ARRAY");
             hasher.update(txBlob)
-            const digest = hasher.getHash("UINT8ARRAY")
+            const digest = hasher.getHash("HEX");
 
-            const sigArray = Uint8Array.from(resp.signatureCompact.slice(0, 64));
-            const signatureOk = secp256k1.ecdsaVerify(sigArray, digest, pk);
+            // Verify signature
+            const ec = new EC("secp256k1");
+            const sig = resp.signatureDER.toString("hex");
+            const pk = pkResponse.publicKey.toString("hex");
+            console.log(digest);
+            console.log(sig);
+            console.log(pk);
+            const signatureOk = ec.verify(digest, sig, pk, 'hex');
             expect(signatureOk).toEqual(true);
         } finally {
             await sim.close();
@@ -272,15 +276,19 @@ describe('Basic checks', function () {
             expect(resp.returnCode).toEqual(0x9000);
             expect(resp.errorMessage).toEqual("No errors");
 
-            // Verify signature
-            const pk = Uint8Array.from(pkResponse.publicKey)
-
+            // Prepare digest
             const hasher = new jsSHA("SHA-256", "UINT8ARRAY");
             hasher.update(txBlob)
-            const digest = hasher.getHash("UINT8ARRAY")
+            const digest = hasher.getHash("HEX");
 
-            const sigArray = Uint8Array.from(resp.signatureCompact.slice(0, 64));
-            const signatureOk = secp256k1.ecdsaVerify(sigArray, digest, pk);
+            // Verify signature
+            const ec = new EC("secp256k1");
+            const sig = resp.signatureDER.toString("hex");
+            const pk = pkResponse.publicKey.toString("hex");
+            console.log(digest);
+            console.log(sig);
+            console.log(pk);
+            const signatureOk = ec.verify(digest, sig, pk, 'hex');
             expect(signatureOk).toEqual(true);
         } finally {
             await sim.close();
@@ -319,15 +327,19 @@ describe('Basic checks', function () {
             expect(resp.returnCode).toEqual(0x9000);
             expect(resp.errorMessage).toEqual("No errors");
 
-            // Verify signature
-            const pk = Uint8Array.from(pkResponse.publicKey)
-
+            // Prepare digest
             const hasher = new jsSHA("SHA-256", "UINT8ARRAY");
             hasher.update(txBlob)
-            const digest = hasher.getHash("UINT8ARRAY")
+            const digest = hasher.getHash("HEX");
 
-            const sigArray = Uint8Array.from(resp.signatureCompact.slice(0, 64));
-            const signatureOk = secp256k1.ecdsaVerify(sigArray, digest, pk);
+            // Verify signature
+            const ec = new EC("secp256k1");
+            const sig = resp.signatureDER.toString("hex");
+            const pk = pkResponse.publicKey.toString("hex");
+            console.log(digest);
+            console.log(sig);
+            console.log(pk);
+            const signatureOk = ec.verify(digest, sig, pk, 'hex');
             expect(signatureOk).toEqual(true);
         } finally {
             await sim.close();
@@ -366,15 +378,19 @@ describe('Basic checks', function () {
             expect(resp.returnCode).toEqual(0x9000);
             expect(resp.errorMessage).toEqual("No errors");
 
-            // Verify signature
-            const pk = Uint8Array.from(pkResponse.publicKey)
-
+            // Prepare digest
             const hasher = new jsSHA("SHA3-256", "UINT8ARRAY");
             hasher.update(txBlob)
-            const digest = hasher.getHash("UINT8ARRAY")
+            const digest = hasher.getHash("HEX");
 
-            const sigArray = Uint8Array.from(resp.signatureCompact.slice(0, 64));
-            const signatureOk = secp256k1.ecdsaVerify(sigArray, digest, pk);
+            // Verify signature
+            const ec = new EC("secp256k1");
+            const sig = resp.signatureDER.toString("hex");
+            const pk = pkResponse.publicKey.toString("hex");
+            console.log(digest);
+            console.log(sig);
+            console.log(pk);
+            const signatureOk = ec.verify(digest, sig, pk, 'hex');
             expect(signatureOk).toEqual(true);
         } finally {
             await sim.close();
@@ -413,15 +429,19 @@ describe('Basic checks', function () {
             expect(resp.returnCode).toEqual(0x9000);
             expect(resp.errorMessage).toEqual("No errors");
 
-            // Verify signature
-            const pk = Uint8Array.from(pkResponse.publicKey)
-
+            // Prepare digest
             const hasher = new jsSHA("SHA3-256", "UINT8ARRAY");
             hasher.update(txBlob)
-            const digest = hasher.getHash("UINT8ARRAY")
+            const digest = hasher.getHash("HEX");
 
-            const sigArray = Uint8Array.from(resp.signatureCompact.slice(0, 64));
-            const signatureOk = secp256k1.ecdsaVerify(sigArray, digest, pk);
+            // Verify signature
+            const ec = new EC("secp256k1");
+            const sig = resp.signatureDER.toString("hex");
+            const pk = pkResponse.publicKey.toString("hex");
+            console.log(digest);
+            console.log(sig);
+            console.log(pk);
+            const signatureOk = ec.verify(digest, sig, pk, 'hex');
             expect(signatureOk).toEqual(true);
         } finally {
             await sim.close();
@@ -460,15 +480,19 @@ describe('Basic checks', function () {
             expect(resp.returnCode).toEqual(0x9000);
             expect(resp.errorMessage).toEqual("No errors");
 
-            // Verify signature
-            const pk = Uint8Array.from(pkResponse.publicKey)
-
+            // Prepare digest
             const hasher = new jsSHA("SHA3-256", "UINT8ARRAY");
             hasher.update(txBlob)
-            const digest = hasher.getHash("UINT8ARRAY")
+            const digest = hasher.getHash("HEX");
 
-            const sigArray = Uint8Array.from(resp.signatureCompact.slice(0, 64));
-            const signatureOk = secp256k1.ecdsaVerify(sigArray, digest, pk);
+            // Verify signature
+            const ec = new EC("secp256k1");
+            const sig = resp.signatureDER.toString("hex");
+            const pk = pkResponse.publicKey.toString("hex");
+            console.log(digest);
+            console.log(sig);
+            console.log(pk);
+            const signatureOk = ec.verify(digest, sig, pk, 'hex');
             expect(signatureOk).toEqual(true);
         } finally {
             await sim.close();
@@ -568,15 +592,19 @@ describe('Basic checks', function () {
             expect(resp.returnCode).toEqual(0x9000);
             expect(resp.errorMessage).toEqual("No errors");
 
-            // Verify signature
-            const ec = new EC("p256");
-
+            // Prepare digest
             const hasher = new jsSHA("SHA-256", "UINT8ARRAY");
             hasher.update(txBlob)
-            const digest = Buffer.from(hasher.getHash("HEX"));
+            const digest = hasher.getHash("HEX");
 
-            const signatureOk = ec.verify(digest, resp.signatureDER, pkResponse.publicKey);
-
+            // Verify signature
+            const ec = new EC("p256");
+            const sig = resp.signatureDER.toString("hex");
+            const pk = pkResponse.publicKey.toString("hex");
+            console.log(digest);
+            console.log(sig);
+            console.log(pk);
+            const signatureOk = ec.verify(digest, sig, pk, 'hex');
             expect(signatureOk).toEqual(true);
         } finally {
             await sim.close();
@@ -615,16 +643,19 @@ describe('Basic checks', function () {
             expect(resp.returnCode).toEqual(0x9000);
             expect(resp.errorMessage).toEqual("No errors");
 
-            // Verify signature
-            const pk = pkResponse.publicKey
-
+            // Prepare digest
             const hasher = new jsSHA("SHA-256", "UINT8ARRAY");
             hasher.update(txBlob)
+            const digest = hasher.getHash("HEX");
 
-            const digest = Buffer.from(hasher.getHash("UINT8ARRAY"));
-            const sigArray = resp.signatureCompact.slice(0, 64);
-            const signatureOk = secp256r1.verify(digest, sigArray, pk);
-
+            // Verify signature
+            const ec = new EC("p256");
+            const sig = resp.signatureDER.toString("hex");
+            const pk = pkResponse.publicKey.toString("hex");
+            console.log(digest);
+            console.log(sig);
+            console.log(pk);
+            const signatureOk = ec.verify(digest, sig, pk, 'hex');
             expect(signatureOk).toEqual(true);
         } finally {
             await sim.close();
@@ -663,16 +694,19 @@ describe('Basic checks', function () {
             expect(resp.returnCode).toEqual(0x9000);
             expect(resp.errorMessage).toEqual("No errors");
 
-            // Verify signature
-            const pk = pkResponse.publicKey
-
+            // Prepare digest
             const hasher = new jsSHA("SHA-256", "UINT8ARRAY");
             hasher.update(txBlob)
+            const digest = hasher.getHash("HEX");
 
-            const digest = Buffer.from(hasher.getHash("UINT8ARRAY"));
-            const sigArray = resp.signatureCompact.slice(0, 64);
-            const signatureOk = secp256r1.verify(digest, sigArray, pk);
-
+            // Verify signature
+            const ec = new EC("p256");
+            const sig = resp.signatureDER.toString("hex");
+            const pk = pkResponse.publicKey.toString("hex");
+            console.log(digest);
+            console.log(sig);
+            console.log(pk);
+            const signatureOk = ec.verify(digest, sig, pk, 'hex');
             expect(signatureOk).toEqual(true);
         } finally {
             await sim.close();
@@ -711,16 +745,19 @@ describe('Basic checks', function () {
             expect(resp.returnCode).toEqual(0x9000);
             expect(resp.errorMessage).toEqual("No errors");
 
-            // Verify signature
-            const pk = pkResponse.publicKey
-
+            // Prepare digest
             const hasher = new jsSHA("SHA3-256", "UINT8ARRAY");
             hasher.update(txBlob)
+            const digest = hasher.getHash("HEX");
 
-            const digest = Buffer.from(hasher.getHash("UINT8ARRAY"));
-            const sigArray = resp.signatureCompact.slice(0, 64);
-            const signatureOk = secp256r1.verify(digest, sigArray, pk);
-
+            // Verify signature
+            const ec = new EC("p256");
+            const sig = resp.signatureDER.toString("hex");
+            const pk = pkResponse.publicKey.toString("hex");
+            console.log(digest);
+            console.log(sig);
+            console.log(pk);
+            const signatureOk = ec.verify(digest, sig, pk, 'hex');
             expect(signatureOk).toEqual(true);
         } finally {
             await sim.close();
@@ -759,16 +796,19 @@ describe('Basic checks', function () {
             expect(resp.returnCode).toEqual(0x9000);
             expect(resp.errorMessage).toEqual("No errors");
 
-            // Verify signature
-            const pk = pkResponse.publicKey
-
+            // Prepare digest
             const hasher = new jsSHA("SHA3-256", "UINT8ARRAY");
             hasher.update(txBlob)
+            const digest = hasher.getHash("HEX");
 
-            const digest = Buffer.from(hasher.getHash("UINT8ARRAY"));
-            const sigArray = resp.signatureCompact.slice(0, 64);
-            const signatureOk = secp256r1.verify(digest, sigArray, pk);
-
+            // Verify signature
+            const ec = new EC("p256");
+            const sig = resp.signatureDER.toString("hex");
+            const pk = pkResponse.publicKey.toString("hex");
+            console.log(digest);
+            console.log(sig);
+            console.log(pk);
+            const signatureOk = ec.verify(digest, sig, pk, 'hex');
             expect(signatureOk).toEqual(true);
         } finally {
             await sim.close();
@@ -807,68 +847,22 @@ describe('Basic checks', function () {
             expect(resp.returnCode).toEqual(0x9000);
             expect(resp.errorMessage).toEqual("No errors");
 
-            // Verify signature
-            const pk = pkResponse.publicKey
-
+            // Prepare digest
             const hasher = new jsSHA("SHA3-256", "UINT8ARRAY");
             hasher.update(txBlob)
-
-            const digest = Buffer.from(hasher.getHash("UINT8ARRAY"));
-            const sigArray = resp.signatureCompact.slice(0, 64);
-            const signatureOk = secp256r1.verify(digest, sigArray, pk);
-
-            expect(signatureOk).toEqual(true);
-        } finally {
-            await sim.close();
-        }
-    });
-
-    it.skip('?????', async function () {
-        const sim = new Zemu(APP_PATH);
-        try {
-            await sim.start(sim_options);
-            const app = new FlowApp(sim.getTransport());
-
-            const scheme = FlowApp.Signature.P256 | FlowApp.Hash.SHA3_256;
-            const path = `m/44'/539'/${scheme}'/0/0`;
-
-            const txBlob = Buffer.from(
-                "f9027ef90256b901be696d706f72742046756e6769626c65546f6b656e2066726f6d203078663233336463656538386665306162650a696d706f727420466c6f77546f6b656e2066726f6d203078313635343635333339393034306136310a7472616e73616374696f6e28616d6f756e743a205546697836342c20746f3a204164647265737329207b0a6c6574207661756c743a204046756e6769626c65546f6b656e2e5661756c740a70726570617265287369676e65723a20417574684163636f756e7429207b0a73656c662e7661756c74203c2d207369676e65720a2e626f72726f773c267b46756e6769626c65546f6b656e2e50726f76696465727d3e2866726f6d3a202f73746f726167652f666c6f77546f6b656e5661756c7429210a2e776974686472617728616d6f756e743a20616d6f756e74290a7d0a65786563757465207b0a6765744163636f756e7428746f290a2e6765744361706162696c697479282f7075626c69632f666c6f77546f6b656e526563656976657229210a2e626f72726f773c267b46756e6769626c65546f6b656e2e52656365697665727d3e2829210a2e6465706f7369742866726f6d3a203c2d73656c662e7661756c74290a7d0a7df853a27b2274797065223a22554669783634222c2276616c7565223a223534352e3737227daf7b2274797065223a2241646472657373222c2276616c7565223a22307866386436653035383662306132306337227da0f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b2a88f8d6e0586b0a20c7040a88f8d6e0586b0a20c7c988f8d6e0586b0a20c7e4e38004a0f7225388c1d69d57e6251c9fda50cbbf9e05131e5adb81e5aa0422402f048162",
-                "hex",
-            );
-
-            const pkResponse = await app.getAddressAndPubKey(path);
-            console.log(pkResponse);
-            expect(pkResponse.returnCode).toEqual(0x9000);
-            expect(pkResponse.errorMessage).toEqual("No errors");
-
-            // do not wait here..
-            const signatureRequest = app.sign(path, txBlob);
-            // Wait until we are not in the main menu
-            await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
-
-            await sim.compareSnapshotsAndAccept(".", "sign_p256_basic_verify_transfer_sha2_256", 12);
-
-            let resp = await signatureRequest;
-            console.log(resp);
-
-            expect(resp.returnCode).toEqual(0x9000);
-            expect(resp.errorMessage).toEqual("No errors");
+            const digest = hasher.getHash("HEX");
 
             // Verify signature
-            const pk = pkResponse.publicKey
-
-            const hasher = new jsSHA("SHA-256", "UINT8ARRAY");
-            hasher.update(txBlob)
-
-            const digest = Buffer.from(hasher.getHash("UINT8ARRAY"));
-            const sigArray = resp.signatureCompact.slice(0, 64);
-            const signatureOk = secp256r1.verify(digest, sigArray, pk);
-
+            const ec = new EC("p256");
+            const sig = resp.signatureDER.toString("hex");
+            const pk = pkResponse.publicKey.toString("hex");
+            console.log(digest);
+            console.log(sig);
+            console.log(pk);
+            const signatureOk = ec.verify(digest, sig, pk, 'hex');
             expect(signatureOk).toEqual(true);
         } finally {
             await sim.close();
         }
     });
-
 });
