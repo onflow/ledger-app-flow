@@ -18,18 +18,17 @@ import jest, {expect} from "jest";
 import Zemu from "@zondax/zemu";
 import FlowApp from "@zondax/ledger-flow";
 import jsSHA from "jssha";
-import * as secp256k1 from "secp256k1";
-import { ec as EC } from "elliptic";
+import {ec as EC} from "elliptic";
 
 const Resolve = require("path").resolve;
 const APP_PATH = Resolve("../app/bin/app.elf");
 
 const APP_SEED = "equip will roof matter pink blind book anxiety banner elbow sun young"
-const sim_options = {
+const simOptions = {
     logging: true,
     start_delay: 3000,
     custom: `-s "${APP_SEED}"`
-//    , X11: true
+    , X11: true
 };
 
 jest.setTimeout(25000)
@@ -38,7 +37,7 @@ describe('Basic checks', function () {
     it('can start and stop container', async function () {
         const sim = new Zemu(APP_PATH);
         try {
-            await sim.start(sim_options);
+            await sim.start(simOptions);
         } finally {
             await sim.close();
         }
@@ -47,7 +46,7 @@ describe('Basic checks', function () {
     it('app version', async function () {
         const sim = new Zemu(APP_PATH);
         try {
-            await sim.start(sim_options);
+            await sim.start(simOptions);
             const app = new FlowApp(sim.getTransport());
             const resp = await app.getVersion();
 
@@ -67,7 +66,7 @@ describe('Basic checks', function () {
     it('sign basic - invalid', async function () {
         const sim = new Zemu(APP_PATH);
         try {
-            await sim.start(sim_options);
+            await sim.start(simOptions);
             const app = new FlowApp(sim.getTransport());
 
             const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
@@ -100,7 +99,7 @@ describe('Basic checks', function () {
     it('get address - secp256k1', async function () {
         const sim = new Zemu(APP_PATH);
         try {
-            await sim.start(sim_options);
+            await sim.start(simOptions);
             const app = new FlowApp(sim.getTransport());
 
             const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
@@ -126,7 +125,7 @@ describe('Basic checks', function () {
     it('show address - secp256k1', async function () {
         const sim = new Zemu(APP_PATH);
         try {
-            await sim.start(sim_options);
+            await sim.start(simOptions);
             const app = new FlowApp(sim.getTransport());
 
             // Derivation path. First 3 items are automatically hardened!
@@ -159,7 +158,7 @@ describe('Basic checks', function () {
     it('show address - expert', async function () {
         const sim = new Zemu(APP_PATH);
         try {
-            await sim.start(sim_options);
+            await sim.start(simOptions);
             const app = new FlowApp(sim.getTransport());
 
             // Enable expert mode
@@ -196,7 +195,7 @@ describe('Basic checks', function () {
     it('sign secp256k1 basic & verify SHA2-256 - transfer', async function () {
         const sim = new Zemu(APP_PATH);
         try {
-            await sim.start(sim_options);
+            await sim.start(simOptions);
             const app = new FlowApp(sim.getTransport());
 
             const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
@@ -247,7 +246,7 @@ describe('Basic checks', function () {
     it('sign secp256k1 basic & verify SHA2-256 - create', async function () {
         const sim = new Zemu(APP_PATH);
         try {
-            await sim.start(sim_options);
+            await sim.start(simOptions);
             const app = new FlowApp(sim.getTransport());
 
             const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
@@ -298,7 +297,7 @@ describe('Basic checks', function () {
     it('sign secp256k1 basic & verify SHA2-256 - add new key', async function () {
         const sim = new Zemu(APP_PATH);
         try {
-            await sim.start(sim_options);
+            await sim.start(simOptions);
             const app = new FlowApp(sim.getTransport());
 
             const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
@@ -349,7 +348,7 @@ describe('Basic checks', function () {
     it('sign secp256k1 basic & verify SHA3-256 - transfer', async function () {
         const sim = new Zemu(APP_PATH);
         try {
-            await sim.start(sim_options);
+            await sim.start(simOptions);
             const app = new FlowApp(sim.getTransport());
 
             const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA3_256;
@@ -400,7 +399,7 @@ describe('Basic checks', function () {
     it('sign secp256k1 basic & verify SHA3-256 - create', async function () {
         const sim = new Zemu(APP_PATH);
         try {
-            await sim.start(sim_options);
+            await sim.start(simOptions);
             const app = new FlowApp(sim.getTransport());
 
             const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA3_256;
@@ -451,7 +450,7 @@ describe('Basic checks', function () {
     it('sign secp256k1 basic & verify SHA3-256 - add new key', async function () {
         const sim = new Zemu(APP_PATH);
         try {
-            await sim.start(sim_options);
+            await sim.start(simOptions);
             const app = new FlowApp(sim.getTransport());
 
             const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA3_256;
@@ -504,7 +503,7 @@ describe('Basic checks', function () {
     it('get address - secp256r1', async function () {
         const sim = new Zemu(APP_PATH);
         try {
-            await sim.start(sim_options);
+            await sim.start(simOptions);
             const app = new FlowApp(sim.getTransport());
 
             const scheme = FlowApp.Signature.P256 | FlowApp.Hash.SHA2_256;
@@ -530,7 +529,7 @@ describe('Basic checks', function () {
     it('show address - secp256r1', async function () {
         const sim = new Zemu(APP_PATH);
         try {
-            await sim.start(sim_options);
+            await sim.start(simOptions);
             const app = new FlowApp(sim.getTransport());
 
             // Derivation path. First 3 items are automatically hardened!
@@ -563,7 +562,7 @@ describe('Basic checks', function () {
     it('sign p256 basic & verify SHA2-256 - transfer', async function () {
         const sim = new Zemu(APP_PATH);
         try {
-            await sim.start(sim_options);
+            await sim.start(simOptions);
             const app = new FlowApp(sim.getTransport());
 
             const scheme = FlowApp.Signature.P256 | FlowApp.Hash.SHA2_256;
@@ -614,7 +613,7 @@ describe('Basic checks', function () {
     it('sign p256 basic & verify SHA2-256 - create', async function () {
         const sim = new Zemu(APP_PATH);
         try {
-            await sim.start(sim_options);
+            await sim.start(simOptions);
             const app = new FlowApp(sim.getTransport());
 
             const scheme = FlowApp.Signature.P256 | FlowApp.Hash.SHA2_256;
@@ -665,7 +664,7 @@ describe('Basic checks', function () {
     it('sign p256 basic & verify SHA2-256 - add new key', async function () {
         const sim = new Zemu(APP_PATH);
         try {
-            await sim.start(sim_options);
+            await sim.start(simOptions);
             const app = new FlowApp(sim.getTransport());
 
             const scheme = FlowApp.Signature.P256 | FlowApp.Hash.SHA2_256;
@@ -716,7 +715,7 @@ describe('Basic checks', function () {
     it('sign p256 basic & verify SHA3-256 - transfer', async function () {
         const sim = new Zemu(APP_PATH);
         try {
-            await sim.start(sim_options);
+            await sim.start(simOptions);
             const app = new FlowApp(sim.getTransport());
 
             const scheme = FlowApp.Signature.P256 | FlowApp.Hash.SHA3_256;
@@ -767,7 +766,7 @@ describe('Basic checks', function () {
     it('sign p256 basic & verify SHA3-256 - create', async function () {
         const sim = new Zemu(APP_PATH);
         try {
-            await sim.start(sim_options);
+            await sim.start(simOptions);
             const app = new FlowApp(sim.getTransport());
 
             const scheme = FlowApp.Signature.P256 | FlowApp.Hash.SHA3_256;
@@ -818,7 +817,7 @@ describe('Basic checks', function () {
     it('sign p256 basic & verify SHA3-256 - add new key', async function () {
         const sim = new Zemu(APP_PATH);
         try {
-            await sim.start(sim_options);
+            await sim.start(simOptions);
             const app = new FlowApp(sim.getTransport());
 
             const scheme = FlowApp.Signature.P256 | FlowApp.Hash.SHA3_256;

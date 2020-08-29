@@ -41,7 +41,6 @@ all: bin/app.elf
 	@chmod +x $(CURDIR)/pkg/zxtool.sh
 
 include $(BOLOS_SDK)/Makefile.defines
-DEFINES += NDEBUG
 
 ifndef COIN
 COIN=FLOW
@@ -82,6 +81,9 @@ endif
 ifeq ($(TARGET_NAME),TARGET_NANOX)
 ICONNAME:=$(CURDIR)/nanox_icon.gif
 endif
+
+$(info TARGET_NAME  = [$(TARGET_NAME)])
+$(info ICONNAME  = [$(ICONNAME)])
 
 ifndef ICONNAME
 $(error ICONNAME is not set)
@@ -164,6 +166,7 @@ AFLAGS +=
 
 LD       := $(GCCPATH)arm-none-eabi-gcc
 LDFLAGS  += -O3 -Os
+LDFLAGS  += -z muldefs
 LDLIBS   += -lm -lgcc -lc
 #LDLIBS   += -Lrust/target/thumbv6m-none-eabi/release -lrslib
 
