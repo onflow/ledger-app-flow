@@ -88,7 +88,8 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             for (uint16_t i = 0; i < (uint16_t) pks.size(); i++) {
                 auto pubkeyChunks = FormatPubKey(pks[i]["value"]);
                 for (uint16_t j = 0; j < (uint16_t) pubkeyChunks.size(); j++) {
-                    addTo(answer, "{} | Public key {} [{}/{}] : {}", item, i + 1, j + 1, pubkeyChunks.size(), pubkeyChunks[j]);
+                    addTo(answer, "{} | Public key {} [{}/{}] : {}", item, i + 1, j + 1, pubkeyChunks.size(),
+                          pubkeyChunks[j]);
                 }
                 item++;
             }
@@ -100,7 +101,7 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
 
             auto pubkeyChunks = FormatPubKey(pk);
             for (uint16_t j = 0; j < (uint16_t) pubkeyChunks.size(); j++) {
-                addTo(answer, "{} | Public key [{}/{}] : {}", item, j, pubkeyChunks.size(), pubkeyChunks[j]);
+                addTo(answer, "{} | Public key [{}/{}] : {}", item, j + 1, pubkeyChunks.size(), pubkeyChunks[j]);
             }
             item++;
             break;
