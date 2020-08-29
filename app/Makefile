@@ -128,7 +128,7 @@ SDK_SOURCE_PATH  += lib_blewbxx lib_blewbxx_impl
 else
 # Assume Nano S
 DEFINES       += IO_SEPROXYHAL_BUFFER_SIZE_B=128
-DEFINES       += HAVE_BOLOS_UX COMPLIANCE_UX_160 HAVE_UX_LEGACY
+DEFINES       += COMPLIANCE_UX_160 HAVE_UX_LEGACY
 endif
 
 # X specific
@@ -166,7 +166,6 @@ AFLAGS +=
 
 LD       := $(GCCPATH)arm-none-eabi-gcc
 LDFLAGS  += -O3 -Os
-LDFLAGS  += -z muldefs
 LDLIBS   += -lm -lgcc -lc
 #LDLIBS   += -Lrust/target/thumbv6m-none-eabi/release -lrslib
 

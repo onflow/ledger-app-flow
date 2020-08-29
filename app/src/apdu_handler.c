@@ -22,9 +22,9 @@
 #include <os.h>
 
 #include "view.h"
-#include "addr.h"
 #include "actions.h"
 #include "tx.h"
+#include "addr.h"
 #include "crypto.h"
 #include "coin.h"
 #include "zxmacros.h"
@@ -53,10 +53,7 @@ __Z_INLINE void handleSignSecp256K1(volatile uint32_t *flags, volatile uint32_t 
         THROW(APDU_CODE_OK);
     }
 
-    CHECK_APP_CANARY()
-
     const char *error_msg = tx_parse();
-    CHECK_APP_CANARY()
 
     if (error_msg != NULL) {
         int error_msg_length = strlen(error_msg);
@@ -64,6 +61,8 @@ __Z_INLINE void handleSignSecp256K1(volatile uint32_t *flags, volatile uint32_t 
         *tx += (error_msg_length);
         THROW(APDU_CODE_DATA_INVALID);
     }
+
+    zemu_log_stack("tx_parse done");
 
     CHECK_APP_CANARY()
     view_review_init(tx_getItem, tx_getNumItems, app_sign);

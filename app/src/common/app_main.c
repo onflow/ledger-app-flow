@@ -27,7 +27,6 @@
 #include "crypto.h"
 #include "coin.h"
 #include "zxmacros.h"
-#include "zbuffer.h"
 
 unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 
@@ -102,7 +101,7 @@ void extractHDPath(uint32_t rx, uint32_t offset) {
                          hdPath[1] == HDPATH_1_DEFAULT;
 
     const bool testnet = hdPath[0] == HDPATH_0_TESTNET &&
-            hdPath[1] == HDPATH_1_TESTNET;
+                         hdPath[1] == HDPATH_1_TESTNET;
 
     if (!mainnet && !testnet) {
         THROW(APDU_CODE_DATA_INVALID);
@@ -186,6 +185,4 @@ void app_init() {
     BLE_power(0, NULL);
     BLE_power(1, "Nano X");
 #endif // HAVE_BLE
-
-    zb_init();
 }
