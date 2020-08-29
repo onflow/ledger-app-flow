@@ -41,14 +41,13 @@ all: bin/app.elf
 	@chmod +x $(CURDIR)/pkg/zxtool.sh
 
 include $(BOLOS_SDK)/Makefile.defines
-DEFINES += NDEBUG
 
 ifndef COIN
 COIN=FLOW
 endif
 
 APPVERSION_M=0
-APPVERSION_N=4
+APPVERSION_N=5
 APPVERSION_P=0
 
 $(info COIN  = [$(COIN)])
@@ -82,6 +81,9 @@ endif
 ifeq ($(TARGET_NAME),TARGET_NANOX)
 ICONNAME:=$(CURDIR)/nanox_icon.gif
 endif
+
+$(info TARGET_NAME  = [$(TARGET_NAME)])
+$(info ICONNAME  = [$(ICONNAME)])
 
 ifndef ICONNAME
 $(error ICONNAME is not set)
@@ -126,7 +128,7 @@ SDK_SOURCE_PATH  += lib_blewbxx lib_blewbxx_impl
 else
 # Assume Nano S
 DEFINES       += IO_SEPROXYHAL_BUFFER_SIZE_B=128
-DEFINES       += HAVE_BOLOS_UX COMPLIANCE_UX_160 HAVE_UX_LEGACY
+DEFINES       += COMPLIANCE_UX_160 HAVE_UX_LEGACY
 endif
 
 # X specific

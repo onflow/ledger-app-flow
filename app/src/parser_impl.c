@@ -233,34 +233,9 @@ parser_error_t json_extractPubKey(char *outVal, uint16_t outValLen, parsed_json_
 
     uint16_t internalTokenElemIdx;
     CHECK_PARSER_ERR(json_matchKeyValue(
-            parsedJson, tokenIdx, (char *) "Array", JSMN_ARRAY, &internalTokenElemIdx))
+            parsedJson, tokenIdx, (char *) "String", JSMN_STRING, &internalTokenElemIdx))
 
-    // Extract values
-    uint16_t arrayTokenCount;
-    CHECK_PARSER_ERR(array_get_element_count(parsedJson, internalTokenElemIdx, &arrayTokenCount))
-
-    if (outValLen - 1 < arrayTokenCount * 2) {
-        return parser_unexpected_buffer_end;
-    }
-
-    for (int arrayElementIdx = 0; arrayElementIdx < arrayTokenCount; arrayElementIdx++) {
-        uint16_t arrayElementToken;
-        CHECK_PARSER_ERR(array_get_nth_element(parsedJson, internalTokenElemIdx, arrayElementIdx, &arrayElementToken))
-
-        uint16_t valueTokenIdx;
-        CHECK_PARSER_ERR(json_matchKeyValue(
-                parsedJson,
-                arrayElementToken,
-                (char *) "UInt8", JSMN_PRIMITIVE,
-                &valueTokenIdx))
-
-        char tmpDecBuffer[20];
-        char tmpHexBuffer[20];
-
-        CHECK_PARSER_ERR(json_extractToken(tmpDecBuffer, sizeof(tmpDecBuffer), parsedJson, valueTokenIdx))
-        CHECK_PARSER_ERR(formatStrUInt8AsHex(tmpDecBuffer, tmpHexBuffer))
-        strcat(outVal, tmpHexBuffer);
-    }
+    CHECK_PARSER_ERR(json_extractToken(outVal, outValLen, parsedJson, internalTokenElemIdx))
 
     return parser_ok;
 }

@@ -20,13 +20,12 @@
 #include "parser.h"
 #include <string.h>
 #include "zxmacros.h"
-#include "zbuffer.h"
 
 #if defined(TARGET_NANOX)
 #define RAM_BUFFER_SIZE 8192
-#define FLASH_BUFFER_SIZE 32768
+#define FLASH_BUFFER_SIZE 16384
 #elif defined(TARGET_NANOS)
- #define RAM_BUFFER_SIZE 384
+#define RAM_BUFFER_SIZE 0
 #define FLASH_BUFFER_SIZE 8192
 #endif
 

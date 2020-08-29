@@ -86,7 +86,7 @@ parser_error_t parser_printArgumentPublicKey(const parser_context_t *argumentCtx
     parsed_json_t parsedJson = {false};
     CHECK_PARSER_ERR(json_parse(&parsedJson, (char *) argumentCtx->buffer, argumentCtx->bufferLen));
 
-    char bufferUI[128];
+    char bufferUI[130];
     CHECK_PARSER_ERR(json_extractPubKey(bufferUI, sizeof(bufferUI), &parsedJson, 0))
     pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
 
@@ -118,7 +118,7 @@ parser_error_t parser_printArgumentPublicKeys(const parser_context_t *argumentCt
     zemu_log_stack("PublicKeys");
 
     uint16_t arrayElementToken;
-    char bufferUI[128];
+    char bufferUI[130];
     CHECK_PARSER_ERR(array_get_nth_element(&parsedJson, internalTokenElementIdx, argumentIndex, &arrayElementToken))
     CHECK_PARSER_ERR(json_extractPubKey(bufferUI, sizeof(bufferUI), &parsedJson, arrayElementToken))
     pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);

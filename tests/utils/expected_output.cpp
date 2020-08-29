@@ -37,12 +37,22 @@ std::string FormatHexString(const std::string &data, uint8_t idx, uint8_t *pageC
     return std::string(outBuffer);
 }
 
-std::string FormatPubKey(const Json::Value &v) {
+std::vector<std::string> FormatPubKey(const Json::Value &v) {
+    std::vector<std::string> answer;
     std::stringstream s;
-    for (const auto &c : v) {
-        s << std::hex << std::setfill('0') << std::setw(2) << c["value"].asInt64();
+    s << v.asString();
+
+    uint8_t pageIdx = 0;
+    uint8_t pageCount = 1;
+    char outBuffer[40];
+
+    while (pageIdx < pageCount) {
+        pageString(outBuffer, sizeof(outBuffer), s.str().c_str(), pageIdx, &pageCount);
+        answer.emplace_back(outBuffer);
+        pageIdx++;
     }
-    return s.str();
+
+    return answer;
 }
 
 std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
@@ -59,6 +69,7 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
     _matchScriptType(scriptHash, &scriptType);
 
     uint16_t item = 0;
+    uint8_t dummy;
 
     switch (scriptType) {
         case script_unknown:
@@ -75,7 +86,11 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             const auto pks = tcd.arguments[0]["value"];
 
             for (uint16_t i = 0; i < (uint16_t) pks.size(); i++) {
-                addTo(answer, "{} | Public key {} : {}", item, i + 1, FormatPubKey(pks[i]["value"]));
+                auto pubkeyChunks = FormatPubKey(pks[i]["value"]);
+                for (uint16_t j = 0; j < (uint16_t) pubkeyChunks.size(); j++) {
+                    addTo(answer, "{} | Public key {} [{}/{}] : {}", item, i + 1, j + 1, pubkeyChunks.size(),
+                          pubkeyChunks[j]);
+                }
                 item++;
             }
             break;
@@ -83,7 +98,11 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
         case script_add_new_key: {
             addTo(answer, "{} | Type : Add New Key", item++);
             const auto pk = tcd.arguments[0]["value"];
-            addTo(answer, "{} | Public key : {}", item, FormatPubKey(pk));
+
+            auto pubkeyChunks = FormatPubKey(pk);
+            for (uint16_t j = 0; j < (uint16_t) pubkeyChunks.size(); j++) {
+                addTo(answer, "{} | Public key [{}/{}] : {}", item, j + 1, pubkeyChunks.size(), pubkeyChunks[j]);
+            }
             item++;
             break;
         }
@@ -91,8 +110,6 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             addTo(answer, "{} | Type : ERROR", item++);
             break;
     }
-
-    uint8_t dummy;
 
     addTo(answer, "{} | Ref Block [1/2] : {}", item, FormatHexString(tcd.refBlock, 0, &dummy));
     addTo(answer, "{} | Ref Block [2/2] : {}", item++, FormatHexString(tcd.refBlock, 1, &dummy));
