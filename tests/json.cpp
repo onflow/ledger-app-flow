@@ -117,39 +117,3 @@ TEST(JSON, basicSingleKeyValue) {
             parser_ok);
     ASSERT_THAT(internalTokenElementIdx, 4);
 }
-
-TEST(JSON, basicArrayOfArrays) {
-    parsed_json_t parsedJson = {false};
-
-    auto err = json_parse(&parsedJson, validCreationInput, strlen(validCreationInput));
-    EXPECT_THAT(err, parser_ok);
-
-    uint16_t internalTokenElementIdx;
-    ASSERT_THAT(
-            json_matchKeyValue(&parsedJson, 0, (char *) "Array", jsmntype_t::JSMN_ARRAY, &internalTokenElementIdx),
-            parser_ok);
-    ASSERT_THAT(internalTokenElementIdx, 4);
-
-    // Internally there should be 4 items
-    uint16_t arrayTokenCount;
-    ASSERT_THAT(array_get_element_count(&parsedJson, internalTokenElementIdx, &arrayTokenCount), parser_ok);
-    EXPECT_EQ(arrayTokenCount, 4);
-
-    // Extract all public keys
-    char tmpBuffer[4][100];
-    for (int arrayElementIdx = 0; arrayElementIdx < 4; arrayElementIdx++) {
-        uint16_t arrayElementToken;
-        ASSERT_THAT(array_get_nth_element(&parsedJson, internalTokenElementIdx, arrayElementIdx, &arrayElementToken),
-                    parser_ok);
-
-        ASSERT_THAT(json_extractPubKey(tmpBuffer[arrayElementIdx], sizeof(tmpBuffer[arrayElementIdx]),
-                                       &parsedJson, arrayElementToken), parser_ok);
-
-        fprintf(stderr, "%s\n", tmpBuffer[arrayElementIdx]);
-    }
-
-    EXPECT_STREQ(tmpBuffer[0], "e916a89840ccc2");
-    EXPECT_STREQ(tmpBuffer[1], "fbf589bc3aa4e5ae");
-    EXPECT_STREQ(tmpBuffer[2], "ac4491f39ad334");
-    EXPECT_STREQ(tmpBuffer[3], "4f9012acc9");
-}
