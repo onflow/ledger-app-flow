@@ -317,7 +317,7 @@ parser_error_t parser_getItemCreateAccount(const parser_context_t *ctx,
 
     const uint8_t pkCount = _countArgumentItems(&parser_tx_obj.arguments, 0);
     if (displayIdx < pkCount) {
-        snprintf(outKey, outKeyLen, "Public key %d", displayIdx + 1);
+        snprintf(outKey, outKeyLen, "Pub key %d", displayIdx + 1);
         CHECK_PARSER_ERR(
                 parser_printArgumentPublicKeys(
                         &parser_tx_obj.arguments.argCtx[0],
@@ -376,7 +376,7 @@ parser_error_t parser_getItemAddNewKey(const parser_context_t *ctx,
                     parser_printArgumentPublicKey(
                             &parser_tx_obj.arguments.argCtx[0], outVal, outValLen,
                             pageIdx, pageCount))
-            snprintf(outKey, outKeyLen, "Public key");
+            snprintf(outKey, outKeyLen, "Pub key");
             return parser_ok;
         }
         case 2:

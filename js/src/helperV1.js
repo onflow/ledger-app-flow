@@ -1,4 +1,4 @@
-import { CLA, errorCodeToString, INS, PAYLOAD_TYPE, processErrorResponse } from "./common";
+import {CLA, errorCodeToString, INS, PAYLOAD_TYPE, processErrorResponse} from "./common";
 
 const HARDENED = 0x80000000;
 
@@ -43,6 +43,35 @@ export function serializePathv1(path) {
   }
 
   return buf;
+}
+
+function printBIP44Item(v) {
+  let hardened = v >= 0x8000000;
+  return `${v & 0x7FFFFFFF}${hardened ? "'" : ""}`;
+}
+
+export function printBIP44Path(pathBytes) {
+  if (pathBytes.length !== 20) {
+    throw new Error("Invalid bip44 path");
+  }
+
+  let pathValues = [0, 0, 0, 0, 0];
+  for (let i = 0; i < 5; i += 1) {
+    pathValues[i] = pathBytes.readUInt32LE(4 * i);
+    console.log(pathValues[i]);
+  }
+
+  return `m/${
+    printBIP44Item(pathValues[0])
+  }/${
+    printBIP44Item(pathValues[1])
+  }/${
+    printBIP44Item(pathValues[2])
+  }/${
+    printBIP44Item(pathValues[3])
+  }/${
+    printBIP44Item(pathValues[4])
+  }`;
 }
 
 export async function signSendChunkv1(app, chunkIdx, chunkNum, chunk) {
