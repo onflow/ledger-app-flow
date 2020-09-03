@@ -3,8 +3,12 @@ export const CHUNK_SIZE = 250;
 
 export const INS = {
   GET_VERSION: 0x00,
-  GET_ADDR_SECP256K1: 0x01,
-  SIGN_SECP256K1: 0x02,
+  GET_PUBKEY: 0x01,
+  SIGN: 0x02,
+
+  SLOT_STATUS: 0x10,
+  GET_SLOT: 0x11,
+  SET_SLOT: 0x12,
 };
 
 export const PAYLOAD_TYPE = {

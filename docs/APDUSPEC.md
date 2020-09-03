@@ -4,7 +4,7 @@
 
 The general structure of commands and responses is as follows:
 
-#### Commands
+### Commands
 
 | Field   | Type     | Content                | Note |
 | :------ | :------- | :--------------------- | ---- |
@@ -15,14 +15,14 @@ The general structure of commands and responses is as follows:
 | L       | byte (1) | Bytes in payload       |      |
 | PAYLOAD | byte (L) | Payload                |      |
 
-#### Response
+### Response
 
 | Field   | Type     | Content     | Note                     |
 | ------- | -------- | ----------- | ------------------------ |
 | ANSWER  | byte (?) | Answer      | depends on the command   |
 | SW1-SW2 | byte (2) | Return code | see list of return codes |
 
-#### Return codes
+### Return codes
 
 | Return code | Description             |
 | ----------- | ----------------------- |
@@ -45,12 +45,11 @@ In order to keep these public keys separated, the second items in the derivation
 
 | Field   | Type     | Content              | Expected    |
 | ------- | -------- | -------------------- | ----------- |
-| Path[0] | byte (4) | Derivation Path Data | 44          |
-| Path[1] | byte (4) | Derivation Path Data | ???         | # FIXME: Modify once registration is available |
+| Path[0] | byte (4) | Derivation Path Data | 44'         |
+| Path[1] | byte (4) | Derivation Path Data | 539'        |
 | Path[2] | byte (4) | Derivation Path Data | Scheme/Hash |
 | Path[3] | byte (4) | Derivation Path Data | ?           |
 | Path[4] | byte (4) | Derivation Path Data | ?           |
-
 
 The scheme/hash field in encoded in a uint32 value:
 
@@ -58,19 +57,19 @@ The scheme/hash field in encoded in a uint32 value:
 
 As describe in the following table:
 
-**Signatures**
+### Signatures
 
-| Algorithm    | Curve     | ID              | Code |
-|--------------|-----------|-----------------|------|
-| ECDSA        | P-256     | ECDSA_P256      | 2    |
-| ECDSA        | secp256k1 | ECDSA_secp256k1 | 3    |
+| Algorithm | Curve     | ID              | Code |
+| --------- | --------- | --------------- | ---- |
+| ECDSA     | P-256     | ECDSA_P256      | 2    |
+| ECDSA     | secp256k1 | ECDSA_secp256k1 | 3    |
 
-**Hashes**
+### Hashes
 
-| Algorithm    | Output Size | ID              | Code |
-|--------------|-------------|-----------------|------|
-| SHA-2        | 256         | SHA2_256        | 1    |
-| SHA-3        | 256         | SHA3_256        | 3    |
+| Algorithm | Output Size | ID       | Code |
+| --------- | ----------- | -------- | ---- |
+| SHA-2     | 256         | SHA2_256 | 1    |
+| SHA-3     | 256         | SHA3_256 | 3    |
 
 As an example, `ECDSA_secp256k1` + `SHA2_256` is encoded as `0x0000_0301`
 
@@ -83,6 +82,21 @@ Taking into account path hardening:
 m/`0x8000002c`/`0x8000????`/ `0x8000 0301` / `[item3]` / `[item4]`
 
 Path hardening in item3 and item4 is optional
+
+---
+
+## Account Slots
+
+Account information can be temporarily stored in the device slots.
+Each account slot contains an account identifier and the corresponding derivation path.
+Only a 1:1 account/path relation can be stored per slot.
+
+Each slot has the following structure
+
+| Field   | Type    |                    |
+| ------- | ------- | ------------------ |
+| Account | byte(8) | Account Identifier |
+| Path    | u32 (5) | Derivation Path    |
 
 ---
 
@@ -113,22 +127,22 @@ Path hardening in item3 and item4 is optional
 
 ---
 
-### INS_GET_ADDR_SECP256K1
+### INS_GET_PUBKEY
 
 #### Command
 
-| Field   | Type     | Content                   | Expected         |
-| ------- | -------- | ------------------------- | ---------------- |
-| CLA     | byte (1) | Application Identifier    | 0x33             |
-| INS     | byte (1) | Instruction ID            | 0x01             |
-| P1      | byte (1) | Request User confirmation | No = 0           |
-| P2      | byte (1) | Parameter 2               | ignored          |
-| L       | byte (1) | Bytes in payload          | (depends)        |
-| Path[0] | byte (4) | Derivation Path Data      | 0x80000000 \| 44 |
-| Path[1] | byte (4) | Derivation Path Data      | 0x80000000 \| 1' |
-| Path[2] | byte (4) | Derivation Path Data      | ?                |
-| Path[3] | byte (4) | Derivation Path Data      | ?                |
-| Path[4] | byte (4) | Derivation Path Data      | ?                |
+| Field   | Type     | Content                   | Expected           |
+| ------- | -------- | ------------------------- | ------------------ |
+| CLA     | byte (1) | Application Identifier    | 0x33               |
+| INS     | byte (1) | Instruction ID            | 0x01               |
+| P1      | byte (1) | Request User confirmation | No = 0             |
+| P2      | byte (1) | Parameter 2               | ignored            |
+| L       | byte (1) | Bytes in payload          | (depends)          |
+| Path[0] | byte (4) | Derivation Path Data      | 0x80000000 \| 44   |
+| Path[1] | byte (4) | Derivation Path Data      | 0x80000000 \| 539' |
+| Path[2] | byte (4) | Derivation Path Data      | ?                  |
+| Path[3] | byte (4) | Derivation Path Data      | ?                  |
+| Path[4] | byte (4) | Derivation Path Data      | ?                  |
 
 #### Response
 
@@ -141,7 +155,7 @@ Path hardening in item3 and item4 is optional
 | ADDR_S     | byte (??) | Address as String |                          |
 | SW1-SW2    | byte (2)  | Return code       | see list of return codes |
 
-### INS_SIGN_SECP256K1
+### INS_SIGN
 
 #### Command
 
@@ -159,17 +173,17 @@ The first packet/chunk includes only the derivation path
 
 All other packets/chunks contain data chunks that are described below
 
-_First Packet_
+##### First Packet
 
 | Field   | Type     | Content              | Expected |
 | ------- | -------- | -------------------- | -------- |
-| Path[0] | byte (4) | Derivation Path Data | 44       |
-| Path[1] | byte (4) | Derivation Path Data | ???      |
+| Path[0] | byte (4) | Derivation Path Data | 44'      |
+| Path[1] | byte (4) | Derivation Path Data | 539'     |
 | Path[2] | byte (4) | Derivation Path Data | ?        |
 | Path[3] | byte (4) | Derivation Path Data | ?        |
 | Path[4] | byte (4) | Derivation Path Data | ?        |
 
-_Other Chunks/Packets_
+##### Other Chunks/Packets
 
 | Field | Type     | Content | Expected |
 | ----- | -------- | ------- | -------- |
@@ -192,3 +206,68 @@ Data is defined as:
 | SW1-SW2     | byte (2)       | Return code | see list of return codes |
 
 ---
+
+### INS_GET_SLOTS_STATUS
+
+#### Command
+
+| Field | Type     | Content                   | Expected |
+| ----- | -------- | ------------------------- | -------- |
+| CLA   | byte (1) | Application Identifier    | 0x33     |
+| INS   | byte (1) | Instruction ID            | 0x11     |
+| P1    | byte (1) | Request User confirmation | No = 0   |
+| P2    | byte (1) | Parameter 2               | ignored  |
+| L     | byte (1) | Bytes in payload          | 0        |
+
+#### Response
+
+| Field | Type      | Content      | Note            |
+| ----- | --------- | ------------ | --------------- |
+| USED  | byte (64) | Slot is used | No = 0, Yes = 1 |
+
+### INS_GET_SLOT
+
+#### Command
+
+| Field | Type     | Content                   | Expected |
+| ----- | -------- | ------------------------- | -------- |
+| CLA   | byte (1) | Application Identifier    | 0x33     |
+| INS   | byte (1) | Instruction ID            | 0x11     |
+| P1    | byte (1) | Request User confirmation | No = 0   |
+| P2    | byte (1) | Parameter 2               | ignored  |
+| L     | byte (1) | Bytes in payload          | 1        |
+| Slot  | byte (1) | Slot Index                | 0..63    |
+
+#### Response
+
+| Field   | Type     | Content              | Note               |
+| ------- | -------- | -------------------- | ------------------ |
+| ADDR    | byte (8) | Address              |                    |
+| Path[0] | byte (4) | Derivation Path Data | 0x80000000 \| 44   |
+| Path[1] | byte (4) | Derivation Path Data | 0x80000000 \| 539' |
+| Path[2] | byte (4) | Derivation Path Data | ?                  |
+| Path[3] | byte (4) | Derivation Path Data | ?                  |
+| Path[4] | byte (4) | Derivation Path Data | ?                  |
+
+Note:
+Setting the slot to all zeros, will remove the data, otherwise,
+the slot needs to have a valid derivation path
+
+### INS_SET_SLOT
+
+#### Command
+
+| Field   | Type     | Content                | Expected |
+| ------- | -------- | ---------------------- | -------- |
+| CLA     | byte (1) | Application Identifier | 0x33     |
+| INS     | byte (1) | Instruction ID         | 0x12     |
+| P1      | byte (1) | Parameter 1            | ignored  |
+| P2      | byte (1) | Parameter 2            | ignored  |
+| L       | byte (1) | Bytes in payload       | 29       |
+| Slot    | byte (1) | Slot Index             | 0..63    |
+| ADDR    | byte (8) | Address                |          |
+| Path[0] | byte (4) | Derivation Path Data   | ?        |
+| Path[1] | byte (4) | Derivation Path Data   | ?        |
+| Path[2] | byte (4) | Derivation Path Data   | ?        |
+| Path[3] | byte (4) | Derivation Path Data   | ?        |
+| Path[4] | byte (4) | Derivation Path Data   | ?        |

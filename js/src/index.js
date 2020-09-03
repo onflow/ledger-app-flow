@@ -15,7 +15,7 @@
  *  limitations under the License.
  ******************************************************************************* */
 
-import {serializePathv1, signSendChunkv1} from "./helperV1";
+import {serializePathv1, printBIP44Path, signSendChunkv1} from "./helperV1";
 import {
   CHUNK_SIZE,
   CLA,
@@ -159,7 +159,7 @@ export default class FlowApp {
     console.log(serializedPath);
 
     return this.transport
-      .send(CLA, INS.GET_ADDR_SECP256K1, P1_VALUES.ONLY_RETRIEVE, 0, serializedPath, [0x9000])
+      .send(CLA, INS.GET_PUBKEY, P1_VALUES.ONLY_RETRIEVE, 0, serializedPath, [0x9000])
       .then(processGetAddrResponse, processErrorResponse);
   }
 
@@ -167,7 +167,7 @@ export default class FlowApp {
     const serializedPath = serializePathv1(path);
 
     return this.transport
-      .send(CLA, INS.GET_ADDR_SECP256K1, P1_VALUES.SHOW_ADDRESS_IN_DEVICE, 0, serializedPath, [0x9000])
+      .send(CLA, INS.GET_PUBKEY, P1_VALUES.SHOW_ADDRESS_IN_DEVICE, 0, serializedPath, [0x9000])
       .then(processGetAddrResponse, processErrorResponse);
   }
 
@@ -203,4 +203,82 @@ export default class FlowApp {
       }, processErrorResponse);
     }, processErrorResponse);
   }
+
+  async slotStatus() {
+    return this.transport.send(CLA, INS.SLOT_STATUS, 0, 0).then((response) => {
+      const errorCodeData = response.slice(-2);
+      const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
+
+      return {
+        returnCode,
+        errorMessage: errorCodeToString(returnCode),
+        status: response.slice(0, 64),
+      };
+    }, processErrorResponse);
+  }
+
+  async getSlot(slotIdx) {
+    if (isNaN(slotIdx) || slotIdx < 0 || slotIdx > 63) {
+      return {
+        returnCode: 0,
+        errorMessage: "slotIdx should be a number between 0 and 63 inclusively",
+      };
+    }
+
+    const payload = Buffer.from([slotIdx]);
+    return this.transport.send(CLA, INS.GET_SLOT, 0, 0, payload).then((response) => {
+      console.log(response);
+
+      const errorCodeData = response.slice(-2);
+      const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
+
+      const pathStr = printBIP44Path(response.slice(8, 28));
+
+      return {
+        returnCode,
+        errorMessage: errorCodeToString(returnCode),
+        slotIdx: slotIdx,
+        account: response.slice(0, 8).toString("hex"),
+        path: pathStr
+      };
+    }, processErrorResponse);
+  }
+
+  async setSlot(slotIdx, account, path) {
+    if (isNaN(slotIdx) || slotIdx < 0 || slotIdx > 63) {
+      return {
+        returnCode: 0,
+        errorMessage: "slotIdx should be a number between 0 and 63 inclusively",
+      };
+    }
+
+    const serializedSlotIdx = Buffer.from([slotIdx]);
+    const serializedAccount = Buffer.from(account, "hex");
+    const serializedPath = serializePathv1(path);
+
+    if (serializedAccount.length !== 8) {
+      return {
+        returnCode: 0,
+        errorMessage: "account is expected to be a hexstring 16 characters long",
+      };
+    }
+
+    console.log(serializedSlotIdx)
+    console.log(serializedAccount)
+    console.log(serializedPath)
+
+    const payload = Buffer.concat([ serializedSlotIdx, serializedAccount, serializedPath]);
+    console.log(payload)
+
+    return this.transport.send(CLA, INS.SET_SLOT, 0, 0, payload).then((response) => {
+      const errorCodeData = response.slice(-2);
+      const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
+
+      return {
+        returnCode,
+        errorMessage: errorCodeToString(returnCode),
+      };
+    }, processErrorResponse);
+  }
+
 }

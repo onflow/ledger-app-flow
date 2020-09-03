@@ -35,6 +35,16 @@ export interface ResponseSign extends ResponseBase {
   signatureDER: Buffer;
 }
 
+export interface ResponseSlotStatus extends ResponseBase {
+  status: Buffer;
+}
+
+export interface ResponseSlot extends ResponseBase {
+  slotIdx: number;
+  account: string;
+  path: string;
+}
+
 export interface FlowApp {
   new(transport: Transport): FlowApp;
 
@@ -42,6 +52,10 @@ export interface FlowApp {
   getAppInfo(): Promise<ResponseAppInfo>;
   getAddressAndPubKey(path: string): Promise<ResponseAddress>;
   showAddressAndPubKey(path: string): Promise<ResponseAddress>;
+
+  slotStatus(): Promise<ResponseSlotStatus>;
+  getSlot(slotIdx: number): Promise<ResponseSlot>;
+  setSlot(slotIdx: number, account: string, path: string): Promise<ResponseSlot>;
 
   sign(path: string, message: Buffer): Promise<ResponseSign>;
 }

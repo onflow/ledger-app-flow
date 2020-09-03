@@ -27,9 +27,10 @@
 #include "addr.h"
 #include "crypto.h"
 #include "coin.h"
+#include "account.h"
 #include "zxmacros.h"
 
-__Z_INLINE void handleGetAddrSecp256K1(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+__Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     extractHDPath(rx, OFFSET_DATA);
 
     uint8_t requireConfirmation = G_io_apdu_buffer[OFFSET_P1];
@@ -48,7 +49,7 @@ __Z_INLINE void handleGetAddrSecp256K1(volatile uint32_t *flags, volatile uint32
     THROW(APDU_CODE_OK);
 }
 
-__Z_INLINE void handleSignSecp256K1(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+__Z_INLINE void handleSign(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     if (!process_chunk(tx, rx)) {
         THROW(APDU_CODE_OK);
     }
@@ -62,12 +63,86 @@ __Z_INLINE void handleSignSecp256K1(volatile uint32_t *flags, volatile uint32_t 
         THROW(APDU_CODE_DATA_INVALID);
     }
 
-    zemu_log_stack("tx_parse done");
-
     CHECK_APP_CANARY()
     view_review_init(tx_getItem, tx_getNumItems, app_sign);
     view_review_show();
     *flags |= IO_ASYNCH_REPLY;
+}
+
+__Z_INLINE void handleSlotStatus(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+    if (rx != 5) {
+        THROW(APDU_CODE_DATA_INVALID);
+    }
+
+    if (slot_status(G_io_apdu_buffer, SLOT_COUNT) != zxerr_ok) {
+        THROW(APDU_CODE_EXECUTION_ERROR);
+    }
+    *tx = SLOT_COUNT;
+    THROW(APDU_CODE_OK);
+}
+
+__Z_INLINE void handleGetSlot(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+    if (rx != 6) {
+        THROW(APDU_CODE_DATA_INVALID);
+    }
+
+    // TODO: Add visual confirmation?
+
+    const uint8_t slotIdx = G_io_apdu_buffer[OFFSET_DATA];
+
+    char buffer[20];
+    snprintf(buffer, sizeof(buffer), "%d", slotIdx);
+    zemu_log_stack(buffer);
+
+    zxerr_t err = slot_getSlot(slotIdx, G_io_apdu_buffer, IO_APDU_BUFFER_SIZE);
+    snprintf(buffer, sizeof(buffer), "err: %d", err);
+    zemu_log_stack(buffer);
+
+    if (err == zxerr_no_data) {
+        zemu_log_stack("Empty slot");
+        THROW(APDU_CODE_EMPTY_BUFFER);
+    }
+
+    if (err != zxerr_ok) {
+        THROW(APDU_CODE_EXECUTION_ERROR);
+    }
+
+    *tx = sizeof(account_slot_t);
+    THROW(APDU_CODE_OK);
+}
+
+__Z_INLINE void handleSetSlot(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+    if (rx != 5 + 1 + 8 + 20) {
+        THROW(APDU_CODE_DATA_INVALID);
+    }
+
+    uint8_t slotIdx = G_io_apdu_buffer[OFFSET_DATA];
+
+    char buffer[50];
+    snprintf(buffer, sizeof(buffer), "%d", slotIdx);
+    zemu_log_stack(buffer);
+
+    // TODO: Add manual confirmation
+
+    zxerr_t err = slot_setSlot(
+            slotIdx,
+            G_io_apdu_buffer + OFFSET_DATA + 1,
+            8 + 20);
+
+    snprintf(buffer, sizeof(buffer), "err: %d", err);
+    zemu_log_stack(buffer);
+
+//    if (err == zxerr_no_data) {
+//        zemu_log_stack("Empty slot");
+//        THROW(APDU_CODE_EMPTY_BUFFER);
+//    }
+
+    if (err != zxerr_ok) {
+        THROW(APDU_CODE_EXECUTION_ERROR);
+    }
+
+    *tx = sizeof(account_slot_t);
+    THROW(APDU_CODE_OK);
 }
 
 void handleApdu(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
@@ -91,13 +166,28 @@ void handleApdu(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
                     break;
                 }
 
-                case INS_GET_ADDR_SECP256K1: {
-                    handleGetAddrSecp256K1(flags, tx, rx);
+                case INS_GET_PUBKEY: {
+                    handleGetPubkey(flags, tx, rx);
                     break;
                 }
 
-                case INS_SIGN_SECP256K1: {
-                    handleSignSecp256K1(flags, tx, rx);
+                case INS_SIGN: {
+                    handleSign(flags, tx, rx);
+                    break;
+                }
+
+                case INS_SLOT_STATUS: {
+                    handleSlotStatus(flags, tx, rx);
+                    break;
+                }
+
+                case INS_SLOT_GET: {
+                    handleGetSlot(flags, tx, rx);
+                    break;
+                }
+
+                case INS_SLOT_SET: {
+                    handleSetSlot(flags, tx, rx);
                     break;
                 }
 

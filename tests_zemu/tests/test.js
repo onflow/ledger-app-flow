@@ -28,10 +28,10 @@ const simOptions = {
     logging: true,
     start_delay: 3000,
     custom: `-s "${APP_SEED}"`
-//    , X11: true
+    , X11: true
 };
 
-jest.setTimeout(25000)
+jest.setTimeout(60000)
 
 describe('Basic checks', function () {
     it('can start and stop container', async function () {
@@ -89,6 +89,60 @@ describe('Basic checks', function () {
 
             expect(signatureResponse.returnCode).toEqual(0x6984);
             expect(signatureResponse.errorMessage).toEqual("Data is invalid : parser_rlp_error_invalid_kind");
+        } finally {
+            await sim.close();
+        }
+    });
+
+    // accounts
+
+    it('slot status - new', async function () {
+        const sim = new Zemu(APP_PATH);
+        try {
+            await sim.start(simOptions);
+            const app = new FlowApp(sim.getTransport());
+
+            let resp = await app.slotStatus();
+            console.log(resp);
+            expect(resp.returnCode).toEqual(0x9000);
+            expect(resp.errorMessage).toEqual("No errors");
+            expect(resp).toHaveProperty("status");
+
+            let expectedBuffer = Buffer.alloc(64);
+            expectedBuffer.fill(0);
+            expect(resp.status).toEqual(expectedBuffer);
+
+            // Get empty slot should error
+            let respSlot = await app.getSlot(3);
+            console.log(respSlot);
+            expect(respSlot.returnCode).toEqual(0x6982);
+            expect(respSlot.errorMessage).toEqual("Empty Buffer");
+
+            // Set slot 10
+            const expectedAccount = "0001020304050607"
+            const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
+            const expectedPath = `m/44'/539'/${scheme}'/0/0`;
+            respSlot = await app.setSlot(10, expectedAccount, expectedPath);
+            console.log(respSlot);
+            expect(resp.returnCode).toEqual(0x9000);
+
+            // Get slot status
+            resp = await app.slotStatus();
+            console.log(resp);
+            expect(resp.returnCode).toEqual(0x9000);
+            expect(resp.errorMessage).toEqual("No errors");
+            expectedBuffer = Buffer.alloc(64);
+            expectedBuffer.fill(0);
+            expectedBuffer[10] = 1;
+            expect(resp.status).toEqual(expectedBuffer);
+
+            // Get empty slot should error
+            respSlot = await app.getSlot(10);
+            console.log(respSlot);
+            expect(respSlot.returnCode).toEqual(0x9000);
+            expect(respSlot.account).toEqual(expectedAccount);
+            expect(respSlot.path).toEqual(expectedPath);
+
         } finally {
             await sim.close();
         }
@@ -164,6 +218,7 @@ describe('Basic checks', function () {
             // Enable expert mode
             await sim.clickRight();
             await sim.clickBoth();
+            await sim.clickLeft();
 
             // Derivation path. First 3 items are automatically hardened!
             const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
