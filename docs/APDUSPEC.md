@@ -127,7 +127,7 @@ Each slot has the following structure
 
 ---
 
-### INS_GET_ADDR_SECP256K1
+### INS_GET_PUBKEY
 
 #### Command
 
@@ -155,7 +155,7 @@ Each slot has the following structure
 | ADDR_S     | byte (??) | Address as String |                          |
 | SW1-SW2    | byte (2)  | Return code       | see list of return codes |
 
-### INS_SIGN_SECP256K1
+### INS_SIGN
 
 #### Command
 

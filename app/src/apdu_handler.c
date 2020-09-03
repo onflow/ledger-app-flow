@@ -30,7 +30,7 @@
 #include "account.h"
 #include "zxmacros.h"
 
-__Z_INLINE void handleGetAddrSecp256K1(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+__Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     extractHDPath(rx, OFFSET_DATA);
 
     uint8_t requireConfirmation = G_io_apdu_buffer[OFFSET_P1];
@@ -49,7 +49,7 @@ __Z_INLINE void handleGetAddrSecp256K1(volatile uint32_t *flags, volatile uint32
     THROW(APDU_CODE_OK);
 }
 
-__Z_INLINE void handleSignSecp256K1(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+__Z_INLINE void handleSign(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     if (!process_chunk(tx, rx)) {
         THROW(APDU_CODE_OK);
     }
@@ -166,13 +166,13 @@ void handleApdu(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
                     break;
                 }
 
-                case INS_GET_ADDR_SECP256K1: {
-                    handleGetAddrSecp256K1(flags, tx, rx);
+                case INS_GET_PUBKEY: {
+                    handleGetPubkey(flags, tx, rx);
                     break;
                 }
 
-                case INS_SIGN_SECP256K1: {
-                    handleSignSecp256K1(flags, tx, rx);
+                case INS_SIGN: {
+                    handleSign(flags, tx, rx);
                     break;
                 }
 

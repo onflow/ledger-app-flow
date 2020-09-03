@@ -159,7 +159,7 @@ export default class FlowApp {
     console.log(serializedPath);
 
     return this.transport
-      .send(CLA, INS.GET_ADDR_SECP256K1, P1_VALUES.ONLY_RETRIEVE, 0, serializedPath, [0x9000])
+      .send(CLA, INS.GET_PUBKEY, P1_VALUES.ONLY_RETRIEVE, 0, serializedPath, [0x9000])
       .then(processGetAddrResponse, processErrorResponse);
   }
 
@@ -167,7 +167,7 @@ export default class FlowApp {
     const serializedPath = serializePathv1(path);
 
     return this.transport
-      .send(CLA, INS.GET_ADDR_SECP256K1, P1_VALUES.SHOW_ADDRESS_IN_DEVICE, 0, serializedPath, [0x9000])
+      .send(CLA, INS.GET_PUBKEY, P1_VALUES.SHOW_ADDRESS_IN_DEVICE, 0, serializedPath, [0x9000])
       .then(processGetAddrResponse, processErrorResponse);
   }
 

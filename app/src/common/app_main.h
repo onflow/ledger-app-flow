@@ -31,8 +31,8 @@
 #define OFFSET_PAYLOAD_TYPE             OFFSET_P1
 
 #define INS_GET_VERSION                 0x00
-#define INS_GET_ADDR_SECP256K1          0x01
-#define INS_SIGN_SECP256K1              0x02
+#define INS_GET_PUBKEY          0x01
+#define INS_SIGN              0x02
 
 #define INS_SLOT_STATUS                 0x10
 #define INS_SLOT_GET                    0x11
