@@ -218,6 +218,7 @@ describe('Basic checks', function () {
             // Enable expert mode
             await sim.clickRight();
             await sim.clickBoth();
+            await sim.clickLeft();
 
             // Derivation path. First 3 items are automatically hardened!
             const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
