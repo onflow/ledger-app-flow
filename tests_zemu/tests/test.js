@@ -28,7 +28,7 @@ const simOptions = {
     logging: true,
     start_delay: 3000,
     custom: `-s "${APP_SEED}"`
-    , X11: true
+//    , X11: true
 };
 
 jest.setTimeout(60000)
@@ -96,21 +96,131 @@ describe('Basic checks', function () {
 
     // accounts
 
-    it('slot status - new', async function () {
+    it('slot status - set', async function () {
         const sim = new Zemu(APP_PATH);
         try {
             await sim.start(simOptions);
             const app = new FlowApp(sim.getTransport());
 
-            let resp = await app.slotStatus();
+            // Set slot 10
+            const expectedAccount = "0001020304050607"
+            const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
+            const expectedPath = `m/44'/539'/${scheme}'/0/0`;
+            let respRequest = app.setSlot(10, expectedAccount, expectedPath);
+
+            // Wait until we are not in the main menu
+            await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
+
+            // Now navigate the address / path
+            await sim.compareSnapshotsAndAccept(".", "slot_status_set", 4);
+
+            const resp = await respRequest;
             console.log(resp);
             expect(resp.returnCode).toEqual(0x9000);
-            expect(resp.errorMessage).toEqual("No errors");
-            expect(resp).toHaveProperty("status");
+
+        } finally {
+            await sim.close();
+        }
+    });
+
+    it('slot status - update', async function () {
+        const sim = new Zemu(APP_PATH);
+        try {
+            await sim.start(simOptions);
+            const app = new FlowApp(sim.getTransport());
+
+            // Set slot 10
+            const expectedAccount = "0001020304050607"
+            const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
+            let expectedPath = `m/44'/539'/${scheme}'/0/0`;
+            let respRequest = app.setSlot(10, expectedAccount, expectedPath);
+
+            // Wait until we are not in the main menu
+            await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
+
+            await sim.clickRight();
+            await sim.clickRight();
+            await sim.clickRight();
+            await sim.clickBoth();
+
+            resp = await respRequest;
+            await Zemu.sleep(1000);
+
+            expectedPath = `m/44'/539'/${scheme}'/0/1`;
+            respRequest = app.setSlot(10, expectedAccount, expectedPath);
+
+            // Wait until we are not in the main menu
+            await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
+
+            // Now navigate the address / path
+            await sim.compareSnapshotsAndAccept(".", "slot_status_update", 6);
+
+            let resp = await respRequest;
+            console.log(resp);
+            expect(resp.returnCode).toEqual(0x9000);
+
+        } finally {
+            await sim.close();
+        }
+    });
+
+    it('slot status - delete', async function () {
+        const sim = new Zemu(APP_PATH);
+        try {
+            await sim.start(simOptions);
+            const app = new FlowApp(sim.getTransport());
+
+            // Set slot 10
+            const expectedAccount = "0001020304050607"
+            const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
+            let expectedPath = `m/44'/539'/${scheme}'/0/0`;
+            let respRequest = app.setSlot(10, expectedAccount, expectedPath);
+
+            // Wait until we are not in the main menu
+            await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
+
+            await sim.clickRight();
+            await sim.clickRight();
+            await sim.clickRight();
+            await sim.clickBoth();
+
+            resp = await respRequest;
+            await Zemu.sleep(1000);
+
+            // Try to delete
+            respRequest = app.setSlot(10, "0000000000000000", `m/0/0/0/0/0`);
+
+            // Wait until we are not in the main menu
+            await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
+
+            // Now navigate the address / path
+            await sim.compareSnapshotsAndAccept(".", "slot_status_delete", 4);
+
+            let resp = await respRequest;
+            console.log(resp);
+            expect(resp.returnCode).toEqual(0x9000);
+
+        } finally {
+            await sim.close();
+        }
+    });
+
+    it('slot status - full', async function () {
+        const sim = new Zemu(APP_PATH);
+        try {
+            await sim.start(simOptions);
+            const app = new FlowApp(sim.getTransport());
+
+            // Check initial status
+            let respStatus = await app.slotStatus();
+            console.log(respStatus);
+            expect(respStatus.returnCode).toEqual(0x9000);
+            expect(respStatus.errorMessage).toEqual("No errors");
+            expect(respStatus).toHaveProperty("status");
 
             let expectedBuffer = Buffer.alloc(64);
             expectedBuffer.fill(0);
-            expect(resp.status).toEqual(expectedBuffer);
+            expect(respStatus.status).toEqual(expectedBuffer);
 
             // Get empty slot should error
             let respSlot = await app.getSlot(3);
@@ -122,26 +232,34 @@ describe('Basic checks', function () {
             const expectedAccount = "0001020304050607"
             const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
             const expectedPath = `m/44'/539'/${scheme}'/0/0`;
-            respSlot = await app.setSlot(10, expectedAccount, expectedPath);
-            console.log(respSlot);
-            expect(resp.returnCode).toEqual(0x9000);
+            let respSetRequest = app.setSlot(10, expectedAccount, expectedPath);
+
+            // Wait until we are not in the main menu
+            await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
+
+            // Now navigate the address / path
+            await sim.compareSnapshotsAndAccept(".", "slot_status_full", 4);
+
+            let respSet = await respSetRequest;
+            console.log(respSet);
+            expect(respSet.returnCode).toEqual(0x9000);
 
             // Get slot status
-            resp = await app.slotStatus();
-            console.log(resp);
-            expect(resp.returnCode).toEqual(0x9000);
-            expect(resp.errorMessage).toEqual("No errors");
+            let respStatus2 = await app.slotStatus();
+            console.log(respStatus2);
+            expect(respStatus2.returnCode).toEqual(0x9000);
+            expect(respStatus2.errorMessage).toEqual("No errors");
             expectedBuffer = Buffer.alloc(64);
             expectedBuffer.fill(0);
             expectedBuffer[10] = 1;
-            expect(resp.status).toEqual(expectedBuffer);
+            expect(respStatus2.status).toEqual(expectedBuffer);
 
-            // Get empty slot should error
-            respSlot = await app.getSlot(10);
-            console.log(respSlot);
-            expect(respSlot.returnCode).toEqual(0x9000);
-            expect(respSlot.account).toEqual(expectedAccount);
-            expect(respSlot.path).toEqual(expectedPath);
+            // Get slot 10 back
+            let respGet2 = await app.getSlot(10);
+            console.log(respGet2);
+            expect(respGet2.returnCode).toEqual(0x9000);
+            expect(respGet2.account).toEqual(expectedAccount);
+            expect(respGet2.path).toEqual(expectedPath);
 
         } finally {
             await sim.close();
