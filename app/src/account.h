@@ -43,11 +43,23 @@ typedef struct {
     account_slot_t slot[SLOT_COUNT];
 } slot_store_t;
 
+extern account_slot_t tmp_slot;
+extern uint8_t tmp_slotIdx;
+
+zxerr_t slot_getNumItems(uint8_t *num_items);
+
+zxerr_t slot_getItem(int8_t displayIdx,
+                     char *outKey, uint16_t outKeyLen,
+                     char *outVal, uint16_t outValLen,
+                     uint8_t pageIdx, uint8_t *pageCount);
+
 zxerr_t slot_status(uint8_t *out, uint16_t outLen);
 
 zxerr_t slot_getSlot(uint8_t slotIndex, uint8_t *out, uint16_t outLen);
 
-zxerr_t slot_setSlot(uint8_t slotIndex, uint8_t *data, uint16_t dataLen);
+zxerr_t slot_parseSlot(uint8_t *buffer, uint16_t bufferLen);
+
+void app_slot_setSlot();
 
 #ifdef __cplusplus
 }

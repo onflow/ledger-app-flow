@@ -86,8 +86,6 @@ __Z_INLINE void handleGetSlot(volatile uint32_t *flags, volatile uint32_t *tx, u
         THROW(APDU_CODE_DATA_INVALID);
     }
 
-    // TODO: Add visual confirmation?
-
     const uint8_t slotIdx = G_io_apdu_buffer[OFFSET_DATA];
 
     char buffer[20];
@@ -116,33 +114,14 @@ __Z_INLINE void handleSetSlot(volatile uint32_t *flags, volatile uint32_t *tx, u
         THROW(APDU_CODE_DATA_INVALID);
     }
 
-    uint8_t slotIdx = G_io_apdu_buffer[OFFSET_DATA];
-
-    char buffer[50];
-    snprintf(buffer, sizeof(buffer), "%d", slotIdx);
-    zemu_log_stack(buffer);
-
-    // TODO: Add manual confirmation
-
-    zxerr_t err = slot_setSlot(
-            slotIdx,
-            G_io_apdu_buffer + OFFSET_DATA + 1,
-            8 + 20);
-
-    snprintf(buffer, sizeof(buffer), "err: %d", err);
-    zemu_log_stack(buffer);
-
-//    if (err == zxerr_no_data) {
-//        zemu_log_stack("Empty slot");
-//        THROW(APDU_CODE_EMPTY_BUFFER);
-//    }
-
+    zxerr_t err = slot_parseSlot(G_io_apdu_buffer + OFFSET_DATA, rx - OFFSET_DATA);
     if (err != zxerr_ok) {
-        THROW(APDU_CODE_EXECUTION_ERROR);
+        THROW(APDU_CODE_DATA_INVALID);
     }
 
-    *tx = sizeof(account_slot_t);
-    THROW(APDU_CODE_OK);
+    view_review_init(slot_getItem, slot_getNumItems, app_slot_setSlot);
+    view_review_show();
+    *flags |= IO_ASYNCH_REPLY;
 }
 
 void handleApdu(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
