@@ -29,6 +29,8 @@ void __assert_fail(const char * assertion, const char * file, unsigned int line,
 }
 #endif
 
+#define FLOW_PUBKEY_SIZE 150
+
 parser_error_t parser_parse(parser_context_t *ctx, const uint8_t *data, size_t dataLen) {
     CHECK_PARSER_ERR(parser_init(ctx, data, dataLen))
     return _read(ctx, &parser_tx_obj);
@@ -86,7 +88,7 @@ parser_error_t parser_printArgumentPublicKey(const parser_context_t *argumentCtx
     parsed_json_t parsedJson = {false};
     CHECK_PARSER_ERR(json_parse(&parsedJson, (char *) argumentCtx->buffer, argumentCtx->bufferLen));
 
-    char bufferUI[130];
+    char bufferUI[FLOW_PUBKEY_SIZE];
     CHECK_PARSER_ERR(json_extractPubKey(bufferUI, sizeof(bufferUI), &parsedJson, 0))
     pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
 
@@ -118,7 +120,7 @@ parser_error_t parser_printArgumentPublicKeys(const parser_context_t *argumentCt
     zemu_log_stack("PublicKeys");
 
     uint16_t arrayElementToken;
-    char bufferUI[130];
+    char bufferUI[FLOW_PUBKEY_SIZE];
     CHECK_PARSER_ERR(array_get_nth_element(&parsedJson, internalTokenElementIdx, argumentIndex, &arrayElementToken))
     CHECK_PARSER_ERR(json_extractPubKey(bufferUI, sizeof(bufferUI), &parsedJson, arrayElementToken))
     pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
