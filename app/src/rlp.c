@@ -36,7 +36,7 @@ parser_error_t rlp_decode(
     uint8_t p = *outputPayload->buffer;
 
     if (p >= 0 && p <= 0x7F) {
-        *outputKind = kind_byte;
+        *outputKind = kind_string;
         outputPayload->bufferLen = 1;
         outputPayload->buffer += 0;
         *bytesConsumed = 1; // 1 byte to consume from the stream
@@ -99,7 +99,7 @@ parser_error_t rlp_decode(
 }
 
 parser_error_t rlp_readByte(const parser_context_t *ctx, rlp_kind_e kind, uint8_t *value) {
-    if (kind != kind_byte) {
+    if (kind != kind_string) {
         return parser_rlp_error_invalid_kind;
     }
 
@@ -118,28 +118,25 @@ parser_error_t rlp_readByte(const parser_context_t *ctx, rlp_kind_e kind, uint8_
 parser_error_t rlp_readUInt64(const parser_context_t *ctx,
                               rlp_kind_e kind,
                               uint64_t *value) {
-    if (kind == kind_string) {
-        *value = 0;
-
-        if (ctx->bufferLen != 8) {
-            return parser_rlp_error_invalid_value_len;
-        }
-
-        for (uint8_t i = 0; i < 8; i++) {
-            *value <<= 8u;
-            *value += *(ctx->buffer + ctx->offset + i);
-        }
-
-        *value <<= 8u;
-        return parser_ok;
+    if (kind != kind_string) {
+        return parser_rlp_error_invalid_kind;
     }
 
-    if (kind == kind_byte) {
+    // handle case when string is a single byte
+    if (ctx->bufferLen == 1) {
         uint8_t tmp;
         CHECK_PARSER_ERR(rlp_readByte(ctx, kind, &tmp))
         *value = tmp;
         return parser_ok;
     }
 
-    return parser_rlp_error_invalid_kind;
+    *value = 0;
+
+    for (uint8_t i = 0; i < ctx->bufferLen; i++) {
+        *value <<= 8u;
+        *value += *(ctx->buffer + ctx->offset + i);
+    }
+
+    *value <<= 8u;
+    return parser_ok;
 }
