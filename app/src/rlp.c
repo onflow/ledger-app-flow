@@ -142,6 +142,5 @@ parser_error_t rlp_readUInt64(const parser_context_t *ctx,
         *value += *(ctx->buffer + ctx->offset + i);
     }
 
-    *value <<= 8u;
     return parser_ok;
 }
