@@ -130,6 +130,11 @@ parser_error_t rlp_readUInt64(const parser_context_t *ctx,
         return parser_ok;
     }
 
+    // max size of uint64_t is 8 bytes
+    if (ctx->bufferLen > 8) {
+        return parser_rlp_error_invalid_value_len;
+    }
+
     *value = 0;
 
     for (uint8_t i = 0; i < ctx->bufferLen; i++) {
