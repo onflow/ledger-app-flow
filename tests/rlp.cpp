@@ -37,15 +37,18 @@ public:
     void TearDown() override {}
 };
 
+// Test cases adapted from official Ethereum RLP tests: https://github.com/ethereum/tests/blob/develop/RLPTests/rlptest.json
 INSTANTIATE_TEST_SUITE_P(
         InstantiationName,
         RLPDecodeTest,
         Values(
-                RLPValueTestCase{"00", kind_byte, 1, 0, 1},
-                RLPValueTestCase{"01", kind_byte, 1, 0, 1},
-                RLPValueTestCase{"7F", kind_byte, 1, 0, 1},
+                RLPValueTestCase{"00", kind_string, 1, 0, 1}, // Byte string (00)
+                RLPValueTestCase{"01", kind_string, 1, 0, 1}, // Byte string (01)
+                RLPValueTestCase{"7F", kind_string, 1, 0, 1}, // Byte string (7F)
 
-                RLPValueTestCase{"80", kind_string, 0, 1, 1},
+                RLPValueTestCase{"80", kind_string, 0, 1, 1},       // Empty string ("")
+                RLPValueTestCase{"83646F67", kind_string, 3, 1, 4}, // Short string ("dog")
+
                 RLPValueTestCase{"B7"
                                  "0000000000000000000000000000000000000000000000000000000000000000"
                                  "0000000000000000000000000000000000000000000000000000000000000000"

@@ -25,7 +25,6 @@ extern "C" {
 
 typedef enum {
     kind_unknown = 0,
-    kind_byte,
     kind_string,
     kind_list,
 } rlp_kind_e;
