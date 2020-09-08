@@ -47,7 +47,7 @@ INSTANTIATE_TEST_SUITE_P(
                 RLPValueTestCase{"7F", kind_string, 1, 0, 1}, // Byte string (7F)
 
                 RLPValueTestCase{"80", kind_string, 0, 1, 1},       // Empty string ("")
-                RLPValueTestCase{"83646F67", kind_string, 3, 1, 3}, // Short string ("dog")
+                RLPValueTestCase{"83646F67", kind_string, 3, 1, 4}, // Short string ("dog")
 
                 RLPValueTestCase{"B7"
                                  "0000000000000000000000000000000000000000000000000000000000000000"
