@@ -99,15 +99,28 @@ public:
 GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(VerifyTestVectors);
 
 INSTANTIATE_TEST_SUITE_P(
-        EnvelopeCases,
+        ValidPayloadCases,
+        VerifyTestVectors,
+        ::testing::ValuesIn(GetJsonTestCases("testvectors/validPayloadCases.json")), VerifyTestVectors::PrintToStringParamName()
+);
+
+INSTANTIATE_TEST_SUITE_P(
+        InvalidPayloadCases,
+        VerifyTestVectors,
+        ::testing::ValuesIn(GetJsonTestCases("testvectors/invalidPayloadCases.json")), VerifyTestVectors::PrintToStringParamName()
+);
+
+
+INSTANTIATE_TEST_SUITE_P(
+        ValidEnvelopeCases,
         VerifyTestVectors,
         ::testing::ValuesIn(GetJsonTestCases("testvectors/validEnvelopeCases.json")), VerifyTestVectors::PrintToStringParamName()
 );
 
 INSTANTIATE_TEST_SUITE_P(
-        PayloadCases,
+        InvalidEnvelopeCases,
         VerifyTestVectors,
-        ::testing::ValuesIn(GetJsonTestCases("testvectors/validPayloadCases.json")), VerifyTestVectors::PrintToStringParamName()
+        ::testing::ValuesIn(GetJsonTestCases("testvectors/invalidEnvelopeCases.json")), VerifyTestVectors::PrintToStringParamName()
 );
 
 TEST_P(VerifyTestVectors, CheckUIOutput_Manual) { check_testcase(GetParam()); }

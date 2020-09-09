@@ -29,7 +29,19 @@ void __assert_fail(const char * assertion, const char * file, unsigned int line,
 }
 #endif
 
-#define FLOW_PUBKEY_SIZE 150
+#define FLOW_PUBLIC_KEY_SIZE 64     // 64 bytes for public key
+#define FLOW_SIG_ALGO_SIZE 1        // 8 bits for signature algorithm (uint8)
+#define FLOW_HASH_ALGO_SIZE 1       // 8 bits for hash algorithm (uint8)
+#define FLOW_WEIGHT_SIZE 2          // 16 bits for weight (uint16)
+#define RLP_PREFIX 1
+
+#define FLOW_ACCOUNT_KEY_SIZE (2 * ( \
+    (RLP_PREFIX * 2) + \
+    ((RLP_PREFIX * 2) + FLOW_PUBLIC_KEY_SIZE) + \
+    (RLP_PREFIX + FLOW_SIG_ALGO_SIZE) + \
+    (RLP_PREFIX + FLOW_HASH_ALGO_SIZE) + \
+    (RLP_PREFIX + FLOW_WEIGHT_SIZE) \
+) + 2)
 
 parser_error_t parser_parse(parser_context_t *ctx, const uint8_t *data, size_t dataLen) {
     CHECK_PARSER_ERR(parser_init(ctx, data, dataLen))
@@ -88,7 +100,7 @@ parser_error_t parser_printArgumentPublicKey(const parser_context_t *argumentCtx
     parsed_json_t parsedJson = {false};
     CHECK_PARSER_ERR(json_parse(&parsedJson, (char *) argumentCtx->buffer, argumentCtx->bufferLen));
 
-    char bufferUI[FLOW_PUBKEY_SIZE];
+    char bufferUI[FLOW_ACCOUNT_KEY_SIZE];
     CHECK_PARSER_ERR(json_extractPubKey(bufferUI, sizeof(bufferUI), &parsedJson, 0))
     pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
 
@@ -120,7 +132,7 @@ parser_error_t parser_printArgumentPublicKeys(const parser_context_t *argumentCt
     zemu_log_stack("PublicKeys");
 
     uint16_t arrayElementToken;
-    char bufferUI[FLOW_PUBKEY_SIZE];
+    char bufferUI[FLOW_ACCOUNT_KEY_SIZE];
     CHECK_PARSER_ERR(array_get_nth_element(&parsedJson, internalTokenElementIdx, argumentIndex, &arrayElementToken))
     CHECK_PARSER_ERR(json_extractPubKey(bufferUI, sizeof(bufferUI), &parsedJson, arrayElementToken))
     pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
