@@ -124,7 +124,7 @@ parser_error_t rlp_readUInt64(const parser_context_t *ctx,
 
     // handle case when string is a single byte
     if (ctx->bufferLen == 1) {
-        uint8_t tmp;
+        uint8_t tmp = 0;
         CHECK_PARSER_ERR(rlp_readByte(ctx, kind, &tmp))
         *value = tmp;
         return parser_ok;

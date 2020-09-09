@@ -495,7 +495,7 @@ describe('Basic checks', function () {
             // Wait until we are not in the main menu
             await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
-            await sim.compareSnapshotsAndAccept(".", "sign_secp256k1_basic_verify_addNewKey_sha3_256", 14);
+            await sim.compareSnapshotsAndAccept(".", "sign_secp256k1_basic_verify_addNewKey_sha2_256", 14);
 
             let resp = await signatureRequest;
             console.log(resp);
