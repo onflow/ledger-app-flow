@@ -35,7 +35,7 @@
 
 <script>
 import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
-import FlowApp from "@zondax/ledger-flow";
+import FlowApp from "@onflow/ledger";
 
 const scheme = 0x301;
 const EXAMPLE_PATH = `m/44'/1'/${scheme}/0/0`;

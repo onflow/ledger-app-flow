@@ -16,7 +16,7 @@
     "zondax"
   ],
   "dependencies": {
-    "@zondax/ledger-flow": "^0.0.1",
+    "@onflow/ledger": "0.1.0",
     "@zondax/zemu": "^0.7.0"
   },
   "devDependencies": {

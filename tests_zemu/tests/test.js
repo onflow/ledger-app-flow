@@ -16,7 +16,7 @@
 
 import jest, {expect} from "jest";
 import Zemu from "@zondax/zemu";
-import FlowApp from "@zondax/ledger-flow";
+import FlowApp from "@onflow/ledger";
 import jsSHA from "jssha";
 import {ec as EC} from "elliptic";
 

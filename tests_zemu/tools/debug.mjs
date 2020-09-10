@@ -1,5 +1,5 @@
 import Zemu from "@zondax/zemu";
-import FlowApp from "@zondax/ledger-flow";
+import FlowApp from "@onflow/ledger";
 import path from "path";
 
 const APP_PATH = path.resolve(`./../../app/bin/app.elf`);

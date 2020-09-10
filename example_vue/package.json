@@ -10,7 +10,7 @@
   "dependencies": {
     "core-js": "^3.6.5",
     "vue": "^2.6.11",
-    "@zondax/ledger-flow": "^0.0.1",
+    "@onflow/ledger": "0.1.0",
     "@ledgerhq/hw-transport-webusb": "^5.19.1"
   },
   "devDependencies": {
