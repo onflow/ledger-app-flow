@@ -1,7 +1,7 @@
 # @onflow/ledger
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![npm version](https://badge.fury.io/js/%40onflow%2Fledger.svg)](https://badge.fury.io/js/%40onflow%2Fledger.svg)
+[![npm version](https://badge.fury.io/js/%40onflow%2Fledger.svg)](https://www.npmjs.com/package/@onflow/ledger)
 
 This package provides a basic client library to communicate with the Flow App running in a Ledger Nano S/X
 
