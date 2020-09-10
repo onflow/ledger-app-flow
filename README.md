@@ -2,7 +2,7 @@
 
 ![stability-wip](https://img.shields.io/badge/stability-work_in_progress-lightgrey.svg)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![CircleCI](https://circleci.com/gh/Zondax/ledger-flow.svg?style=shield&circle-token=542582ec3316231e01691bad2c0d173c6b1adbbb)](https://circleci.com/gh/Zondax/ledger-flow)
+[![CircleCI](https://circleci.com/gh/onflow/ledger-app-flow.svg?style=shield)](https://circleci.com/gh/onflow/ledger-app-flow)
 
 This repository contains:
 
