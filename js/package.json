@@ -1,24 +1,29 @@
 {
-  "name": "@zondax/ledger-flow",
+  "name": "@onflow/ledger",
   "version": "0.1.0",
   "description": "Node API for Flow App (Ledger Nano S/X)",
+  "license": "Apache-2.0",
+  "author": "Dapper Labs <dev@dapperlabs.com>",
+  "homepage": "https://onflow.org",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/zondax/ledger-flow.git"
+    "url": "git@github.com:onflow/ledger-app-flow.git"
   },
+  "contributors": [
+    {
+      "name": "Zondax GmbH"
+    }
+  ],
   "keywords": [
     "Ledger",
     "Javascript",
     "Flow"
   ],
-  "author": "Zondax GmbH",
-  "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/zondax/ledger-flow/issues"
+    "url": "git@github.com:onflow/ledger-app-flow.git/issues"
   },
-  "homepage": "https://github.com/zondax/ledger-flow",
   "dependencies": {
     "@babel/runtime": "^7.10.5",
     "@ledgerhq/hw-transport": "^5.19.1"
