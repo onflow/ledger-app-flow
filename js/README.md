@@ -34,3 +34,7 @@ if (response.returnCode !== FlowApp.ERROR_CODE.NoError) {
     console.log(response);
 }
 ```
+
+## Acknowledgements
+
+Developed by [Zondax GmbH](https://zondax.ch/).
