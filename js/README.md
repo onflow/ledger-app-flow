@@ -17,11 +17,13 @@ This is very simple. First you need to use one of the transport classes provided
 
 ```js
 import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
+import FlowApp from "@onflow/ledger";
+
 transport = await TransportWebUSB.create();
 const app = new FlowApp(transport);
 ```
 
-the `FlowApp` object will provide
+The `FlowApp` object will provide:
 
 ```js
 const response = await app.getVersion();
