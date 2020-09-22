@@ -26,7 +26,7 @@ acct.addPublicKey(key.decodeHex())
 }
 }`;
 
-const TX_TRANSFER_TOKENS = 
+const TX_TRANSFER_TOKENS_EMULATOR = 
 `import FungibleToken from 0xee82856bf20e2aa6
 transaction(amount: UFix64, to: Address) {
 let vault: @FungibleToken.Vault
@@ -42,6 +42,46 @@ getAccount(to)
 .deposit(from: <-self.vault)
 }
 }`;
+
+const TX_TRANSFER_TOKENS_TESTNET = 
+`import FungibleToken from 0x9a0766d93b6608b7
+transaction(amount: UFix64, to: Address) {
+let vault: @FungibleToken.Vault
+prepare(signer: AuthAccount) {
+self.vault <- signer
+.borrow<&{FungibleToken.Provider}>(from: /storage/flowTokenVault)!
+.withdraw(amount: amount)
+}
+execute {
+getAccount(to)
+.getCapability(/public/flowTokenReceiver)!
+.borrow<&{FungibleToken.Receiver}>()!
+.deposit(from: <-self.vault)
+}
+}`;
+
+const TX_TRANSFER_TOKENS_MAINNET = 
+`import FungibleToken from 0xf233dcee88fe0abe
+transaction(amount: UFix64, to: Address) {
+let vault: @FungibleToken.Vault
+prepare(signer: AuthAccount) {
+self.vault <- signer
+.borrow<&{FungibleToken.Provider}>(from: /storage/flowTokenVault)!
+.withdraw(amount: amount)
+}
+execute {
+getAccount(to)
+.getCapability(/public/flowTokenReceiver)!
+.borrow<&{FungibleToken.Receiver}>()!
+.deposit(from: <-self.vault)
+}
+}`;
+
+const TXS_TRANSFER_TOKENS = {
+  Emulator: TX_TRANSFER_TOKENS_EMULATOR,
+  Testnet: TX_TRANSFER_TOKENS_TESTNET,
+  Mainnet: TX_TRANSFER_TOKENS_MAINNET,
+};
 
 const encodeAccountKey = (publicKey, sigAlgo, hashAlgo, weight)  =>
   rlp
@@ -180,6 +220,30 @@ const invalidPayloadCases = [
     encodedTransactionEnvelopeHex: encodeTransactionEnvelope({ ...x[1], payloadSigs: [] }),
 }));
 
+const validPayloadTransferCases = 
+  Object.entries(TXS_TRANSFER_TOKENS).
+  reduce((list, [network, script]) => [
+    ...list,
+    ...(FLOW_AMOUNTS.map((amount) => 
+      [
+        `Send Flow Token Transaction (${network}) - Valid Payload - Valid Amount ${amount}`,
+        buildPayloadTx({
+          script: script,
+          arguments: [
+            {
+              type: "UFix64",
+              value: amount,
+            },
+            {
+              type: "Address",
+              value: "0xf8d6e0586b0a20c7"
+            }
+          ]
+        })
+      ]
+    )),
+  ], []);
+  
 const validPayloadCases = [
   [
     "Example Transaction - Valid Payload - Zero Gas Limit",
@@ -197,24 +261,7 @@ const validPayloadCases = [
     "Example Transaction - Valid Payload - Empty Authorizers",
     buildPayloadTx({authorizers: []})
   ],
-  ...(FLOW_AMOUNTS.map((amount) => 
-    [
-      `Send Flow Token Transaction - Valid Payload - Valid Amount ${amount}`,
-      buildPayloadTx({
-        script: TX_TRANSFER_TOKENS,
-        arguments: [
-          {
-            type: "UFix64",
-            value: amount,
-          },
-          {
-            type: "Address",
-            value: "0xf8d6e0586b0a20c7"
-          }
-        ]
-      })
-    ]
-  )),
+  ...validPayloadTransferCases,
   ...(ACCOUNT_KEYS.map((accountKey, i) => 
     [
       `Create Account Transaction - Valid Payload - Single Account Key #${i}`,
@@ -296,6 +343,30 @@ const invalidEnvelopeCases = [
     encodedTransactionEnvelopeHex: encodeTransactionEnvelope({ ...x[1], payloadSigs: [] }),
 }));
 
+const validEnvelopeTransferCases = 
+  Object.entries(TXS_TRANSFER_TOKENS).
+  reduce((list, [network, script]) => [
+    ...list,
+    ...(FLOW_AMOUNTS.map((amount) => 
+      [
+        `Send Flow Token Transaction (${network}) - Valid Envelope - Valid Amount ${amount}`,
+        buildEnvelopeTx({
+          script: script,
+          arguments: [
+            {
+              type: "UFix64",
+              value: amount,
+            },
+            {
+              type: "Address",
+              value: "0xf8d6e0586b0a20c7"
+            }
+          ]
+        })
+      ]
+    )),
+  ], []);
+
 const validEnvelopeCases = [
   [
     "Example Transaction - Valid Envelope - Zero Gas Limit",
@@ -332,24 +403,7 @@ const validEnvelopeCases = [
       ],
     })
   ],
-  ...(FLOW_AMOUNTS.map((amount) => 
-    [
-      `Send Flow Token Transaction - Valid Envelope - Valid Amount ${amount}`,
-      buildEnvelopeTx({
-        script: TX_TRANSFER_TOKENS,
-        arguments: [
-          {
-            type: "UFix64",
-            value: amount,
-          },
-          {
-            type: "Address",
-            value: "0xf8d6e0586b0a20c7"
-          }
-        ]
-      })
-    ]
-  )),
+  ...validEnvelopeTransferCases,
   ...(ACCOUNT_KEYS.map((accountKey, i) => 
     [
       `Create Account Transaction - Valid Envelope - Single Account Key #${i}`,
