@@ -251,7 +251,10 @@ parser_error_t _matchScriptType(uint8_t scriptHash[32], script_type_e *scriptTyp
         return parser_unexpected_error;
     }
 
-    if (MEMCMP(CONTRACT_HASH_TOKEN_TRANSFER_EMULATOR, buffer, 64) == 0) {
+    if (
+        (MEMCMP(CONTRACT_HASH_TOKEN_TRANSFER_EMULATOR, buffer, 64) == 0) ||
+        (MEMCMP(CONTRACT_HASH_TOKEN_TRANSFER_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(CONTRACT_HASH_TOKEN_TRANSFER_MAINNET, buffer, 64) == 0)) {
         *scriptType = script_token_transfer;
         return parser_ok;
     }
