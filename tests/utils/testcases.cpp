@@ -22,7 +22,7 @@
 
 std::string CleanTestname(std::string s) {
     s.erase(remove_if(s.begin(), s.end(), [](char v) -> bool {
-        return v == ':' || v == ' ' || v == '/' || v == '-' || v == '.' || v == '_' || v == '#';
+        return v == ':' || v == ' ' || v == '/' || v == '-' || v == '.' || v == '_' || v == '#' || v == '(' || v == ')';
     }), s.end());
     return s;
 }
