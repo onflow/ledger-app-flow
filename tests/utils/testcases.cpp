@@ -41,7 +41,7 @@ testcaseData_t ReadRawTestCase(const std::shared_ptr<Json::Value> &jsonSource, i
 
 
     auto valid = v["valid"].asBool();
-    auto testnet = v["testnet"].asBool();
+    auto chainID = v["chainID"].asString();
     auto message = v["envelopeMessage"];
     auto proposalKey = message["proposalKey"];
 
@@ -55,7 +55,7 @@ testcaseData_t ReadRawTestCase(const std::shared_ptr<Json::Value> &jsonSource, i
             description,
             //////
             valid,
-            testnet,
+            chainID,
             false,
             message["script"].asString(),
             message["arguments"],

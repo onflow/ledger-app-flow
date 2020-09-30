@@ -36,7 +36,8 @@ void check_testcase(const testcase_t &testcase) {
     // Define mainnet or testnet through derivation path
     hdPath[0] = HDPATH_0_DEFAULT;
     hdPath[1] = HDPATH_1_DEFAULT;
-    if (tc.testnet) {
+
+    if (tc.chainID == "Testnet" || tc.chainID == "Emulator") {
         hdPath[0] = HDPATH_0_TESTNET;
         hdPath[1] = HDPATH_1_TESTNET;
     }

@@ -122,8 +122,8 @@ parser_error_t chainIDFromPayer(const flow_payer_t *v, chain_id_e *chainID) {
 
     uint64_t address = 0;
     for (uint8_t i = 0; i < 8; i++) {
-        address += v->ctx.buffer[i];
         address <<= 8;
+        address += v->ctx.buffer[i];
     }
 
     if (validateChainAddress(codeword_mainnet, address)) {
@@ -155,13 +155,13 @@ parser_error_t parser_printChainID(const flow_payer_t *v,
     switch (chainID) {
         case chain_id_mainnet:
             snprintf(outVal, outValLen, "Mainnet");
-            break;
+            return parser_ok;
         case chain_id_testnet:
             snprintf(outVal, outValLen, "Testnet");
-            break;
+            return parser_ok;
         case chain_id_emulator:
             snprintf(outVal, outValLen, "Emulator");
-            break;
+            return parser_ok;
         case chain_id_unknown:
         default:
             return parser_invalid_address;
@@ -371,7 +371,7 @@ parser_error_t parser_getItemTokenTransfer(const parser_context_t *ctx,
             snprintf(outVal, outValLen, "Token Transfer");
             return parser_ok;
         case 1:
-            snprintf(outKey, outKeyLen, "ChainId");
+            snprintf(outKey, outKeyLen, "ChainID");
             return parser_printChainID(&parser_tx_obj.payer,
                                        outVal, outValLen, pageIdx, pageCount);
         case 2:
@@ -432,7 +432,7 @@ parser_error_t parser_getItemCreateAccount(const parser_context_t *ctx,
     }
     displayIdx--;
     if (displayIdx == 0) {
-        snprintf(outKey, outKeyLen, "ChainId");
+        snprintf(outKey, outKeyLen, "ChainID");
         return parser_printChainID(&parser_tx_obj.payer,
                                    outVal, outValLen, pageIdx, pageCount);
     }

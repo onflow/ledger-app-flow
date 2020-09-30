@@ -18,7 +18,7 @@
 typedef struct {
     std::string description;
     bool valid;
-    bool testnet;
+    std::string chainID;
     bool expert;
 
     std::string script;
