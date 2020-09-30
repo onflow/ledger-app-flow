@@ -7,6 +7,20 @@ const {
   encodeTransactionEnvelope,
 } = require("@onflow/encode");
 
+const EMULATOR = "Emulator";
+const TESTNET = "Testnet";
+const MAINNET = "Mainnet";
+
+const ADDRESS_EMULATOR = "ed2d4f9eb8bcd4ac";
+const ADDRESS_TESTNET = "99a8ac2c71d4f6bd";
+const ADDRESS_MAINNET = "f19c161bc24cf4b4";
+
+const ADDRESSES = {
+  [EMULATOR]: ADDRESS_EMULATOR,
+  [TESTNET]: ADDRESS_TESTNET,
+  [MAINNET]: ADDRESS_MAINNET,
+};
+
 const TX_HELLO_WORLD = `transaction(msg: String) { execute { log(msg) } }`;
 
 const TX_ADD_NEW_KEY = 
@@ -78,9 +92,9 @@ getAccount(to)
 }`;
 
 const TXS_TRANSFER_TOKENS = {
-  Emulator: TX_TRANSFER_TOKENS_EMULATOR,
-  Testnet: TX_TRANSFER_TOKENS_TESTNET,
-  Mainnet: TX_TRANSFER_TOKENS_MAINNET,
+  [EMULATOR]: TX_TRANSFER_TOKENS_EMULATOR,
+  [TESTNET]: TX_TRANSFER_TOKENS_TESTNET,
+  [MAINNET]: TX_TRANSFER_TOKENS_MAINNET,
 };
 
 const encodeAccountKey = (publicKey, sigAlgo, hashAlgo, weight)  =>
@@ -170,45 +184,53 @@ const combineMerge = (target, source, options) => {
   return destination
 };
   
-const buildPayloadTx = partialTx =>
-  merge(basePayloadTx, partialTx, {arrayMerge: combineMerge});
+const buildPayloadTx = (network, partialTx) =>
+  merge(basePayloadTx(network), partialTx, {arrayMerge: combineMerge});
 
-const buildEnvelopeTx = partialTx =>
-  merge(baseEnvelopeTx, partialTx, {arrayMerge: combineMerge});
+const buildEnvelopeTx = (network, partialTx) =>
+  merge(baseEnvelopeTx(network), partialTx, {arrayMerge: combineMerge});
 
-const basePayloadTx = {
-  script: TX_ADD_NEW_KEY,
-  arguments: [{ type: "String", value: DEFAULT_ACCOUNT_KEY }],
-  refBlock: "f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
-  gasLimit: 42,
-  proposalKey: {
-    address: "f8d6e0586b0a20c7",
-    keyId: 4,
-    sequenceNum: 10,
-  },
-  payer: "f8d6e0586b0a20c7",
-  authorizers: ["f8d6e0586b0a20c7"]
+const basePayloadTx = (network) => {
+  const address = ADDRESSES[network];
+
+  return {
+    script: TX_ADD_NEW_KEY,
+    arguments: [{ type: "String", value: DEFAULT_ACCOUNT_KEY }],
+    refBlock: "f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b",
+    gasLimit: 42,
+    proposalKey: {
+      address: address,
+      keyId: 4,
+      sequenceNum: 10,
+    },
+    payer: address,
+    authorizers: [address],
+  };
 };
 
-const baseEnvelopeTx = {
-  ...basePayloadTx,
-  payloadSigs: [
-    {
-      address: "f8d6e0586b0a20c7",
-      keyId: 4,
-      sig: "f7225388c1d69d57e6251c9fda50cbbf9e05131e5adb81e5aa0422402f048162",
-    },
-  ],
+const baseEnvelopeTx = (network) => {
+  const address = ADDRESSES[network];
+
+  return {
+    ...basePayloadTx(network),
+    payloadSigs: [
+      {
+        address: address,
+        keyId: 4,
+        sig: "f7225388c1d69d57e6251c9fda50cbbf9e05131e5adb81e5aa0422402f048162",
+      },
+    ],
+  };
 };
 
 const invalidPayloadCases = [
   [
     "Example Transaction - Invalid Payload - Unapproved Script",
-    buildPayloadTx({script: TX_HELLO_WORLD}) // TX_HELLO_WORLD is not an approved transaction template
+    buildPayloadTx(MAINNET, {script: TX_HELLO_WORLD}) // TX_HELLO_WORLD is not an approved transaction template
   ],
   [
     "Example Transaction - Invalid Payload - Empty Script",
-    buildPayloadTx({script: ""})
+    buildPayloadTx(MAINNET, {script: ""})
   ],
 ].map(x => ({
     title: x[0],
@@ -227,7 +249,7 @@ const validPayloadTransferCases =
     ...(FLOW_AMOUNTS.map((amount) => 
       [
         `Send Flow Token Transaction (${network}) - Valid Payload - Valid Amount ${amount}`,
-        buildPayloadTx({
+        buildPayloadTx(network, {
           script: script,
           arguments: [
             {
@@ -236,7 +258,7 @@ const validPayloadTransferCases =
             },
             {
               type: "Address",
-              value: "0xf8d6e0586b0a20c7"
+              value: `0x${ADDRESSES[network]}`,
             }
           ]
         })
@@ -247,25 +269,25 @@ const validPayloadTransferCases =
 const validPayloadCases = [
   [
     "Example Transaction - Valid Payload - Zero Gas Limit",
-    buildPayloadTx({gasLimit: 0})
+    buildPayloadTx(MAINNET, {gasLimit: 0})
   ],
   [
     "Example Transaction - Valid Payload - Zero proposerKey.keyId",
-    buildPayloadTx({proposalKey: {keyId: 0}})
+    buildPayloadTx(MAINNET, {proposalKey: {keyId: 0}})
   ],
   [
     "Example Transaction - Valid Payload - Zero proposalKey.sequenceNum",
-    buildPayloadTx({proposalKey: {sequenceNum: 0}})
+    buildPayloadTx(MAINNET, {proposalKey: {sequenceNum: 0}})
   ],
   [
     "Example Transaction - Valid Payload - Empty Authorizers",
-    buildPayloadTx({authorizers: []})
+    buildPayloadTx(MAINNET, {authorizers: []})
   ],
   ...validPayloadTransferCases,
   ...(ACCOUNT_KEYS.map((accountKey, i) => 
     [
       `Create Account Transaction - Valid Payload - Single Account Key #${i}`,
-      buildPayloadTx({
+      buildPayloadTx(MAINNET, {
         script: TX_CREATE_ACCOUNT,
         arguments: [
           {
@@ -284,7 +306,7 @@ const validPayloadCases = [
   ...(range(1, 5).map((i) => 
     [
       `Create Account Transaction - Valid Payload - Multiple Account Keys #${i}`,
-      buildPayloadTx({
+      buildPayloadTx(MAINNET, {
         script: TX_CREATE_ACCOUNT,
         arguments: [
           {
@@ -303,7 +325,7 @@ const validPayloadCases = [
   ...(ACCOUNT_KEYS.map((accountKey, i) => 
   [
     `Add New Key Transaction - Valid Envelope - Valid Account Key ${i}`,
-    buildEnvelopeTx({
+    buildEnvelopeTx(MAINNET, {
       script: TX_ADD_NEW_KEY,
       arguments: [
         {
@@ -327,11 +349,11 @@ const validPayloadCases = [
 const invalidEnvelopeCases = [
   [
     "Example Transaction - Invalid Envelope - Unapproved Script",
-    buildEnvelopeTx({script: TX_HELLO_WORLD}) // TX_HELLO_WORLD is not an approved transaction template
+    buildEnvelopeTx(MAINNET, {script: TX_HELLO_WORLD}) // TX_HELLO_WORLD is not an approved transaction template
   ],
   [
     "Example Transaction - Invalid Envelope - Empty Script",
-    buildEnvelopeTx({script: ""})
+    buildEnvelopeTx(MAINNET, {script: ""})
   ],
 ].map(x => ({
     title: x[0],
@@ -350,7 +372,7 @@ const validEnvelopeTransferCases =
     ...(FLOW_AMOUNTS.map((amount) => 
       [
         `Send Flow Token Transaction (${network}) - Valid Envelope - Valid Amount ${amount}`,
-        buildEnvelopeTx({
+        buildEnvelopeTx(network, {
           script: script,
           arguments: [
             {
@@ -359,7 +381,7 @@ const validEnvelopeTransferCases =
             },
             {
               type: "Address",
-              value: "0xf8d6e0586b0a20c7"
+              value: `0x${ADDRESSES[network]}`
             }
           ]
         })
@@ -370,36 +392,36 @@ const validEnvelopeTransferCases =
 const validEnvelopeCases = [
   [
     "Example Transaction - Valid Envelope - Zero Gas Limit",
-    buildEnvelopeTx({gasLimit: 0})
+    buildEnvelopeTx(MAINNET, {gasLimit: 0})
   ],
   [
     "Example Transaction - Valid Envelope - Zero proposerKey.keyId",
-    buildEnvelopeTx({proposalKey: {keyId: 0}})
+    buildEnvelopeTx(MAINNET, {proposalKey: {keyId: 0}})
   ],
   [
     "Example Transaction - Valid Envelope - Zero proposalKey.sequenceNum",
-    buildEnvelopeTx({proposalKey: {sequenceNum: 0}})
+    buildEnvelopeTx(MAINNET, {proposalKey: {sequenceNum: 0}})
   ],
   [
     "Example Transaction - Valid Envelope - Empty Authorizers",
-    buildEnvelopeTx({authorizers: []})
+    buildEnvelopeTx(MAINNET, {authorizers: []})
   ],
   [
     "Example Transaction - Valid Envelope - Empty payloadSigs",
-    buildEnvelopeTx({payloadSigs: []})
+    buildEnvelopeTx(MAINNET, {payloadSigs: []})
   ],
   [
     "Example Transaction - Valid Envelope - Zero payloadSigs.0.key",
-    buildEnvelopeTx({payloadSigs: [{keyId: 0}]})
+    buildEnvelopeTx(MAINNET, {payloadSigs: [{keyId: 0}]})
   ],
   [
     "Example Transaction - Valid Envelope - Out-of-order payloadSigs -- By keyId",
-    buildEnvelopeTx({
-      authorizers: ["f8d6e0586b0a20c7"],
+    buildEnvelopeTx(MAINNET, {
+      authorizers: [ADDRESS_MAINNET],
       payloadSigs: [
-        {address: "f8d6e0586b0a20c7", keyId: 2, sig: "c"},
-        {address: "f8d6e0586b0a20c7", keyId: 0, sig: "a"},
-        {address: "f8d6e0586b0a20c7", keyId: 1, sig: "b"},
+        {address: ADDRESS_MAINNET, keyId: 2, sig: "c"},
+        {address: ADDRESS_MAINNET, keyId: 0, sig: "a"},
+        {address: ADDRESS_MAINNET, keyId: 1, sig: "b"},
       ],
     })
   ],
@@ -407,7 +429,7 @@ const validEnvelopeCases = [
   ...(ACCOUNT_KEYS.map((accountKey, i) => 
     [
       `Create Account Transaction - Valid Envelope - Single Account Key #${i}`,
-      buildEnvelopeTx({
+      buildEnvelopeTx(MAINNET, {
         script: TX_CREATE_ACCOUNT,
         arguments: [
           {
@@ -426,7 +448,7 @@ const validEnvelopeCases = [
   ...(range(1, 5).map((i) => 
     [
       `Create Account Transaction - Valid Envelope - Multiple Account Keys #${i}`,
-      buildEnvelopeTx({
+      buildEnvelopeTx(MAINNET, {
         script: TX_CREATE_ACCOUNT,
         arguments: [
           {
@@ -445,7 +467,7 @@ const validEnvelopeCases = [
   ...(ACCOUNT_KEYS.map((accountKey, i) => 
     [
       `Add New Key Transaction - Valid Envelope - Valid Account Key ${i}`,
-      buildEnvelopeTx({
+      buildEnvelopeTx(MAINNET, {
         script: TX_ADD_NEW_KEY,
         arguments: [
           {
