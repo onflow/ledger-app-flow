@@ -2,7 +2,7 @@
   {
     "title": "Example Transaction - Invalid Envelope - Unapproved Script",
     "valid": false,
-    "testnet": false,
+    "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(msg: String) { execute { log(msg) } }",
       "arguments": [
@@ -57,7 +57,7 @@
   {
     "title": "Example Transaction - Invalid Envelope - Empty Script",
     "valid": false,
-    "testnet": false,
+    "chainID": "Mainnet",
     "payloadMessage": {
       "script": "",
       "arguments": [
