@@ -77,12 +77,14 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             break;
         case script_token_transfer: {
             addTo(answer, "{} | Type : Token Transfer", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
             addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
             addTo(answer, "{} | Destination : {}", item++, tcd.arguments[1]["value"].asString());
             break;
         }
         case script_create_account: {
             addTo(answer, "{} | Type : Create Account", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
             const auto pks = tcd.arguments[0]["value"];
 
             for (uint16_t i = 0; i < (uint16_t) pks.size(); i++) {
@@ -97,6 +99,7 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
         }
         case script_add_new_key: {
             addTo(answer, "{} | Type : Add New Key", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
             const auto pk = tcd.arguments[0]["value"];
 
             auto pubkeyChunks = FormatPubKey(pk);

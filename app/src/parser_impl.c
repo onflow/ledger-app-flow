@@ -251,7 +251,10 @@ parser_error_t _matchScriptType(uint8_t scriptHash[32], script_type_e *scriptTyp
         return parser_unexpected_error;
     }
 
-    if (MEMCMP(CONTRACT_HASH_TOKEN_TRANSFER, buffer, 64) == 0) {
+    if (
+        (MEMCMP(CONTRACT_HASH_TOKEN_TRANSFER_EMULATOR, buffer, 64) == 0) ||
+        (MEMCMP(CONTRACT_HASH_TOKEN_TRANSFER_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(CONTRACT_HASH_TOKEN_TRANSFER_MAINNET, buffer, 64) == 0)) {
         *scriptType = script_token_transfer;
         return parser_ok;
     }
@@ -504,11 +507,11 @@ uint8_t _countArgumentItems(const flow_argument_list_t *v, uint8_t argumentIndex
 uint8_t _getNumItems(const parser_context_t *c, const parser_tx_t *v) {
     switch (v->script.type) {
         case script_token_transfer:
-            return 9 + v->authorizers.authorizer_count;
+            return 10 + v->authorizers.authorizer_count;
         case script_create_account:
-            return 7 + _countArgumentItems(&v->arguments, 0) + v->authorizers.authorizer_count;
+            return 8 + _countArgumentItems(&v->arguments, 0) + v->authorizers.authorizer_count;
         case script_add_new_key:
-            return 8 + v->authorizers.authorizer_count;
+            return 9 + v->authorizers.authorizer_count;
         case script_unknown:
         default:
             return 0;

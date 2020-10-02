@@ -26,7 +26,7 @@ const APP_PATH = Resolve("../app/bin/app.elf");
 const APP_SEED = "equip will roof matter pink blind book anxiety banner elbow sun young"
 const simOptions = {
     logging: true,
-    start_delay: 3000,
+    start_delay: 1500,
     custom: `-s "${APP_SEED}"`
     , X11: true
 };
@@ -393,7 +393,7 @@ describe('Basic checks', function () {
             // Wait until we are not in the main menu
             await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
-            await sim.compareSnapshotsAndAccept(".", "sign_secp256k1_basic_verify_transfer_sha2_256", 12);
+            await sim.compareSnapshotsAndAccept(".", "sign_secp256k1_basic_verify_transfer_sha2_256", 13);
 
             let resp = await signatureRequest;
             console.log(resp);
@@ -444,7 +444,7 @@ describe('Basic checks', function () {
             // Wait until we are not in the main menu
             await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
-            await sim.compareSnapshotsAndAccept(".", "sign_secp256k1_basic_verify_create_sha2_256", 20);
+            await sim.compareSnapshotsAndAccept(".", "sign_secp256k1_basic_verify_create_sha2_256", 21);
 
             let resp = await signatureRequest;
             console.log(resp);
@@ -495,7 +495,7 @@ describe('Basic checks', function () {
             // Wait until we are not in the main menu
             await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
-            await sim.compareSnapshotsAndAccept(".", "sign_secp256k1_basic_verify_addNewKey_sha2_256", 15);
+            await sim.compareSnapshotsAndAccept(".", "sign_secp256k1_basic_verify_addNewKey_sha2_256", 16);
 
             let resp = await signatureRequest;
             console.log(resp);
@@ -546,7 +546,7 @@ describe('Basic checks', function () {
             // Wait until we are not in the main menu
             await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
-            await sim.compareSnapshotsAndAccept(".", "sign_secp256k1_basic_verify_transfer_sha3_256", 12);
+            await sim.compareSnapshotsAndAccept(".", "sign_secp256k1_basic_verify_transfer_sha3_256", 13);
 
             let resp = await signatureRequest;
             console.log(resp);
@@ -597,7 +597,7 @@ describe('Basic checks', function () {
             // Wait until we are not in the main menu
             await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
-            await sim.compareSnapshotsAndAccept(".", "sign_secp256k1_basic_verify_create_sha3_256", 20);
+            await sim.compareSnapshotsAndAccept(".", "sign_secp256k1_basic_verify_create_sha3_256", 21);
 
             let resp = await signatureRequest;
             console.log(resp);
@@ -648,7 +648,7 @@ describe('Basic checks', function () {
             // Wait until we are not in the main menu
             await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
-            await sim.compareSnapshotsAndAccept(".", "sign_secp256k1_basic_verify_addNewKey_sha3_256", 15);
+            await sim.compareSnapshotsAndAccept(".", "sign_secp256k1_basic_verify_addNewKey_sha3_256", 16);
 
             let resp = await signatureRequest;
             console.log(resp);
@@ -760,7 +760,7 @@ describe('Basic checks', function () {
             // Wait until we are not in the main menu
             await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
-            await sim.compareSnapshotsAndAccept(".", "sign_p256_basic_verify_transfer_sha2_256", 12);
+            await sim.compareSnapshotsAndAccept(".", "sign_p256_basic_verify_transfer_sha2_256", 13);
 
             let resp = await signatureRequest;
             console.log(resp);
@@ -811,7 +811,7 @@ describe('Basic checks', function () {
             // Wait until we are not in the main menu
             await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
-            await sim.compareSnapshotsAndAccept(".", "sign_p256_basic_verify_create_sha2_256", 20);
+            await sim.compareSnapshotsAndAccept(".", "sign_p256_basic_verify_create_sha2_256", 21);
 
             let resp = await signatureRequest;
             console.log(resp);
@@ -862,7 +862,7 @@ describe('Basic checks', function () {
             // Wait until we are not in the main menu
             await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
-            await sim.compareSnapshotsAndAccept(".", "sign_p256_basic_verify_addNewKey_sha3_256", 15);
+            await sim.compareSnapshotsAndAccept(".", "sign_p256_basic_verify_addNewKey_sha3_256", 16);
 
             let resp = await signatureRequest;
             console.log(resp);
@@ -913,7 +913,7 @@ describe('Basic checks', function () {
             // Wait until we are not in the main menu
             await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
-            await sim.compareSnapshotsAndAccept(".", "sign_p256_basic_verify_transfer_sha3_256", 12);
+            await sim.compareSnapshotsAndAccept(".", "sign_p256_basic_verify_transfer_sha3_256", 13);
 
             let resp = await signatureRequest;
             console.log(resp);
@@ -964,7 +964,7 @@ describe('Basic checks', function () {
             // Wait until we are not in the main menu
             await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
-            await sim.compareSnapshotsAndAccept(".", "sign_p256_basic_verify_create_sha3_256", 20);
+            await sim.compareSnapshotsAndAccept(".", "sign_p256_basic_verify_create_sha3_256", 21);
 
             let resp = await signatureRequest;
             console.log(resp);
@@ -1015,7 +1015,7 @@ describe('Basic checks', function () {
             // Wait until we are not in the main menu
             await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
-            await sim.compareSnapshotsAndAccept(".", "sign_p256_basic_verify_addNewKey_sha3_256", 15);
+            await sim.compareSnapshotsAndAccept(".", "sign_p256_basic_verify_addNewKey_sha3_256", 16);
 
             let resp = await signatureRequest;
             console.log(resp);

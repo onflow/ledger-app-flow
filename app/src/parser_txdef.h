@@ -38,6 +38,13 @@ typedef enum {
     script_add_new_key
 } script_type_e;
 
+typedef enum {
+    chain_id_unknown,
+    chain_id_emulator,
+    chain_id_testnet,
+    chain_id_mainnet,
+} chain_id_e;
+
 typedef struct {
     parser_context_t ctx;
     uint8_t digest[CX_SHA256_SIZE];
