@@ -256,7 +256,7 @@ const validTestnetPayloadCases = testnetTemplates.map((template) => {
     `${template.id} - ${template.name}`,
     buildPayloadTx(TESTNET, {
       script: template.source,
-      arguments: sampleArguments(template.arguments || [], template.network),
+      arguments: sampleArguments(template.arguments || [], TESTNET),
     }),
     TESTNET,
   ]
@@ -267,7 +267,7 @@ const validMainnetPayloadCases = mainnetTemplates.map((template) => {
     `${template.id} - ${template.name}`,
     buildPayloadTx(MAINNET, {
       script: template.source,
-      arguments: sampleArguments(template.arguments || [], template.network),
+      arguments: sampleArguments(template.arguments || [], MAINNET),
     }),
     MAINNET,
   ]
@@ -278,7 +278,7 @@ const validTestnetEnvelopeCases = testnetTemplates.map((template) => {
     `${template.id} - ${template.name}`,
     buildEnvelopeTx(TESTNET, {
       script: template.source,
-      arguments: sampleArguments(template.arguments || [], template.network),
+      arguments: sampleArguments(template.arguments || [], TESTNET),
     }),
     TESTNET,
   ]
@@ -289,7 +289,7 @@ const validMainnetEnvelopeCases = mainnetTemplates.map((template) => {
     `${template.id} - ${template.name}`,
     buildEnvelopeTx(MAINNET, {
       script: template.source,
-      arguments: sampleArguments(template.arguments || [], template.network),
+      arguments: sampleArguments(template.arguments || [], MAINNET),
     }),
     MAINNET,
   ]
