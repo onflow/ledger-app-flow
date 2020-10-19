@@ -159,7 +159,6 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
         case script_th12_unstake_all_tokens: {
             addTo(answer, "{} | Type : Unstake All FLOW", item++);
             addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
-            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
             break;
         }
         case script_th13_withdraw_unstaked_tokens: {
