@@ -27,7 +27,7 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 #include "crypto.h"
-#include "coin_script_hashes.h"
+#include "template_hashes.h"
 
 #define PARSER_MAX_ARGCOUNT 10
 

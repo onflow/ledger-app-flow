@@ -252,33 +252,33 @@ parser_error_t _matchScriptType(uint8_t scriptHash[32], script_type_e *scriptTyp
     }
 
     if (
-        (MEMCMP(CONTRACT_HASH_TOKEN_TRANSFER_EMULATOR, buffer, 64) == 0) ||
-        (MEMCMP(CONTRACT_HASH_TOKEN_TRANSFER_TESTNET, buffer, 64) == 0) ||
-        (MEMCMP(CONTRACT_HASH_TOKEN_TRANSFER_MAINNET, buffer, 64) == 0)) {
+        (MEMCMP(TEMPLATE_HASH_TOKEN_TRANSFER_EMULATOR, buffer, 64) == 0) ||
+        (MEMCMP(TEMPLATE_HASH_TOKEN_TRANSFER_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(TEMPLATE_HASH_TOKEN_TRANSFER_MAINNET, buffer, 64) == 0)) {
         *scriptType = script_token_transfer;
         return parser_ok;
     }
 
-    if (MEMCMP(CONTRACT_HASH_CREATE_ACCOUNT, buffer, 64) == 0) {
+    if (MEMCMP(TEMPLATE_HASH_CREATE_ACCOUNT, buffer, 64) == 0) {
         *scriptType = script_create_account;
         return parser_ok;
     }
 
-    if (MEMCMP(CONTRACT_HASH_ADD_NEW_KEY, buffer, 64) == 0) {
+    if (MEMCMP(TEMPLATE_HASH_ADD_NEW_KEY, buffer, 64) == 0) {
         *scriptType = script_add_new_key;
         return parser_ok;
     }
 
     if (
-        (MEMCMP(CONTRACT_HASH_TH01_WITHDRAW_UNLOCKED_TOKENS_TESTNET, buffer, 64) == 0) ||
-        (MEMCMP(CONTRACT_HASH_TH01_WITHDRAW_UNLOCKED_TOKENS_MAINNET, buffer, 64) == 0)) {
+        (MEMCMP(TEMPLATE_HASH_TH01_WITHDRAW_UNLOCKED_TOKENS_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(TEMPLATE_HASH_TH01_WITHDRAW_UNLOCKED_TOKENS_MAINNET, buffer, 64) == 0)) {
         *scriptType = script_th01_withdraw_unlocked_tokens;
         return parser_ok;
     }
 
     if (
-        (MEMCMP(CONTRACT_HASH_TH02_DEPOSIT_UNLOCKED_TOKENS_TESTNET, buffer, 64) == 0) ||
-        (MEMCMP(CONTRACT_HASH_TH02_DEPOSIT_UNLOCKED_TOKENS_MAINNET, buffer, 64) == 0)) {
+        (MEMCMP(TEMPLATE_HASH_TH02_DEPOSIT_UNLOCKED_TOKENS_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(TEMPLATE_HASH_TH02_DEPOSIT_UNLOCKED_TOKENS_MAINNET, buffer, 64) == 0)) {
         *scriptType = script_th02_deposit_unlocked_tokens;
         return parser_ok;
     }
