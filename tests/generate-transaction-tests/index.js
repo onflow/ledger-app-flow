@@ -235,7 +235,9 @@ const sampleArguments = (arguments, network) => {
 const sampleArgumentValue = (type, network) => {
   switch (type) {
     case "UFix64":
-      return "10.0"
+      return "10.0";
+    case "UInt8":
+      return "3";
     case "String":
       return "foo";
     case "Address":
