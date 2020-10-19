@@ -283,6 +283,110 @@ parser_error_t _matchScriptType(uint8_t scriptHash[32], script_type_e *scriptTyp
         return parser_ok;
     }
 
+    if (
+        (MEMCMP(TEMPLATE_HASH_TH06_REGISTER_NODE_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(TEMPLATE_HASH_TH06_REGISTER_NODE_MAINNET, buffer, 64) == 0)) {
+        *scriptType = script_th06_register_node;
+        return parser_ok;
+    }
+
+    if (
+        (MEMCMP(TEMPLATE_HASH_TH08_STAKE_NEW_TOKENS_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(TEMPLATE_HASH_TH08_STAKE_NEW_TOKENS_MAINNET, buffer, 64) == 0)) {
+        *scriptType = script_th08_stake_new_tokens;
+        return parser_ok;
+    }
+    if (
+        (MEMCMP(TEMPLATE_HASH_TH09_RESTAKE_UNSTAKED_TOKENS_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(TEMPLATE_HASH_TH09_RESTAKE_UNSTAKED_TOKENS_MAINNET, buffer, 64) == 0)) {
+        *scriptType = script_th09_restake_unstaked_tokens;
+        return parser_ok;
+    }
+
+    if (
+        (MEMCMP(TEMPLATE_HASH_TH10_RESTAKE_REWARDED_TOKENS_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(TEMPLATE_HASH_TH10_RESTAKE_REWARDED_TOKENS_MAINNET, buffer, 64) == 0)) {
+        *scriptType = script_th10_restake_rewarded_tokens;
+        return parser_ok;
+    }
+
+    if (
+        (MEMCMP(TEMPLATE_HASH_TH11_UNSTAKE_TOKENS_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(TEMPLATE_HASH_TH11_UNSTAKE_TOKENS_MAINNET, buffer, 64) == 0)) {
+        *scriptType = script_th11_unstake_tokens;
+        return parser_ok;
+    }
+
+    if (
+        (MEMCMP(TEMPLATE_HASH_TH12_UNSTAKE_ALL_TOKENS_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(TEMPLATE_HASH_TH12_UNSTAKE_ALL_TOKENS_MAINNET, buffer, 64) == 0)) {
+        *scriptType = script_th12_unstake_all_tokens;
+        return parser_ok;
+    }
+
+    if (
+        (MEMCMP(TEMPLATE_HASH_TH13_WITHDRAW_UNSTAKED_TOKENS_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(TEMPLATE_HASH_TH13_WITHDRAW_UNSTAKED_TOKENS_MAINNET, buffer, 64) == 0)) {
+        *scriptType = script_th13_withdraw_unstaked_tokens;
+        return parser_ok;
+    }
+
+    if (
+        (MEMCMP(TEMPLATE_HASH_TH14_WITHDRAW_REWARDED_TOKENS_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(TEMPLATE_HASH_TH14_WITHDRAW_REWARDED_TOKENS_MAINNET, buffer, 64) == 0)) {
+        *scriptType = script_th14_withdraw_rewarded_tokens;
+        return parser_ok;
+    }
+
+    if (
+        (MEMCMP(TEMPLATE_HASH_TH17_REGISTER_DELEGATOR_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(TEMPLATE_HASH_TH17_REGISTER_DELEGATOR_MAINNET, buffer, 64) == 0)) {
+        *scriptType = script_th17_register_delegator;
+        return parser_ok;
+    }
+
+    if (
+        (MEMCMP(TEMPLATE_HASH_TH19_DELEGATE_NEW_TOKENS_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(TEMPLATE_HASH_TH19_DELEGATE_NEW_TOKENS_MAINNET, buffer, 64) == 0)) {
+        *scriptType = script_th19_delegate_new_tokens;
+        return parser_ok;
+    }
+
+    if (
+        (MEMCMP(TEMPLATE_HASH_TH20_RESTAKE_UNSTAKED_DELEGATED_TOKENS_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(TEMPLATE_HASH_TH20_RESTAKE_UNSTAKED_DELEGATED_TOKENS_MAINNET, buffer, 64) == 0)) {
+        *scriptType = script_th20_restake_unstaked_delegated_tokens;
+        return parser_ok;
+    }
+
+    if (
+        (MEMCMP(TEMPLATE_HASH_TH21_RESTAKE_REWARDED_DELEGATED_TOKENS_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(TEMPLATE_HASH_TH21_RESTAKE_REWARDED_DELEGATED_TOKENS_MAINNET, buffer, 64) == 0)) {
+        *scriptType = script_th21_restake_rewarded_delegated_tokens;
+        return parser_ok;
+    }
+
+    if (
+        (MEMCMP(TEMPLATE_HASH_TH22_UNSTAKE_DELEGATED_TOKENS_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(TEMPLATE_HASH_TH22_UNSTAKE_DELEGATED_TOKENS_MAINNET, buffer, 64) == 0)) {
+        *scriptType = script_th22_unstake_delegated_tokens;
+        return parser_ok;
+    }
+
+    if (
+        (MEMCMP(TEMPLATE_HASH_TH23_WITHDRAW_UNSTAKED_DELEGATED_TOKENS_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(TEMPLATE_HASH_TH23_WITHDRAW_UNSTAKED_DELEGATED_TOKENS_MAINNET, buffer, 64) == 0)) {
+        *scriptType = script_th23_withdraw_unstaked_delegated_tokens;
+        return parser_ok;
+    }
+
+    if (
+        (MEMCMP(TEMPLATE_HASH_TH24_WITHDRAW_REWARDED_DELEGATED_TOKENS_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(TEMPLATE_HASH_TH24_WITHDRAW_REWARDED_DELEGATED_TOKENS_MAINNET, buffer, 64) == 0)) {
+        *scriptType = script_th24_withdraw_rewarded_delegated_tokens;
+        return parser_ok;
+    }
+
     return parser_unexpected_script;
 }
 
@@ -529,6 +633,36 @@ uint8_t _getNumItems(const parser_context_t *c, const parser_tx_t *v) {
         case script_th01_withdraw_unlocked_tokens:
             return 9 + v->authorizers.authorizer_count;
         case script_th02_deposit_unlocked_tokens:
+            return 9 + v->authorizers.authorizer_count;
+        case script_th06_register_node:
+            return 14 + v->authorizers.authorizer_count;
+        case script_th08_stake_new_tokens:
+            return 9 + v->authorizers.authorizer_count;
+        case script_th09_restake_unstaked_tokens:
+            return 9 + v->authorizers.authorizer_count;
+        case script_th10_restake_rewarded_tokens:
+            return 9 + v->authorizers.authorizer_count;
+        case script_th11_unstake_tokens:
+            return 9 + v->authorizers.authorizer_count;
+        case script_th12_unstake_all_tokens:
+            return 9 + v->authorizers.authorizer_count;
+        case script_th13_withdraw_unstaked_tokens:
+            return 9 + v->authorizers.authorizer_count;
+        case script_th14_withdraw_rewarded_tokens:
+            return 9 + v->authorizers.authorizer_count;
+        case script_th17_register_delegator:
+            return 10 + v->authorizers.authorizer_count;
+        case script_th19_delegate_new_tokens:
+            return 9 + v->authorizers.authorizer_count;
+        case script_th20_restake_unstaked_delegated_tokens:
+            return 9 + v->authorizers.authorizer_count;
+        case script_th21_restake_rewarded_delegated_tokens:
+            return 9 + v->authorizers.authorizer_count;
+        case script_th22_unstake_delegated_tokens:
+            return 9 + v->authorizers.authorizer_count;
+        case script_th23_withdraw_unstaked_delegated_tokens:
+            return 9 + v->authorizers.authorizer_count;
+        case script_th24_withdraw_rewarded_delegated_tokens:
             return 9 + v->authorizers.authorizer_count;
         case script_unknown:
         default:
