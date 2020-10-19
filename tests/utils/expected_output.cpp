@@ -109,6 +109,18 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             item++;
             break;
         }
+        case script_th01_withdraw_unlocked_tokens: {
+            addTo(answer, "{} | Type : Withdraw FLOW from Lockbox", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
+            break;
+        }
+        case script_th02_deposit_unlocked_tokens: {
+            addTo(answer, "{} | Type : Deposit FLOW to Lockbox", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
+            break;
+        }
         default:
             addTo(answer, "{} | Type : ERROR", item++);
             break;
