@@ -645,7 +645,7 @@ uint8_t _getNumItems(const parser_context_t *c, const parser_tx_t *v) {
         case script_th11_unstake_tokens:
             return 9 + v->authorizers.authorizer_count;
         case script_th12_unstake_all_tokens:
-            return 9 + v->authorizers.authorizer_count;
+            return 8 + v->authorizers.authorizer_count;
         case script_th13_withdraw_unstaked_tokens:
             return 9 + v->authorizers.authorizer_count;
         case script_th14_withdraw_rewarded_tokens:

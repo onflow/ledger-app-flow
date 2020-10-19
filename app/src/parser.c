@@ -669,27 +669,27 @@ parser_error_t parser_getItemRegisterNode(const parser_context_t *ctx,
                                         outVal, outValLen, pageIdx, pageCount);
         case 3:
             snprintf(outKey, outKeyLen, "Node Role");
-            return parser_printArgument(&parser_tx_obj.arguments, 0,
+            return parser_printArgument(&parser_tx_obj.arguments, 1,
                                         "UInt8", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
         case 4:
             snprintf(outKey, outKeyLen, "Networking Address");
-            return parser_printArgument(&parser_tx_obj.arguments, 0,
+            return parser_printArgument(&parser_tx_obj.arguments, 2,
                                         "String", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
         case 5:
             snprintf(outKey, outKeyLen, "Networking Key");
-            return parser_printArgument(&parser_tx_obj.arguments, 0,
+            return parser_printArgument(&parser_tx_obj.arguments, 3,
                                         "String", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
         case 6:
             snprintf(outKey, outKeyLen, "Staking Key");
-            return parser_printArgument(&parser_tx_obj.arguments, 0,
+            return parser_printArgument(&parser_tx_obj.arguments, 4,
                                         "String", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
         case 7:
-            snprintf(outKey, outKeyLen, "Amoun");
-            return parser_printArgument(&parser_tx_obj.arguments, 0,
+            snprintf(outKey, outKeyLen, "Amount");
+            return parser_printArgument(&parser_tx_obj.arguments, 5,
                                         "UFix64", JSMN_STRING,
                                     outVal, outValLen, pageIdx, pageCount);
         case 8:
@@ -953,33 +953,28 @@ parser_error_t parser_getItemUnstakeAllTokens(const parser_context_t *ctx,
             return parser_printChainID(&parser_tx_obj.payer,
                                        outVal, outValLen, pageIdx, pageCount);
         case 2:
-            snprintf(outKey, outKeyLen, "Amount");
-            return parser_printArgument(&parser_tx_obj.arguments, 0,
-                                        "UFix64", JSMN_STRING,
-                                        outVal, outValLen, pageIdx, pageCount);
-        case 3:
             snprintf(outKey, outKeyLen, "Ref Block");
             return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 4:
+        case 3:
             snprintf(outKey, outKeyLen, "Gas Limit");
             return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 5:
+        case 4:
             snprintf(outKey, outKeyLen, "Prop Key Addr");
             return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 6:
+        case 5:
             snprintf(outKey, outKeyLen, "Prop Key Id");
             return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 7:
+        case 6:
             snprintf(outKey, outKeyLen, "Prop Key Seq Num");
             return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
                                           pageCount);
-        case 8:
+        case 7:
             snprintf(outKey, outKeyLen, "Payer");
             return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 9;
+    displayIdx -= 8;
 
     if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
         snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
@@ -1118,7 +1113,7 @@ parser_error_t parser_getItemRegisterDelegator(const parser_context_t *ctx,
                                         outVal, outValLen, pageIdx, pageCount);
         case 3:
             snprintf(outKey, outKeyLen, "Amount");
-            return parser_printArgument(&parser_tx_obj.arguments, 0,
+            return parser_printArgument(&parser_tx_obj.arguments, 1,
                                         "UFix64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
         case 4:
