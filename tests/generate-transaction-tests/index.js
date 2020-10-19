@@ -251,7 +251,7 @@ const mainnetTemplates = JSON.parse(fs.readFileSync('manifest.mainnet.json')).te
 
 const validTestnetEnvelopeCases = testnetTemplates.map((template) => {
   return [
-    `${template.id} - ${template.name} (${template.network})`,
+    `${template.id} - ${template.name}`,
     buildEnvelopeTx(TESTNET, {
       script: template.source,
       arguments: sampleArguments(template.arguments || [], template.network),
@@ -262,7 +262,7 @@ const validTestnetEnvelopeCases = testnetTemplates.map((template) => {
 
 const validMainnetEnvelopeCases = mainnetTemplates.map((template) => {
   return [
-    `${template.id} - ${template.name} (${template.network})`,
+    `${template.id} - ${template.name}`,
     buildEnvelopeTx(MAINNET, {
       script: template.source,
       arguments: sampleArguments(template.arguments || [], template.network),
