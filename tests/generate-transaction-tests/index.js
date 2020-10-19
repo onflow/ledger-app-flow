@@ -251,6 +251,28 @@ const sampleArgumentValue = (type, network) => {
 const testnetTemplates = JSON.parse(fs.readFileSync('manifest.testnet.json')).templates;
 const mainnetTemplates = JSON.parse(fs.readFileSync('manifest.mainnet.json')).templates;
 
+const validTestnetPayloadCases = testnetTemplates.map((template) => {
+  return [
+    `${template.id} - ${template.name}`,
+    buildPayloadTx(TESTNET, {
+      script: template.source,
+      arguments: sampleArguments(template.arguments || [], template.network),
+    }),
+    TESTNET,
+  ]
+});
+
+const validMainnetPayloadCases = mainnetTemplates.map((template) => {
+  return [
+    `${template.id} - ${template.name}`,
+    buildPayloadTx(MAINNET, {
+      script: template.source,
+      arguments: sampleArguments(template.arguments || [], template.network),
+    }),
+    MAINNET,
+  ]
+});
+
 const validTestnetEnvelopeCases = testnetTemplates.map((template) => {
   return [
     `${template.id} - ${template.name}`,
@@ -382,20 +404,22 @@ const validPayloadCases = [
     ]
   )),
   ...(ACCOUNT_KEYS.map((accountKey, i) => 
-  [
-    `Add New Key Transaction - Valid Envelope - Valid Account Key ${i}`,
-    buildEnvelopeTx(MAINNET, {
-      script: TX_ADD_NEW_KEY,
-      arguments: [
-        {
-          type: "String",
-          value: accountKey,
-        }
-      ]
-    }),
-    MAINNET,
-  ]
-))
+    [
+      `Add New Key Transaction - Valid Envelope - Valid Account Key ${i}`,
+      buildEnvelopeTx(MAINNET, {
+        script: TX_ADD_NEW_KEY,
+        arguments: [
+          {
+            type: "String",
+            value: accountKey,
+          }
+        ]
+      }),
+      MAINNET,
+    ]
+  )),
+  ...validTestnetPayloadCases,
+  ...validMainnetPayloadCases,
 ].map(x => ({
   title: x[0],
   valid: true,
