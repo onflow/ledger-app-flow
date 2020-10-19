@@ -223,6 +223,43 @@ const baseEnvelopeTx = (network) => {
   };
 };
 
+const sampleArguments = (arguments, network) => {
+  return arguments.map(({ type }) => {
+    return {
+      type: type,
+      value: sampleArgumentValue(type, network),
+    };
+  });
+};
+
+const sampleArgumentValue = (type, network) => {
+  switch (type) {
+    case "UFix64":
+      return "10.0"
+    case "String":
+      return "foo";
+    case "Address":
+      return ADDRESSES[network];
+  };
+
+  return "";
+};
+
+
+const testnetTemplates = JSON.parse(fs.readFileSync('manifest.testnet.json')).templates;
+const mainnetTemplates = JSON.parse(fs.readFileSync('manifest.mainnet.json')).templates;
+
+const validTestnetEnvelopeCases = testnetTemplates.map((template) => {
+  return [
+    `${template.id} - ${template.name} (${template.network})`,
+    buildEnvelopeTx(MAINNET, {
+      script: template.source,
+      arguments: sampleArguments(template.arguments || [], template.network),
+    }),
+    MAINNET,
+  ]
+});
+
 const invalidPayloadCases = [
   [
     "Example Transaction - Invalid Payload - Unapproved Script",
@@ -501,6 +538,7 @@ const validEnvelopeCases = [
       MAINNET,
     ]
   )),
+  ...validTestnetEnvelopeCases,
 ].map(x => ({
   title: x[0],
   valid: true,

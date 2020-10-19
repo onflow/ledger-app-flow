@@ -269,6 +269,20 @@ parser_error_t _matchScriptType(uint8_t scriptHash[32], script_type_e *scriptTyp
         return parser_ok;
     }
 
+    if (
+        (MEMCMP(CONTRACT_HASH_TH01_WITHDRAW_UNLOCKED_TOKENS_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(CONTRACT_HASH_TH01_WITHDRAW_UNLOCKED_TOKENS_MAINNET, buffer, 64) == 0)) {
+        *scriptType = script_th01_withdraw_unlocked_tokens;
+        return parser_ok;
+    }
+
+    if (
+        (MEMCMP(CONTRACT_HASH_TH02_DEPOSIT_UNLOCKED_TOKENS_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(CONTRACT_HASH_TH02_DEPOSIT_UNLOCKED_TOKENS_MAINNET, buffer, 64) == 0)) {
+        *scriptType = script_th02_deposit_unlocked_tokens;
+        return parser_ok;
+    }
+
     return parser_unexpected_script;
 }
 
@@ -511,6 +525,10 @@ uint8_t _getNumItems(const parser_context_t *c, const parser_tx_t *v) {
         case script_create_account:
             return 8 + _countArgumentItems(&v->arguments, 0) + v->authorizers.authorizer_count;
         case script_add_new_key:
+            return 9 + v->authorizers.authorizer_count;
+        case script_th01_withdraw_unlocked_tokens:
+            return 9 + v->authorizers.authorizer_count;
+        case script_th02_deposit_unlocked_tokens:
             return 9 + v->authorizers.authorizer_count;
         case script_unknown:
         default:

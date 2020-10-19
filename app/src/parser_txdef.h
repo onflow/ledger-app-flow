@@ -35,7 +35,9 @@ typedef enum {
     script_unknown,
     script_token_transfer,
     script_create_account,
-    script_add_new_key
+    script_add_new_key,
+    script_th01_withdraw_unlocked_tokens,
+    script_th02_deposit_unlocked_tokens,
 } script_type_e;
 
 typedef enum {
