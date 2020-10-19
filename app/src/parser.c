@@ -1091,6 +1091,69 @@ parser_error_t parser_getItemWithdrawRewardedTokens(const parser_context_t *ctx,
     return parser_display_idx_out_of_range;
 }
 
+parser_error_t parser_getItemRegisterOperatorNode(const parser_context_t *ctx,
+                                       uint16_t displayIdx,
+                                       char *outKey, uint16_t outKeyLen,
+                                       char *outVal, uint16_t outValLen,
+                                       uint8_t pageIdx, uint8_t *pageCount) {
+    *pageCount = 1;
+    switch (displayIdx) {
+        case 0:
+            snprintf(outKey, outKeyLen, "Type");
+            snprintf(outVal, outValLen, "Register Operator Node");
+            return parser_ok;
+        case 1:
+            snprintf(outKey, outKeyLen, "ChainID");
+            return parser_printChainID(&parser_tx_obj.payer,
+                                       outVal, outValLen, pageIdx, pageCount);
+        case 2:
+            snprintf(outKey, outKeyLen, "Operator Address");
+            return parser_printArgument(&parser_tx_obj.arguments, 0,
+                                        "Address", JSMN_STRING,
+                                        outVal, outValLen, pageIdx, pageCount);
+        case 3:
+            snprintf(outKey, outKeyLen, "Node ID");
+            return parser_printArgument(&parser_tx_obj.arguments, 1,
+                                        "String", JSMN_STRING,
+                                        outVal, outValLen, pageIdx, pageCount);
+        case 4:
+            snprintf(outKey, outKeyLen, "Amount");
+            return parser_printArgument(&parser_tx_obj.arguments, 2,
+                                        "UFix64", JSMN_STRING,
+                                        outVal, outValLen, pageIdx, pageCount);
+        case 5:
+            snprintf(outKey, outKeyLen, "Ref Block");
+            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
+        case 6:
+            snprintf(outKey, outKeyLen, "Gas Limit");
+            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
+        case 7:
+            snprintf(outKey, outKeyLen, "Prop Key Addr");
+            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
+        case 8:
+            snprintf(outKey, outKeyLen, "Prop Key Id");
+            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
+        case 9:
+            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
+            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
+                                          pageCount);
+        case 10:
+            snprintf(outKey, outKeyLen, "Payer");
+            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
+        default:
+            break;
+    }
+    displayIdx -= 11;
+
+    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
+        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
+        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
+                                      pageCount);
+    }
+
+    return parser_display_idx_out_of_range;
+}
+
 parser_error_t parser_getItemRegisterDelegator(const parser_context_t *ctx,
                                        uint16_t displayIdx,
                                        char *outKey, uint16_t outKeyLen,
@@ -1529,6 +1592,9 @@ parser_error_t parser_getItem(const parser_context_t *ctx,
         case script_th14_withdraw_rewarded_tokens:
             return parser_getItemWithdrawRewardedTokens(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen,
                                                         pageIdx, pageCount);
+        case script_th16_register_operator_node:
+            return parser_getItemRegisterOperatorNode(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen,
+                                                      pageIdx, pageCount);
         case script_th17_register_delegator:
             return parser_getItemRegisterDelegator(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen,
                                                    pageIdx, pageCount);

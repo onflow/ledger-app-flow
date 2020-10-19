@@ -46,6 +46,7 @@ typedef enum {
     script_th12_unstake_all_tokens,
     script_th13_withdraw_unstaked_tokens,
     script_th14_withdraw_rewarded_tokens,
+    script_th16_register_operator_node,
     script_th17_register_delegator,
     script_th19_delegate_new_tokens,
     script_th20_restake_unstaked_delegated_tokens,

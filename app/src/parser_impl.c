@@ -339,6 +339,13 @@ parser_error_t _matchScriptType(uint8_t scriptHash[32], script_type_e *scriptTyp
     }
 
     if (
+        (MEMCMP(TEMPLATE_HASH_TH16_REGISTER_OPERATOR_NODE_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(TEMPLATE_HASH_TH16_REGISTER_OPERATOR_NODE_MAINNET, buffer, 64) == 0)) {
+        *scriptType = script_th16_register_operator_node;
+        return parser_ok;
+    }
+
+    if (
         (MEMCMP(TEMPLATE_HASH_TH17_REGISTER_DELEGATOR_TESTNET, buffer, 64) == 0) ||
         (MEMCMP(TEMPLATE_HASH_TH17_REGISTER_DELEGATOR_MAINNET, buffer, 64) == 0)) {
         *scriptType = script_th17_register_delegator;
@@ -650,6 +657,8 @@ uint8_t _getNumItems(const parser_context_t *c, const parser_tx_t *v) {
             return 9 + v->authorizers.authorizer_count;
         case script_th14_withdraw_rewarded_tokens:
             return 9 + v->authorizers.authorizer_count;
+        case script_th16_register_operator_node:
+            return 11 + v->authorizers.authorizer_count;
         case script_th17_register_delegator:
             return 10 + v->authorizers.authorizer_count;
         case script_th19_delegate_new_tokens:

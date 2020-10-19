@@ -173,6 +173,14 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
             break;
         }
+        case script_th16_register_operator_node: {
+            addTo(answer, "{} | Type : Register Operator Node", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Operator Address : {}", item++, tcd.arguments[0]["value"].asString());
+            addTo(answer, "{} | Node ID : {}", item++, tcd.arguments[1]["value"].asString());
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[2]["value"].asString());
+            break;
+        }
         case script_th17_register_delegator: {
             addTo(answer, "{} | Type : Register Delegator", item++);
             addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
