@@ -241,7 +241,7 @@ const sampleArgumentValue = (type, network) => {
     case "String":
       return "foo";
     case "Address":
-      return ADDRESSES[network];
+      return `0x${ADDRESSES[network]}`;
   };
 
   return "";
