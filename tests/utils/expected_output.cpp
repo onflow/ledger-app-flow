@@ -122,18 +122,8 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
     addTo(answer, "{} | Prop Key Seq Num : {}", item++, tcd.proposalKeySequenceNumber);
     addTo(answer, "{} | Payer : {}", item++, FormatHexString(tcd.payer, 0, &dummy));
 
-    if (tcd.authorizers.size() > 1) {
-        addTo(answer, "{} | Authorizer : ERR", item++);      // TODO: is this valid?
-        // FIXME: Missing test cases
-//        uint16_t count = 0;
-//        for (const auto& a: tcd.authorizers) {
-//            addTo(answer, "8 | Authorizer {}/{} : {}", count + 1, tcd.authorizers.size(), a);
-//            count++;
-//        }
-    } else {
-        for (const auto &a: tcd.authorizers) {
-            addTo(answer, "{} | Authorizer 1 : {}", item++, a);
-        }
+    for (uint16_t i = 0; i < (uint16_t) tcd.authorizers.size(); i++) {
+        addTo(answer, "{} | Authorizer {} : {}", item++, i + 1, tcd.authorizers[i]);
     }
 
     return answer;
