@@ -234,6 +234,36 @@ const invalidPayloadCases = [
     buildPayloadTx(MAINNET, {script: ""}),
     MAINNET,
   ],
+  [
+    "Example Transaction - Invalid Payload - Too Many Authorizers",
+    buildPayloadTx(MAINNET, {
+      // Maximum authorizer count is 16
+      authorizers: [
+        "a3a627d47f628e9b",
+        "b5f242e7e66684fa",
+        "5195fb3af79c8425",
+        "4254874588d9dcde",
+
+        "a6333e989923dc01",
+        "b0675bab0027d660",
+        "5400e27611ddd6bf",
+        "bb4d6932cca2a849",
+
+        "5f2ad0efdd58a896",
+        "497eb5dc445ca2f7",
+        "ad190c0155a6a228",
+        "1ff233dcee8f96d6",
+
+        "fb958a01ff759609",
+        "edc1ef3266719c68",
+        "09a656ef778b9cb7",
+        "e6ebddabaaf4e241",
+
+        "028c6476bb0ee29e",
+      ],
+    }),
+    MAINNET,
+  ],
 ].map(x => ({
     title: x[0],
     valid: false,
@@ -288,6 +318,34 @@ const validPayloadCases = [
   [
     "Example Transaction - Valid Payload - Empty Authorizers",
     buildPayloadTx(MAINNET, {authorizers: []}),
+    MAINNET,
+  ],
+  [
+    "Example Transaction - Valid Envelope - Maximum Authorizers",
+    buildPayloadTx(MAINNET, {
+      // Maximum authorizer count is 16
+      authorizers: [
+        // Lists are merged in buildPayloadTx, so first authorizer is already added
+        "a3a627d47f628e9b",
+        "b5f242e7e66684fa",
+        "5195fb3af79c8425",
+
+        "4254874588d9dcde",
+        "a6333e989923dc01",
+        "b0675bab0027d660",
+        "5400e27611ddd6bf",
+
+        "bb4d6932cca2a849",
+        "5f2ad0efdd58a896",
+        "497eb5dc445ca2f7",
+        "ad190c0155a6a228",
+
+        "1ff233dcee8f96d6",
+        "fb958a01ff759609",
+        "edc1ef3266719c68",
+        "09a656ef778b9cb7",
+      ],
+    }),
     MAINNET,
   ],
   ...validPayloadTransferCases,
@@ -367,6 +425,36 @@ const invalidEnvelopeCases = [
     buildEnvelopeTx(MAINNET, {script: ""}),
     MAINNET,
   ],
+  [
+    "Example Transaction - Invalid Envelope - Too Many Authorizers",
+    buildEnvelopeTx(MAINNET, {
+      // Maximum authorizer count is 16
+      authorizers: [
+        "a3a627d47f628e9b",
+        "b5f242e7e66684fa",
+        "5195fb3af79c8425",
+        "4254874588d9dcde",
+
+        "a6333e989923dc01",
+        "b0675bab0027d660",
+        "5400e27611ddd6bf",
+        "bb4d6932cca2a849",
+
+        "5f2ad0efdd58a896",
+        "497eb5dc445ca2f7",
+        "ad190c0155a6a228",
+        "1ff233dcee8f96d6",
+
+        "fb958a01ff759609",
+        "edc1ef3266719c68",
+        "09a656ef778b9cb7",
+        "e6ebddabaaf4e241",
+        
+        "028c6476bb0ee29e",
+      ],
+    }),
+    MAINNET,
+  ],
 ].map(x => ({
     title: x[0],
     valid: false,
@@ -421,6 +509,34 @@ const validEnvelopeCases = [
   [
     "Example Transaction - Valid Envelope - Empty Authorizers",
     buildEnvelopeTx(MAINNET, {authorizers: []}),
+    MAINNET,
+  ],
+  [
+    "Example Transaction - Valid Envelope - Maximum Authorizers",
+    buildEnvelopeTx(MAINNET, {
+      // Maximum authorizer count is 16
+      authorizers: [
+        // Lists are merged in buildEnvelopeTx, so first authorizer is already added
+        "a3a627d47f628e9b",
+        "b5f242e7e66684fa",
+        "5195fb3af79c8425",
+
+        "4254874588d9dcde",
+        "a6333e989923dc01",
+        "b0675bab0027d660",
+        "5400e27611ddd6bf",
+
+        "bb4d6932cca2a849",
+        "5f2ad0efdd58a896",
+        "497eb5dc445ca2f7",
+        "ad190c0155a6a228",
+
+        "1ff233dcee8f96d6",
+        "fb958a01ff759609",
+        "edc1ef3266719c68",
+        "09a656ef778b9cb7",
+      ],
+    }),
     MAINNET,
   ],
   [

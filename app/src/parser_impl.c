@@ -426,7 +426,12 @@ parser_error_t _readProposalAuthorizers(parser_context_t *c, flow_proposal_autho
     CHECK_KIND(kind, kind_list)
 
     while (v->ctx.offset < v->ctx.bufferLen) {
+        if (v->authorizer_count >= 16) {
+           return parser_unexpected_number_items;
+        }
+
         CHECK_PARSER_ERR(_readProposalAuthorizer(&v->ctx, &v->authorizer[v->authorizer_count]))
+        
         v->authorizer_count++;
     }
     v->ctx.offset = 0;
