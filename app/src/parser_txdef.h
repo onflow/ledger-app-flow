@@ -27,7 +27,7 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 #include "crypto.h"
-#include "coin_script_hashes.h"
+#include "template_hashes.h"
 
 #define PARSER_MAX_ARGCOUNT 10
 
@@ -35,7 +35,25 @@ typedef enum {
     script_unknown,
     script_token_transfer,
     script_create_account,
-    script_add_new_key
+    script_add_new_key,
+    script_th01_withdraw_unlocked_tokens,
+    script_th02_deposit_unlocked_tokens,
+    script_th06_register_node,
+    script_th08_stake_new_tokens,
+    script_th09_restake_unstaked_tokens,
+    script_th10_restake_rewarded_tokens,
+    script_th11_unstake_tokens,
+    script_th12_unstake_all_tokens,
+    script_th13_withdraw_unstaked_tokens,
+    script_th14_withdraw_rewarded_tokens,
+    script_th16_register_operator_node,
+    script_th17_register_delegator,
+    script_th19_delegate_new_tokens,
+    script_th20_restake_unstaked_delegated_tokens,
+    script_th21_restake_rewarded_delegated_tokens,
+    script_th22_unstake_delegated_tokens,
+    script_th23_withdraw_unstaked_delegated_tokens,
+    script_th24_withdraw_rewarded_delegated_tokens,
 } script_type_e;
 
 typedef enum {

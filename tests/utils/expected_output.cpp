@@ -109,6 +109,121 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             item++;
             break;
         }
+        case script_th01_withdraw_unlocked_tokens: {
+            addTo(answer, "{} | Type : Withdraw FLOW from Lockbox", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
+            break;
+        }
+        case script_th02_deposit_unlocked_tokens: {
+            addTo(answer, "{} | Type : Deposit FLOW to Lockbox", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
+            break;
+        }
+        case script_th06_register_node: {
+            addTo(answer, "{} | Type : Register Staked Node", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Node ID : {}", item++, tcd.arguments[0]["value"].asString());
+            addTo(answer, "{} | Node Role : {}", item++, tcd.arguments[1]["value"].asString());
+            addTo(answer, "{} | Networking Address : {}", item++, tcd.arguments[2]["value"].asString());
+            addTo(answer, "{} | Networking Key : {}", item++, tcd.arguments[3]["value"].asString());
+            addTo(answer, "{} | Staking Key : {}", item++, tcd.arguments[4]["value"].asString());
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[5]["value"].asString());
+            break;
+        }
+        case script_th08_stake_new_tokens: {
+            addTo(answer, "{} | Type : Stake FLOW from Lockbox", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
+            break;
+        }
+        case script_th09_restake_unstaked_tokens: {
+            addTo(answer, "{} | Type : Restake Unstaked FLOW", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
+            break;
+        }
+        case script_th10_restake_rewarded_tokens: {
+            addTo(answer, "{} | Type : Restake Rewarded FLOW", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
+            break;
+        }
+        case script_th11_unstake_tokens: {
+            addTo(answer, "{} | Type : Unstake FLOW", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
+            break;
+        }
+        case script_th12_unstake_all_tokens: {
+            addTo(answer, "{} | Type : Unstake All FLOW", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            break;
+        }
+        case script_th13_withdraw_unstaked_tokens: {
+            addTo(answer, "{} | Type : Withdraw Unstaked FLOW to Lockbox", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
+            break;
+        }
+        case script_th14_withdraw_rewarded_tokens: {
+            addTo(answer, "{} | Type : Withdraw Rewarded FLOW to Lockbox", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
+            break;
+        }
+        case script_th16_register_operator_node: {
+            addTo(answer, "{} | Type : Register Operator Node", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Operator Address : {}", item++, tcd.arguments[0]["value"].asString());
+            addTo(answer, "{} | Node ID : {}", item++, tcd.arguments[1]["value"].asString());
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[2]["value"].asString());
+            break;
+        }
+        case script_th17_register_delegator: {
+            addTo(answer, "{} | Type : Register Delegator", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Node ID : {}", item++, tcd.arguments[0]["value"].asString());
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[1]["value"].asString());
+            break;
+        }
+        case script_th19_delegate_new_tokens: {
+            addTo(answer, "{} | Type : Delegate FLOW from Lockbox", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
+            break;
+        }
+        case script_th20_restake_unstaked_delegated_tokens: {
+            addTo(answer, "{} | Type : Re-delegate Unstaked FLOW", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
+            break;
+        }
+        case script_th21_restake_rewarded_delegated_tokens: {
+            addTo(answer, "{} | Type : Re-delegate Rewarded FLOW", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
+            break;
+        }
+        case script_th22_unstake_delegated_tokens: {
+            addTo(answer, "{} | Type : Unstake Delegated FLOW", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
+            break;
+        }
+        case script_th23_withdraw_unstaked_delegated_tokens: {
+            addTo(answer, "{} | Type : Withdraw Undelegated FLOW to Lockbox", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
+            break;
+        }
+        case script_th24_withdraw_rewarded_delegated_tokens: {
+            addTo(answer, "{} | Type : Withdraw Delegate Rewards to Lockbox", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
+            break;
+        }
         default:
             addTo(answer, "{} | Type : ERROR", item++);
             break;

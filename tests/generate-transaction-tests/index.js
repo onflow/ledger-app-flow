@@ -223,6 +223,78 @@ const baseEnvelopeTx = (network) => {
   };
 };
 
+const sampleArguments = (arguments, network) => {
+  return arguments.map(({ type }) => {
+    return {
+      type: type,
+      value: sampleArgumentValue(type, network),
+    };
+  });
+};
+
+const sampleArgumentValue = (type, network) => {
+  switch (type) {
+    case "UFix64":
+      return "10.0";
+    case "UInt8":
+      return "3";
+    case "String":
+      return "foo";
+    case "Address":
+      return `0x${ADDRESSES[network]}`;
+  };
+
+  return "";
+};
+
+
+const testnetTemplates = JSON.parse(fs.readFileSync('manifest.testnet.json')).templates;
+const mainnetTemplates = JSON.parse(fs.readFileSync('manifest.mainnet.json')).templates;
+
+const validTestnetPayloadCases = testnetTemplates.map((template) => {
+  return [
+    `${template.id} - ${template.name}`,
+    buildPayloadTx(TESTNET, {
+      script: template.source,
+      arguments: sampleArguments(template.arguments || [], TESTNET),
+    }),
+    TESTNET,
+  ]
+});
+
+const validMainnetPayloadCases = mainnetTemplates.map((template) => {
+  return [
+    `${template.id} - ${template.name}`,
+    buildPayloadTx(MAINNET, {
+      script: template.source,
+      arguments: sampleArguments(template.arguments || [], MAINNET),
+    }),
+    MAINNET,
+  ]
+});
+
+const validTestnetEnvelopeCases = testnetTemplates.map((template) => {
+  return [
+    `${template.id} - ${template.name}`,
+    buildEnvelopeTx(TESTNET, {
+      script: template.source,
+      arguments: sampleArguments(template.arguments || [], TESTNET),
+    }),
+    TESTNET,
+  ]
+});
+
+const validMainnetEnvelopeCases = mainnetTemplates.map((template) => {
+  return [
+    `${template.id} - ${template.name}`,
+    buildEnvelopeTx(MAINNET, {
+      script: template.source,
+      arguments: sampleArguments(template.arguments || [], MAINNET),
+    }),
+    MAINNET,
+  ]
+});
+
 const invalidPayloadCases = [
   [
     "Example Transaction - Invalid Payload - Unapproved Script",
@@ -390,20 +462,22 @@ const validPayloadCases = [
     ]
   )),
   ...(ACCOUNT_KEYS.map((accountKey, i) => 
-  [
-    `Add New Key Transaction - Valid Envelope - Valid Account Key ${i}`,
-    buildEnvelopeTx(MAINNET, {
-      script: TX_ADD_NEW_KEY,
-      arguments: [
-        {
-          type: "String",
-          value: accountKey,
-        }
-      ]
-    }),
-    MAINNET,
-  ]
-))
+    [
+      `Add New Key Transaction - Valid Envelope - Valid Account Key ${i}`,
+      buildEnvelopeTx(MAINNET, {
+        script: TX_ADD_NEW_KEY,
+        arguments: [
+          {
+            type: "String",
+            value: accountKey,
+          }
+        ]
+      }),
+      MAINNET,
+    ]
+  )),
+  ...validTestnetPayloadCases,
+  ...validMainnetPayloadCases,
 ].map(x => ({
   title: x[0],
   valid: true,
@@ -617,6 +691,8 @@ const validEnvelopeCases = [
       MAINNET,
     ]
   )),
+  ...validTestnetEnvelopeCases,
+  ...validMainnetEnvelopeCases,
 ].map(x => ({
   title: x[0],
   valid: true,
