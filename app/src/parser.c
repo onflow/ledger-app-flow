@@ -172,7 +172,7 @@ parser_error_t parser_printChainID(const flow_payer_t *v,
     return parser_invalid_address;
 }
 
-__Z_INLINE parser_error_t parser_printArgument(const flow_argument_list_t *v,
+parser_error_t parser_printArgument(const flow_argument_list_t *v,
                                                uint8_t argIndex, char *expectedType, jsmntype_t jsonType,
                                                char *outVal, uint16_t outValLen,
                                                uint8_t pageIdx, uint8_t *pageCount) {
