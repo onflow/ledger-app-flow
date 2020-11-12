@@ -685,26 +685,33 @@ parser_error_t parser_getItemRegisterNode(const parser_context_t *ctx,
             return parser_printChainID(&parser_tx_obj.payer,
                                        outVal, outValLen, pageIdx, pageCount);
         case 2:
+            CHECK_PARSER_ERR(
+                parser_printArgumentString(&parser_tx_obj.arguments.argCtx[0],
+                                           outVal, outValLen, pageIdx, pageCount));
             snprintf(outKey, outKeyLen, "Node ID");
-            return parser_printArgumentString(&parser_tx_obj.arguments.argCtx[0],
-                                              outVal, outValLen, pageIdx, pageCount);
+            return parser_ok;
         case 3:
             snprintf(outKey, outKeyLen, "Node Role");
             return parser_printArgument(&parser_tx_obj.arguments, 1,
                                         "UInt8", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
         case 4:
+            CHECK_PARSER_ERR(
+                parser_printArgumentString(&parser_tx_obj.arguments.argCtx[2],
+                                              outVal, outValLen, pageIdx, pageCount));
             snprintf(outKey, outKeyLen, "Networking Address");
-            return parser_printArgumentString(&parser_tx_obj.arguments.argCtx[2],
-                                              outVal, outValLen, pageIdx, pageCount);
+            return parser_ok;
         case 5:
+            CHECK_PARSER_ERR(
+                parser_printArgumentString(&parser_tx_obj.arguments.argCtx[3],
+                                              outVal, outValLen, pageIdx, pageCount));
             snprintf(outKey, outKeyLen, "Networking Key");
-            return parser_printArgumentString(&parser_tx_obj.arguments.argCtx[3],
-                                              outVal, outValLen, pageIdx, pageCount);
+            return parser_ok;
         case 6:
+            CHECK_PARSER_ERR(
+                parser_printArgumentString(&parser_tx_obj.arguments.argCtx[4],
+                                              outVal, outValLen, pageIdx, pageCount));
             snprintf(outKey, outKeyLen, "Staking Key");
-            return parser_printArgumentString(&parser_tx_obj.arguments.argCtx[4],
-                                              outVal, outValLen, pageIdx, pageCount);
         case 7:
             snprintf(outKey, outKeyLen, "Amount");
             return parser_printArgument(&parser_tx_obj.arguments, 5,
