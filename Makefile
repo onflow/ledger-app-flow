@@ -25,8 +25,8 @@ ifeq ($(BOLOS_SDK),)
 include $(CURDIR)/deps/ledger-zxlib/dockerized_build.mk
 else
 default:
-	APP_TESTING=1 $(MAKE) -C app
+	$(MAKE) -C app
 %:
 	$(info "Calling app Makefile for target $@")
-	COIN=$(COIN) APP_TESTING=1 $(MAKE) -C app $@
+	COIN=$(COIN) $(MAKE) -C app $@
 endif
