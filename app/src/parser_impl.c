@@ -228,7 +228,7 @@ parser_error_t formatStrUInt8AsHex(const char *decStr, char *hexStr) {
     return parser_ok;
 }
 
-parser_error_t json_extractPubKey(char *outVal, uint16_t outValLen, parsed_json_t *parsedJson, uint16_t tokenIdx) {
+parser_error_t json_extractString(char *outVal, uint16_t outValLen, parsed_json_t *parsedJson, uint16_t tokenIdx) {
     MEMZERO(outVal, outValLen);
 
     uint16_t internalTokenElemIdx;

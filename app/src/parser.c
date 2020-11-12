@@ -202,7 +202,7 @@ parser_error_t parser_printArgumentString(const parser_context_t *argumentCtx,
     CHECK_PARSER_ERR(json_parse(&parsedJson, (char *) argumentCtx->buffer, argumentCtx->bufferLen));
 
     char bufferUI[STRING_ARGUMENT_SIZE];
-    CHECK_PARSER_ERR(json_extractPubKey(bufferUI, sizeof(bufferUI), &parsedJson, 0))
+    CHECK_PARSER_ERR(json_extractString(bufferUI, sizeof(bufferUI), &parsedJson, 0))
     pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
 
     // Check requested page is in range
@@ -222,7 +222,7 @@ parser_error_t parser_printArgumentPublicKey(const parser_context_t *argumentCtx
     CHECK_PARSER_ERR(json_parse(&parsedJson, (char *) argumentCtx->buffer, argumentCtx->bufferLen));
 
     char bufferUI[FLOW_ACCOUNT_KEY_SIZE];
-    CHECK_PARSER_ERR(json_extractPubKey(bufferUI, sizeof(bufferUI), &parsedJson, 0))
+    CHECK_PARSER_ERR(json_extractString(bufferUI, sizeof(bufferUI), &parsedJson, 0))
     pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
 
     // Check requested page is in range
@@ -255,7 +255,7 @@ parser_error_t parser_printArgumentPublicKeys(const parser_context_t *argumentCt
     uint16_t arrayElementToken;
     char bufferUI[FLOW_ACCOUNT_KEY_SIZE];
     CHECK_PARSER_ERR(array_get_nth_element(&parsedJson, internalTokenElementIdx, argumentIndex, &arrayElementToken))
-    CHECK_PARSER_ERR(json_extractPubKey(bufferUI, sizeof(bufferUI), &parsedJson, arrayElementToken))
+    CHECK_PARSER_ERR(json_extractString(bufferUI, sizeof(bufferUI), &parsedJson, arrayElementToken))
     pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
 
     // Check requested page is in range

@@ -50,7 +50,7 @@ parser_error_t json_matchKeyValue(parsed_json_t *parsedJson,
 
 parser_error_t formatStrUInt8AsHex(const char *decStr, char *hexStr);
 
-parser_error_t json_extractPubKey(char *outVal, uint16_t outValLen, parsed_json_t *parsedJson, uint16_t tokenIdx);
+parser_error_t json_extractString(char *outVal, uint16_t outValLen, parsed_json_t *parsedJson, uint16_t tokenIdx);
 
 #ifdef __cplusplus
 }
