@@ -712,6 +712,7 @@ parser_error_t parser_getItemRegisterNode(const parser_context_t *ctx,
                 parser_printArgumentString(&parser_tx_obj.arguments.argCtx[4],
                                               outVal, outValLen, pageIdx, pageCount));
             snprintf(outKey, outKeyLen, "Staking Key");
+            return parser_ok;
         case 7:
             snprintf(outKey, outKeyLen, "Amount");
             return parser_printArgument(&parser_tx_obj.arguments, 5,
