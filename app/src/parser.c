@@ -43,6 +43,8 @@ void __assert_fail(const char * assertion, const char * file, unsigned int line,
     (RLP_PREFIX + FLOW_WEIGHT_SIZE) \
 ) + 2)
 
+#define STRING_ARGUMENT_SIZE 96
+
 parser_error_t parser_parse(parser_context_t *ctx, const uint8_t *data, size_t dataLen) {
     CHECK_PARSER_ERR(parser_init(ctx, data, dataLen))
     return _read(ctx, &parser_tx_obj);
@@ -187,6 +189,26 @@ __Z_INLINE parser_error_t parser_printArgument(const flow_argument_list_t *v,
     uint16_t valueTokenIndex;
     CHECK_PARSER_ERR(json_matchKeyValue(&parsedJson, 0, expectedType, jsonType, &valueTokenIndex))
     CHECK_PARSER_ERR(json_extractToken(outVal, outValLen, &parsedJson, valueTokenIndex))
+
+    return parser_ok;
+}
+
+parser_error_t parser_printArgumentString(const parser_context_t *argumentCtx,
+                                             char *outVal, uint16_t outValLen,
+                                             uint8_t pageIdx, uint8_t *pageCount) {
+    MEMZERO(outVal, outValLen);
+
+    parsed_json_t parsedJson = {false};
+    CHECK_PARSER_ERR(json_parse(&parsedJson, (char *) argumentCtx->buffer, argumentCtx->bufferLen));
+
+    char bufferUI[STRING_ARGUMENT_SIZE];
+    CHECK_PARSER_ERR(json_extractPubKey(bufferUI, sizeof(bufferUI), &parsedJson, 0))
+    pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
+
+    // Check requested page is in range
+    if (pageIdx > *pageCount) {
+        return parser_display_page_out_of_range;
+    }
 
     return parser_ok;
 }
@@ -664,9 +686,8 @@ parser_error_t parser_getItemRegisterNode(const parser_context_t *ctx,
                                        outVal, outValLen, pageIdx, pageCount);
         case 2:
             snprintf(outKey, outKeyLen, "Node ID");
-            return parser_printArgument(&parser_tx_obj.arguments, 0,
-                                        "String", JSMN_STRING,
-                                        outVal, outValLen, pageIdx, pageCount);
+            return parser_printArgumentString(&parser_tx_obj.arguments.argCtx[0],
+                                              outVal, outValLen, pageIdx, pageCount);
         case 3:
             snprintf(outKey, outKeyLen, "Node Role");
             return parser_printArgument(&parser_tx_obj.arguments, 1,
@@ -674,19 +695,16 @@ parser_error_t parser_getItemRegisterNode(const parser_context_t *ctx,
                                         outVal, outValLen, pageIdx, pageCount);
         case 4:
             snprintf(outKey, outKeyLen, "Networking Address");
-            return parser_printArgument(&parser_tx_obj.arguments, 2,
-                                        "String", JSMN_STRING,
-                                        outVal, outValLen, pageIdx, pageCount);
+            return parser_printArgumentString(&parser_tx_obj.arguments.argCtx[2],
+                                              outVal, outValLen, pageIdx, pageCount);
         case 5:
             snprintf(outKey, outKeyLen, "Networking Key");
-            return parser_printArgument(&parser_tx_obj.arguments, 3,
-                                        "String", JSMN_STRING,
-                                        outVal, outValLen, pageIdx, pageCount);
+            return parser_printArgumentString(&parser_tx_obj.arguments.argCtx[3],
+                                              outVal, outValLen, pageIdx, pageCount);
         case 6:
             snprintf(outKey, outKeyLen, "Staking Key");
-            return parser_printArgument(&parser_tx_obj.arguments, 4,
-                                        "String", JSMN_STRING,
-                                        outVal, outValLen, pageIdx, pageCount);
+            return parser_printArgumentString(&parser_tx_obj.arguments.argCtx[4],
+                                              outVal, outValLen, pageIdx, pageCount);
         case 7:
             snprintf(outKey, outKeyLen, "Amount");
             return parser_printArgument(&parser_tx_obj.arguments, 5,
@@ -1113,9 +1131,8 @@ parser_error_t parser_getItemRegisterOperatorNode(const parser_context_t *ctx,
                                         outVal, outValLen, pageIdx, pageCount);
         case 3:
             snprintf(outKey, outKeyLen, "Node ID");
-            return parser_printArgument(&parser_tx_obj.arguments, 1,
-                                        "String", JSMN_STRING,
-                                        outVal, outValLen, pageIdx, pageCount);
+            return parser_printArgumentString(&parser_tx_obj.arguments.argCtx[1],
+                                              outVal, outValLen, pageIdx, pageCount);
         case 4:
             snprintf(outKey, outKeyLen, "Amount");
             return parser_printArgument(&parser_tx_obj.arguments, 2,
@@ -1171,9 +1188,8 @@ parser_error_t parser_getItemRegisterDelegator(const parser_context_t *ctx,
                                        outVal, outValLen, pageIdx, pageCount);
         case 2:
             snprintf(outKey, outKeyLen, "Node ID");
-            return parser_printArgument(&parser_tx_obj.arguments, 0,
-                                        "String", JSMN_STRING,
-                                        outVal, outValLen, pageIdx, pageCount);
+            return parser_printArgumentString(&parser_tx_obj.arguments.argCtx[0],
+                                              outVal, outValLen, pageIdx, pageCount);
         case 3:
             snprintf(outKey, outKeyLen, "Amount");
             return parser_printArgument(&parser_tx_obj.arguments, 1,
