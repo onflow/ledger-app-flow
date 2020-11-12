@@ -43,7 +43,7 @@ void __assert_fail(const char * assertion, const char * file, unsigned int line,
     (RLP_PREFIX + FLOW_WEIGHT_SIZE) \
 ) + 2)
 
-#define STRING_ARGUMENT_SIZE 96
+#define STRING_ARGUMENT_SIZE 100
 
 parser_error_t parser_parse(parser_context_t *ctx, const uint8_t *data, size_t dataLen) {
     CHECK_PARSER_ERR(parser_init(ctx, data, dataLen))
