@@ -196,17 +196,10 @@ parser_error_t parser_printArgument(const flow_argument_list_t *v,
 parser_error_t parser_printArgumentString(const parser_context_t *argumentCtx,
                                              char *outVal, uint16_t outValLen,
                                              uint8_t pageIdx, uint8_t *pageCount) {
-
-    zemu_log_stack("parser_printArgumentString 1");
-
     MEMZERO(outVal, outValLen);
-
-    zemu_log_stack("parser_printArgumentString 2");
 
     parsed_json_t parsedJson = {false};
     CHECK_PARSER_ERR(json_parse(&parsedJson, (char *) argumentCtx->buffer, argumentCtx->bufferLen));
-
-    zemu_log_stack("parser_printArgumentString 3");
 
     char bufferUI[ARGUMENT_BUFFER_SIZE_STRING];
     CHECK_PARSER_ERR(json_extractString(bufferUI, sizeof(bufferUI), &parsedJson, 0))
