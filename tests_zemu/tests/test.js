@@ -27,8 +27,8 @@ const APP_SEED = "equip will roof matter pink blind book anxiety banner elbow su
 const simOptions = {
     logging: true,
     start_delay: 1500,
-    custom: `-s "${APP_SEED}"`
-    , X11: true
+    custom: `-s "${APP_SEED}"`,
+    // X11: true
 };
 
 jest.setTimeout(60000)
@@ -327,6 +327,67 @@ describe('Basic checks', function () {
         }
     });
 
+    // p256
+
+    it('get address - secp256r1', async function () {
+        const sim = new Zemu(APP_PATH);
+        try {
+            await sim.start(simOptions);
+            const app = new FlowApp(sim.getTransport());
+
+            const scheme = FlowApp.Signature.P256 | FlowApp.Hash.SHA2_256;
+            const path = `m/44'/539'/${scheme}'/0/0`;
+            const resp = await app.getAddressAndPubKey(path);
+
+            console.log(resp)
+
+            expect(resp.returnCode).toEqual(0x9000);
+            expect(resp.errorMessage).toEqual("No errors");
+
+            const expected_address_string = "04db0a14364e5bf43a7ddda603522ddfee95c5ff12b48c49480f062e7aa9d20e84215eef9b8b76175f32802f75ed54110e29c7dc76054f24c028c312098e7177a3";
+            const expected_pk = "04db0a14364e5bf43a7ddda603522ddfee95c5ff12b48c49480f062e7aa9d20e84215eef9b8b76175f32802f75ed54110e29c7dc76054f24c028c312098e7177a3";
+
+            expect(resp.address).toEqual(expected_address_string);
+            expect(resp.publicKey.toString('hex')).toEqual(expected_pk);
+
+        } finally {
+            await sim.close();
+        }
+    });
+
+    it('show address - secp256r1', async function () {
+        const sim = new Zemu(APP_PATH);
+        try {
+            await sim.start(simOptions);
+            const app = new FlowApp(sim.getTransport());
+
+            // Derivation path. First 3 items are automatically hardened!
+            const scheme = FlowApp.Signature.P256 | FlowApp.Hash.SHA2_256;
+            const path = `m/44'/539'/${scheme}'/0/0`;
+
+            const respRequest = app.showAddressAndPubKey(path);
+            // Wait until we are not in the main menu
+            await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
+
+            // Now navigate the address / path
+            await sim.compareSnapshotsAndAccept(".", "show_address_secp256r1", 5);
+
+            const resp = await respRequest;
+            console.log(resp);
+
+            expect(resp.returnCode).toEqual(0x9000);
+            expect(resp.errorMessage).toEqual("No errors");
+
+            const expected_address_string = "04db0a14364e5bf43a7ddda603522ddfee95c5ff12b48c49480f062e7aa9d20e84215eef9b8b76175f32802f75ed54110e29c7dc76054f24c028c312098e7177a3";
+            const expected_pk = "04db0a14364e5bf43a7ddda603522ddfee95c5ff12b48c49480f062e7aa9d20e84215eef9b8b76175f32802f75ed54110e29c7dc76054f24c028c312098e7177a3";
+
+            expect(resp.address).toEqual(expected_address_string);
+            expect(resp.publicKey.toString('hex')).toEqual(expected_pk);
+        } finally {
+            await sim.close();
+        }
+    });
+
     it('show address - expert', async function () {
         const sim = new Zemu(APP_PATH);
         try {
@@ -364,6 +425,9 @@ describe('Basic checks', function () {
             await sim.close();
         }
     });
+});
+
+describe('Transactions', function () {
 
     const exampleTransferBlob = "f9023ff9023bb90195696d706f72742046756e6769626c65546f6b656e2066726f6d203078656538323835366266323065326161360a7472616e73616374696f6e28616d6f756e743a205546697836342c20746f3a204164647265737329207b0a6c6574207661756c743a204046756e6769626c65546f6b656e2e5661756c740a70726570617265287369676e65723a20417574684163636f756e7429207b0a73656c662e7661756c74203c2d207369676e65720a2e626f72726f773c267b46756e6769626c65546f6b656e2e50726f76696465727d3e2866726f6d3a202f73746f726167652f666c6f77546f6b656e5661756c7429210a2e776974686472617728616d6f756e743a20616d6f756e74290a7d0a65786563757465207b0a6765744163636f756e7428746f290a2e6765744361706162696c697479282f7075626c69632f666c6f77546f6b656e526563656976657229210a2e626f72726f773c267b46756e6769626c65546f6b656e2e52656365697665727d3e2829210a2e6465706f7369742866726f6d3a203c2d73656c662e7661756c74290a7d0a7df861b07b2274797065223a22554669783634222c2276616c7565223a223138343436373434303733372e39353531363135227daf7b2274797065223a2241646472657373222c2276616c7565223a22307866386436653035383662306132306337227da0f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b2a88f8d6e0586b0a20c7040a88f8d6e0586b0a20c7c988f8d6e0586b0a20c7c0"
     const exampleCreateBlob = "f90289f90261b8a97472616e73616374696f6e287075626c69634b6579733a205b537472696e675d29207b0a70726570617265287369676e65723a20417574684163636f756e7429207b0a6c65742061636374203d20417574684163636f756e742870617965723a207369676e6572290a666f72206b657920696e207075626c69634b657973207b0a616363742e6164645075626c69634b6579286b65792e6465636f64654865782829290a7d0a7d0a7df90173b901707b2274797065223a224172726179222c2276616c7565223a5b7b2274797065223a22537472696e67222c2276616c7565223a2266383435623834303934343838613739356130373730306336666238336530363663663537646664383766393263653730636263383163623362643366656132646637623637303733623730653336623434663335373862343364363464336661613265386534313565663663326235666534333930643561373865323338353831633665346263333033303330227d2c7b2274797065223a22537472696e67222c2276616c7565223a2266383435623834303934343838613739356130373730306336666238336530363663663537646664383766393263653730636263383163623362643366656132646637623637303733623730653336623434663335373862343364363464336661613265386534313565663663326235666534333930643561373865323338353831633665346263333033303331227d5d7da0f0e4c2f76c58916ec258f246851bea091d14d4247a2fc3e18694461b1816e13b2a88f8d6e0586b0a20c7040a88f8d6e0586b0a20c7c988f8d6e0586b0a20c7e4e38004a0f7225388c1d69d57e6251c9fda50cbbf9e05131e5adb81e5aa0422402f048162"
@@ -671,67 +735,6 @@ describe('Basic checks', function () {
             console.log(pk);
             const signatureOk = ec.verify(digest, sig, pk, 'hex');
             expect(signatureOk).toEqual(true);
-        } finally {
-            await sim.close();
-        }
-    });
-
-    // p256
-
-    it('get address - secp256r1', async function () {
-        const sim = new Zemu(APP_PATH);
-        try {
-            await sim.start(simOptions);
-            const app = new FlowApp(sim.getTransport());
-
-            const scheme = FlowApp.Signature.P256 | FlowApp.Hash.SHA2_256;
-            const path = `m/44'/539'/${scheme}'/0/0`;
-            const resp = await app.getAddressAndPubKey(path);
-
-            console.log(resp)
-
-            expect(resp.returnCode).toEqual(0x9000);
-            expect(resp.errorMessage).toEqual("No errors");
-
-            const expected_address_string = "04db0a14364e5bf43a7ddda603522ddfee95c5ff12b48c49480f062e7aa9d20e84215eef9b8b76175f32802f75ed54110e29c7dc76054f24c028c312098e7177a3";
-            const expected_pk = "04db0a14364e5bf43a7ddda603522ddfee95c5ff12b48c49480f062e7aa9d20e84215eef9b8b76175f32802f75ed54110e29c7dc76054f24c028c312098e7177a3";
-
-            expect(resp.address).toEqual(expected_address_string);
-            expect(resp.publicKey.toString('hex')).toEqual(expected_pk);
-
-        } finally {
-            await sim.close();
-        }
-    });
-
-    it('show address - secp256r1', async function () {
-        const sim = new Zemu(APP_PATH);
-        try {
-            await sim.start(simOptions);
-            const app = new FlowApp(sim.getTransport());
-
-            // Derivation path. First 3 items are automatically hardened!
-            const scheme = FlowApp.Signature.P256 | FlowApp.Hash.SHA2_256;
-            const path = `m/44'/539'/${scheme}'/0/0`;
-
-            const respRequest = app.showAddressAndPubKey(path);
-            // Wait until we are not in the main menu
-            await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
-
-            // Now navigate the address / path
-            await sim.compareSnapshotsAndAccept(".", "show_address_secp256r1", 5);
-
-            const resp = await respRequest;
-            console.log(resp);
-
-            expect(resp.returnCode).toEqual(0x9000);
-            expect(resp.errorMessage).toEqual("No errors");
-
-            const expected_address_string = "04db0a14364e5bf43a7ddda603522ddfee95c5ff12b48c49480f062e7aa9d20e84215eef9b8b76175f32802f75ed54110e29c7dc76054f24c028c312098e7177a3";
-            const expected_pk = "04db0a14364e5bf43a7ddda603522ddfee95c5ff12b48c49480f062e7aa9d20e84215eef9b8b76175f32802f75ed54110e29c7dc76054f24c028c312098e7177a3";
-
-            expect(resp.address).toEqual(expected_address_string);
-            expect(resp.publicKey.toString('hex')).toEqual(expected_pk);
         } finally {
             await sim.close();
         }
