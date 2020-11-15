@@ -1,7 +1,7 @@
 [
   {
     "title": "Example Transaction - Invalid Envelope - Unapproved Script",
-    "valid": true,
+    "valid": false,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(msg: String) { execute { log(msg) } }",
@@ -56,7 +56,7 @@
   },
   {
     "title": "Example Transaction - Invalid Envelope - Empty Script",
-    "valid": true,
+    "valid": false,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "",
@@ -111,7 +111,7 @@
   },
   {
     "title": "Example Transaction - Invalid Envelope - Too Many Authorizers",
-    "valid": true,
+    "valid": false,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",

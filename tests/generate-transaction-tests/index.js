@@ -486,7 +486,7 @@ const validPayloadCases = [
       MAINNET,
     ]
   )),
-].map(createPayloadTestcase(false));
+].map(createPayloadTestcase(true));
 
 const invalidEnvelopeCases = [
   [
@@ -529,7 +529,7 @@ const invalidEnvelopeCases = [
     }),
     MAINNET,
   ],
-].map(createEnvelopeTestcase(true));
+].map(createEnvelopeTestcase(false));
 
 const validEnvelopeTransferCases = 
   Object.entries(TXS_TRANSFER_TOKENS).

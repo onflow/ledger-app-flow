@@ -1,7 +1,7 @@
 [
   {
     "title": "Example Transaction - Valid Payload - Zero Gas Limit",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -49,7 +49,7 @@
   },
   {
     "title": "Example Transaction - Valid Payload - Zero proposerKey.keyId",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -97,7 +97,7 @@
   },
   {
     "title": "Example Transaction - Valid Payload - Zero proposalKey.sequenceNum",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -145,7 +145,7 @@
   },
   {
     "title": "Example Transaction - Valid Payload - Empty Authorizers",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -189,7 +189,7 @@
   },
   {
     "title": "Example Transaction - Valid Envelope - Maximum Authorizers",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -267,7 +267,7 @@
   },
   {
     "title": "Send Flow Token Transaction (Emulator) - Valid Payload - Valid Amount 0.0",
-    "valid": false,
+    "valid": true,
     "chainID": "Emulator",
     "payloadMessage": {
       "script": "import FungibleToken from 0xee82856bf20e2aa6\ntransaction(amount: UFix64, to: Address) {\nlet vault: @FungibleToken.Vault\nprepare(signer: AuthAccount) {\nself.vault <- signer\n.borrow<&{FungibleToken.Provider}>(from: /storage/flowTokenVault)!\n.withdraw(amount: amount)\n}\nexecute {\ngetAccount(to)\n.getCapability(/public/flowTokenReceiver)!\n.borrow<&{FungibleToken.Receiver}>()!\n.deposit(from: <-self.vault)\n}\n}",
@@ -323,7 +323,7 @@
   },
   {
     "title": "Send Flow Token Transaction (Emulator) - Valid Payload - Valid Amount 184467440737.9551615",
-    "valid": false,
+    "valid": true,
     "chainID": "Emulator",
     "payloadMessage": {
       "script": "import FungibleToken from 0xee82856bf20e2aa6\ntransaction(amount: UFix64, to: Address) {\nlet vault: @FungibleToken.Vault\nprepare(signer: AuthAccount) {\nself.vault <- signer\n.borrow<&{FungibleToken.Provider}>(from: /storage/flowTokenVault)!\n.withdraw(amount: amount)\n}\nexecute {\ngetAccount(to)\n.getCapability(/public/flowTokenReceiver)!\n.borrow<&{FungibleToken.Receiver}>()!\n.deposit(from: <-self.vault)\n}\n}",
@@ -379,7 +379,7 @@
   },
   {
     "title": "Send Flow Token Transaction (Testnet) - Valid Payload - Valid Amount 0.0",
-    "valid": false,
+    "valid": true,
     "chainID": "Testnet",
     "payloadMessage": {
       "script": "import FungibleToken from 0x9a0766d93b6608b7\ntransaction(amount: UFix64, to: Address) {\nlet vault: @FungibleToken.Vault\nprepare(signer: AuthAccount) {\nself.vault <- signer\n.borrow<&{FungibleToken.Provider}>(from: /storage/flowTokenVault)!\n.withdraw(amount: amount)\n}\nexecute {\ngetAccount(to)\n.getCapability(/public/flowTokenReceiver)!\n.borrow<&{FungibleToken.Receiver}>()!\n.deposit(from: <-self.vault)\n}\n}",
@@ -435,7 +435,7 @@
   },
   {
     "title": "Send Flow Token Transaction (Testnet) - Valid Payload - Valid Amount 184467440737.9551615",
-    "valid": false,
+    "valid": true,
     "chainID": "Testnet",
     "payloadMessage": {
       "script": "import FungibleToken from 0x9a0766d93b6608b7\ntransaction(amount: UFix64, to: Address) {\nlet vault: @FungibleToken.Vault\nprepare(signer: AuthAccount) {\nself.vault <- signer\n.borrow<&{FungibleToken.Provider}>(from: /storage/flowTokenVault)!\n.withdraw(amount: amount)\n}\nexecute {\ngetAccount(to)\n.getCapability(/public/flowTokenReceiver)!\n.borrow<&{FungibleToken.Receiver}>()!\n.deposit(from: <-self.vault)\n}\n}",
@@ -491,7 +491,7 @@
   },
   {
     "title": "Send Flow Token Transaction (Mainnet) - Valid Payload - Valid Amount 0.0",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "import FungibleToken from 0xf233dcee88fe0abe\ntransaction(amount: UFix64, to: Address) {\nlet vault: @FungibleToken.Vault\nprepare(signer: AuthAccount) {\nself.vault <- signer\n.borrow<&{FungibleToken.Provider}>(from: /storage/flowTokenVault)!\n.withdraw(amount: amount)\n}\nexecute {\ngetAccount(to)\n.getCapability(/public/flowTokenReceiver)!\n.borrow<&{FungibleToken.Receiver}>()!\n.deposit(from: <-self.vault)\n}\n}",
@@ -547,7 +547,7 @@
   },
   {
     "title": "Send Flow Token Transaction (Mainnet) - Valid Payload - Valid Amount 184467440737.9551615",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "import FungibleToken from 0xf233dcee88fe0abe\ntransaction(amount: UFix64, to: Address) {\nlet vault: @FungibleToken.Vault\nprepare(signer: AuthAccount) {\nself.vault <- signer\n.borrow<&{FungibleToken.Provider}>(from: /storage/flowTokenVault)!\n.withdraw(amount: amount)\n}\nexecute {\ngetAccount(to)\n.getCapability(/public/flowTokenReceiver)!\n.borrow<&{FungibleToken.Receiver}>()!\n.deposit(from: <-self.vault)\n}\n}",
@@ -603,7 +603,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #0",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -661,7 +661,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #1",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -719,7 +719,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #2",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -777,7 +777,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #3",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -835,7 +835,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #4",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -893,7 +893,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #5",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -951,7 +951,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #6",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -1009,7 +1009,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #7",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -1067,7 +1067,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #8",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -1125,7 +1125,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #9",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -1183,7 +1183,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #10",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -1241,7 +1241,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #11",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -1299,7 +1299,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #12",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -1357,7 +1357,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #13",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -1415,7 +1415,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #14",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -1473,7 +1473,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #15",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -1531,7 +1531,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #16",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -1589,7 +1589,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #17",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -1647,7 +1647,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #18",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -1705,7 +1705,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #19",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -1763,7 +1763,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #20",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -1821,7 +1821,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #21",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -1879,7 +1879,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #22",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -1937,7 +1937,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #23",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -1995,7 +1995,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #24",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -2053,7 +2053,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #25",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -2111,7 +2111,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #26",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -2169,7 +2169,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #27",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -2227,7 +2227,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #28",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -2285,7 +2285,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #29",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -2343,7 +2343,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #30",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -2401,7 +2401,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #31",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -2459,7 +2459,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #32",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -2517,7 +2517,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #33",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -2575,7 +2575,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #34",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -2633,7 +2633,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #35",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -2691,7 +2691,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #36",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -2749,7 +2749,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #37",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -2807,7 +2807,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #38",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -2865,7 +2865,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #39",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -2923,7 +2923,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #40",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -2981,7 +2981,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #41",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -3039,7 +3039,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #42",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -3097,7 +3097,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #43",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -3155,7 +3155,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #44",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -3213,7 +3213,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #45",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -3271,7 +3271,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #46",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -3329,7 +3329,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Single Account Key #47",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -3387,7 +3387,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Multiple Account Keys #1",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -3445,7 +3445,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Multiple Account Keys #2",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -3511,7 +3511,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Multiple Account Keys #3",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -3585,7 +3585,7 @@
   },
   {
     "title": "Create Account Transaction - Valid Payload - Multiple Account Keys #4",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKeys: [String]) {\nprepare(signer: AuthAccount) {\nlet acct = AuthAccount(payer: signer)\nfor key in publicKeys {\nacct.addPublicKey(key.decodeHex())\n}\n}\n}",
@@ -3667,7 +3667,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 0",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -3722,7 +3722,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 1",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -3777,7 +3777,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 2",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -3832,7 +3832,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 3",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -3887,7 +3887,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 4",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -3942,7 +3942,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 5",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -3997,7 +3997,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 6",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -4052,7 +4052,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 7",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -4107,7 +4107,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 8",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -4162,7 +4162,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 9",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -4217,7 +4217,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 10",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -4272,7 +4272,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 11",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -4327,7 +4327,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 12",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -4382,7 +4382,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 13",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -4437,7 +4437,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 14",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -4492,7 +4492,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 15",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -4547,7 +4547,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 16",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -4602,7 +4602,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 17",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -4657,7 +4657,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 18",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -4712,7 +4712,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 19",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -4767,7 +4767,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 20",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -4822,7 +4822,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 21",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -4877,7 +4877,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 22",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -4932,7 +4932,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 23",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -4987,7 +4987,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 24",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -5042,7 +5042,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 25",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -5097,7 +5097,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 26",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -5152,7 +5152,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 27",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -5207,7 +5207,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 28",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -5262,7 +5262,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 29",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -5317,7 +5317,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 30",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -5372,7 +5372,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 31",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -5427,7 +5427,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 32",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -5482,7 +5482,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 33",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -5537,7 +5537,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 34",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -5592,7 +5592,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 35",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -5647,7 +5647,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 36",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -5702,7 +5702,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 37",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -5757,7 +5757,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 38",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -5812,7 +5812,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 39",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -5867,7 +5867,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 40",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -5922,7 +5922,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 41",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -5977,7 +5977,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 42",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -6032,7 +6032,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 43",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -6087,7 +6087,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 44",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -6142,7 +6142,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 45",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -6197,7 +6197,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 46",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
@@ -6252,7 +6252,7 @@
   },
   {
     "title": "Add New Key Transaction - Valid Envelope - Valid Account Key 47",
-    "valid": false,
+    "valid": true,
     "chainID": "Mainnet",
     "payloadMessage": {
       "script": "transaction(publicKey: String) {\nprepare(signer: AuthAccount) {\nsigner.addPublicKey(publicKey.decodeHex())\n}\n}",
