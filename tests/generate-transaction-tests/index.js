@@ -306,12 +306,12 @@ const manifestMainnetEnvelopeCases = mainnetTemplates.map((template) => {
 const manifestPayloadCases = [
   ...manifestTestnetPayloadCases,
   ...manifestMainnetPayloadCases,
-];
+].map(createPayloadTestcase(true));
 
 const manifestEnvelopeCases = [
   ...manifestTestnetEnvelopeCases,
   ...manifestMainnetEnvelopeCases,
-];
+].map(createEnvelopeTestcase(true));
 
 const invalidPayloadCases = [
   [
