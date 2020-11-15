@@ -223,6 +223,30 @@ const baseEnvelopeTx = (network) => {
   };
 };
 
+const createPayloadTestcase = (valid) => {
+  return (x) => ({
+    title: x[0],	
+    valid: valid,	
+    chainID: x[2],	
+    payloadMessage: x[1],	
+    envelopeMessage: { ...x[1], payloadSigs: [] },	
+    encodedTransactionPayloadHex: encodeTransactionPayload(x[1]),	
+    encodedTransactionEnvelopeHex: encodeTransactionEnvelope({ ...x[1], payloadSigs: [] }),
+  });
+};
+
+const createEnvelopeTestcase = (valid) => {
+  return (x) => ({	
+    title: x[0],	
+    valid: valid,	
+    chainID: x[2],	
+    payloadMessage: x[1],	
+    envelopeMessage: { ...x[1], payloadSigs: [] },	
+    encodedTransactionPayloadHex: encodeTransactionPayload(x[1]),	
+    encodedTransactionEnvelopeHex: encodeTransactionEnvelope({ ...x[1], payloadSigs: [] }),
+  });
+};
+
 const sampleArguments = (arguments) => {
   return arguments.map(({ type, sampleValue }) => {
     return {
