@@ -239,7 +239,7 @@ const sampleArgumentValue = (type, network) => {
     case "UInt8":
       return "3";
     case "String":
-      return "foo";
+      return "f0874204ab2f2ff1c112421c49be9608ccfc48f5e890f89a8fe50e8f5cb36d9d";
     case "Address":
       return `0x${ADDRESSES[network]}`;
   };

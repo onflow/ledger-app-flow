@@ -26,18 +26,13 @@ bool TestcaseIsValid(const Json::Value &) {
     return true;
 }
 
-template<typename S, typename... Args>
-void addTo(std::vector<std::string> &answer, const S &format_str, Args &&... args) {
-    answer.push_back(fmt::format(format_str, args...));
-}
-
-std::string FormatHexString(const std::string &data, uint8_t idx, uint8_t *pageCount) {
+std::string formatString(const std::string &data, uint8_t idx, uint8_t *pageCount) {
     char outBuffer[40];
     pageString(outBuffer, sizeof(outBuffer), data.c_str(), idx, pageCount);
     return std::string(outBuffer);
 }
 
-std::vector<std::string> FormatPubKey(const Json::Value &v) {
+std::vector<std::string> formatStringParts(const Json::Value &v) {
     std::vector<std::string> answer;
     std::stringstream s;
     s << v.asString();
@@ -53,6 +48,18 @@ std::vector<std::string> FormatPubKey(const Json::Value &v) {
     }
 
     return answer;
+}
+
+template<typename S, typename... Args>
+void addTo(std::vector<std::string> &answer, const S &format_str, Args &&... args) {
+    answer.push_back(fmt::format(format_str, args...));
+}
+
+void addMultiStringArgumentTo(std::vector<std::string> &answer, const std::string &name, uint16_t item, const Json::Value &v) {
+    auto chunks = formatStringParts(v);
+    for (uint16_t j = 0; j < (uint16_t) chunks.size(); j++) {
+        addTo(answer, "{} | {} [{}/{}] : {}", item, name, j + 1, chunks.size(), chunks[j]);
+    }
 }
 
 std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
@@ -88,25 +95,14 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             const auto pks = tcd.arguments[0]["value"];
 
             for (uint16_t i = 0; i < (uint16_t) pks.size(); i++) {
-                auto pubkeyChunks = FormatPubKey(pks[i]["value"]);
-                for (uint16_t j = 0; j < (uint16_t) pubkeyChunks.size(); j++) {
-                    addTo(answer, "{} | Pub key {} [{}/{}] : {}", item, i + 1, j + 1, pubkeyChunks.size(),
-                          pubkeyChunks[j]);
-                }
-                item++;
+                addMultiStringArgumentTo(answer, fmt::format("Pub key {}", i + 1), item++, pks[i]["value"]);
             }
             break;
         }
         case script_add_new_key: {
             addTo(answer, "{} | Type : Add New Key", item++);
             addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
-            const auto pk = tcd.arguments[0]["value"];
-
-            auto pubkeyChunks = FormatPubKey(pk);
-            for (uint16_t j = 0; j < (uint16_t) pubkeyChunks.size(); j++) {
-                addTo(answer, "{} | Pub key [{}/{}] : {}", item, j + 1, pubkeyChunks.size(), pubkeyChunks[j]);
-            }
-            item++;
+            addMultiStringArgumentTo(answer, "Pub key", item++, tcd.arguments[0]["value"]);
             break;
         }
         case script_th01_withdraw_unlocked_tokens: {
@@ -124,11 +120,11 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
         case script_th06_register_node: {
             addTo(answer, "{} | Type : Register Staked Node", item++);
             addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
-            addTo(answer, "{} | Node ID : {}", item++, tcd.arguments[0]["value"].asString());
+            addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[0]["value"]);
             addTo(answer, "{} | Node Role : {}", item++, tcd.arguments[1]["value"].asString());
-            addTo(answer, "{} | Networking Address : {}", item++, tcd.arguments[2]["value"].asString());
-            addTo(answer, "{} | Networking Key : {}", item++, tcd.arguments[3]["value"].asString());
-            addTo(answer, "{} | Staking Key : {}", item++, tcd.arguments[4]["value"].asString());
+            addMultiStringArgumentTo(answer, "Networking Address", item++, tcd.arguments[2]["value"]);
+            addMultiStringArgumentTo(answer, "Networking Key", item++, tcd.arguments[3]["value"]);
+            addMultiStringArgumentTo(answer, "Staking Key", item++, tcd.arguments[4]["value"]);
             addTo(answer, "{} | Amount : {}", item++, tcd.arguments[5]["value"].asString());
             break;
         }
@@ -177,14 +173,14 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             addTo(answer, "{} | Type : Register Operator Node", item++);
             addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
             addTo(answer, "{} | Operator Address : {}", item++, tcd.arguments[0]["value"].asString());
-            addTo(answer, "{} | Node ID : {}", item++, tcd.arguments[1]["value"].asString());
+            addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[1]["value"]);
             addTo(answer, "{} | Amount : {}", item++, tcd.arguments[2]["value"].asString());
             break;
         }
         case script_th17_register_delegator: {
             addTo(answer, "{} | Type : Register Delegator", item++);
             addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
-            addTo(answer, "{} | Node ID : {}", item++, tcd.arguments[0]["value"].asString());
+            addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[0]["value"]);
             addTo(answer, "{} | Amount : {}", item++, tcd.arguments[1]["value"].asString());
             break;
         }
@@ -229,13 +225,13 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             break;
     }
 
-    addTo(answer, "{} | Ref Block [1/2] : {}", item, FormatHexString(tcd.refBlock, 0, &dummy));
-    addTo(answer, "{} | Ref Block [2/2] : {}", item++, FormatHexString(tcd.refBlock, 1, &dummy));
+    addTo(answer, "{} | Ref Block [1/2] : {}", item, formatString(tcd.refBlock, 0, &dummy));
+    addTo(answer, "{} | Ref Block [2/2] : {}", item++, formatString(tcd.refBlock, 1, &dummy));
     addTo(answer, "{} | Gas Limit : {}", item++, tcd.gasLimit);
-    addTo(answer, "{} | Prop Key Addr : {}", item++, FormatHexString(tcd.proposalKeyAddress, 0, &dummy));
+    addTo(answer, "{} | Prop Key Addr : {}", item++, formatString(tcd.proposalKeyAddress, 0, &dummy));
     addTo(answer, "{} | Prop Key Id : {}", item++, tcd.proposalKeyId);
     addTo(answer, "{} | Prop Key Seq Num : {}", item++, tcd.proposalKeySequenceNumber);
-    addTo(answer, "{} | Payer : {}", item++, FormatHexString(tcd.payer, 0, &dummy));
+    addTo(answer, "{} | Payer : {}", item++, formatString(tcd.payer, 0, &dummy));
 
     for (uint16_t i = 0; i < (uint16_t) tcd.authorizers.size(); i++) {
         addTo(answer, "{} | Authorizer {} : {}", item++, i + 1, tcd.authorizers[i]);
