@@ -195,3 +195,108 @@ The Makefile will build the firmware in a docker container and leave the binary 
 ## APDU Specifications
 
 - [APDU Protocol](docs/APDUSPEC.md)
+
+## Account Key Derivation Paths
+
+The Flow Ledger app uses a modified version of the BIP 44 key derivation path standard.
+
+```
+m/44'/539'/scheme'/accountIndex'/keyIndex'
+```
+
+### Coin Type
+
+Coin type is `539`, the constant for Flow defined in [SLIP 44](https://github.com/satoshilabs/slips/blob/master/slip-0044.md).
+
+### Scheme
+
+Scheme describes the [signature and hash algorithms](https://docs.onflow.org/concepts/accounts-and-keys/) used for this account key.
+
+The scheme is a concatenation of the signature and hash algorithm identifiers:
+
+```
+ECDSA_SECP256K1 = 0x0200
+ECDSA_P256 = 0x0300
+
+SHA2_256 = 0x01
+SHA3_256 = 0x03
+
+ECDSA_P256_SHA3_256 = 0x0300 | 0x03 = 0x303
+```
+
+### Account Index
+
+Account index is the index of the user account for the key
+relative to other accounts on the same device or seed.
+
+The first account on a device is created with `accountIndex = 0`. 
+The account index is incremented for each new account created.
+
+### Key Index
+
+Key index is the index of the key relative to other keys of the 
+same scheme on the account.
+
+The first account key for each scheme is created with `keyIndex = 0`. 
+The key index is incremented for each new account key created
+with the same scheme..
+
+### Account Synchronization Procedure
+
+Accounts must be synchronized (or discovered) from the chain whenever the device state is cleared.
+This procedure should be used during device initialization and after each Flow app upgrade.
+
+The algorithm below will discover all Flow accounts that have been created
+with the path format described above.
+
+Each `(address, publickey)` pair found is stored in a slot on the Ledger device.
+
+```python
+SIG_ALGOS = [
+  0x0200, # ECDSA_SECP256K1
+  0x0300, # ECDSA_P256
+]
+
+HASH_ALGOS = [
+  0x01, # SHA2_256
+  0x03, # SHA3_256
+]
+
+KEY_GAP_LIMIT = 3
+
+account_index = 0
+slot_index = 0
+
+while True:
+  for key_index in range(0, KEY_GAP_LIMIT):
+    for sig_algo in SIG_ALGOS:
+      for hash_algo in HASH_ALGOS:
+
+        scheme = sig_algo | hash_algo
+
+        path = "m/44'/539'/{:d}'/{:d}'/{:d}'".format(scheme, account_index, key_index)
+
+        public_key = getPublicKeyFromDevice(path)
+
+        address = findAddressForPublicKey(public_key)
+
+        if address:
+          setDeviceSlot(slot_index, address, path)
+          slot_index += 1
+
+  if !address:
+    break
+
+  account_index += 1
+```
+
+### Account Creation Procedure
+
+Before creating a new account, 
+ensure that the device has been synchronized using the algorithm above.
+
+- Increment the last known `accountIndex` and construct a new path using the desired scheme.
+- Since this the first key on an account, `keyIndex` should be `0`.
+- Generate a public key from the desired path.
+- Use the public key to create a new account and return the address.
+- Save the address and path to the next available slot on the device.
