@@ -48,7 +48,7 @@ endif
 
 APPVERSION_M=0
 APPVERSION_N=9
-APPVERSION_P=6
+APPVERSION_P=7
 
 $(info COIN  = [$(COIN)])
 ifeq ($(COIN),FLOW)
