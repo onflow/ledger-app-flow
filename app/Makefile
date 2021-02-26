@@ -57,7 +57,7 @@ DEFINES += APP_CONSUMER
 APPNAME = "Flow"
 APPPATH = "44'/539'"
 ifeq ($(TARGET_NAME),TARGET_NANOS)
-SCRIPT_LD:=$(CURDIR)/script.ld
+APP_STACK_SIZE:=2480
 endif
 
 else ifeq ($(COIN),FLOW_2)
