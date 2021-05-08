@@ -402,8 +402,12 @@ describe('Basic checks', function () {
             expect(resp.errorMessage).toEqual("No errors");
 
             // Prepare digest
+            let tag = Buffer.alloc(32);
+            tag.write("FLOW-V0.0-transaction");
+
             const hasher = new jsSHA("SHA-256", "UINT8ARRAY");
-            hasher.update(txBlob)
+            hasher.update(tag);
+            hasher.update(txBlob);
             const digest = hasher.getHash("HEX");
 
             // Verify signature
@@ -453,7 +457,11 @@ describe('Basic checks', function () {
             expect(resp.errorMessage).toEqual("No errors");
 
             // Prepare digest
+            let tag = Buffer.alloc(32);
+            tag.write("FLOW-V0.0-transaction");
+
             const hasher = new jsSHA("SHA-256", "UINT8ARRAY");
+            hasher.update(tag)
             hasher.update(txBlob)
             const digest = hasher.getHash("HEX");
 
@@ -504,7 +512,11 @@ describe('Basic checks', function () {
             expect(resp.errorMessage).toEqual("No errors");
 
             // Prepare digest
+            let tag = Buffer.alloc(32);
+            tag.write("FLOW-V0.0-transaction");
+
             const hasher = new jsSHA("SHA-256", "UINT8ARRAY");
+            hasher.update(tag)
             hasher.update(txBlob)
             const digest = hasher.getHash("HEX");
 
@@ -555,7 +567,11 @@ describe('Basic checks', function () {
             expect(resp.errorMessage).toEqual("No errors");
 
             // Prepare digest
+            let tag = Buffer.alloc(32);
+            tag.write("FLOW-V0.0-transaction");
+
             const hasher = new jsSHA("SHA3-256", "UINT8ARRAY");
+            hasher.update(tag)
             hasher.update(txBlob)
             const digest = hasher.getHash("HEX");
 
@@ -606,7 +622,11 @@ describe('Basic checks', function () {
             expect(resp.errorMessage).toEqual("No errors");
 
             // Prepare digest
+            let tag = Buffer.alloc(32);
+            tag.write("FLOW-V0.0-transaction");
+
             const hasher = new jsSHA("SHA3-256", "UINT8ARRAY");
+            hasher.update(tag)
             hasher.update(txBlob)
             const digest = hasher.getHash("HEX");
 
@@ -657,7 +677,11 @@ describe('Basic checks', function () {
             expect(resp.errorMessage).toEqual("No errors");
 
             // Prepare digest
+            let tag = Buffer.alloc(32);
+            tag.write("FLOW-V0.0-transaction");
+
             const hasher = new jsSHA("SHA3-256", "UINT8ARRAY");
+            hasher.update(tag)
             hasher.update(txBlob)
             const digest = hasher.getHash("HEX");
 
@@ -769,7 +793,11 @@ describe('Basic checks', function () {
             expect(resp.errorMessage).toEqual("No errors");
 
             // Prepare digest
+            let tag = Buffer.alloc(32);
+            tag.write("FLOW-V0.0-transaction");
+
             const hasher = new jsSHA("SHA-256", "UINT8ARRAY");
+            hasher.update(tag)
             hasher.update(txBlob)
             const digest = hasher.getHash("HEX");
 
@@ -820,7 +848,11 @@ describe('Basic checks', function () {
             expect(resp.errorMessage).toEqual("No errors");
 
             // Prepare digest
+            let tag = Buffer.alloc(32);
+            tag.write("FLOW-V0.0-transaction");
+
             const hasher = new jsSHA("SHA-256", "UINT8ARRAY");
+            hasher.update(tag)
             hasher.update(txBlob)
             const digest = hasher.getHash("HEX");
 
@@ -871,7 +903,11 @@ describe('Basic checks', function () {
             expect(resp.errorMessage).toEqual("No errors");
 
             // Prepare digest
+            let tag = Buffer.alloc(32);
+            tag.write("FLOW-V0.0-transaction");
+
             const hasher = new jsSHA("SHA-256", "UINT8ARRAY");
+            hasher.update(tag)
             hasher.update(txBlob)
             const digest = hasher.getHash("HEX");
 
@@ -922,7 +958,11 @@ describe('Basic checks', function () {
             expect(resp.errorMessage).toEqual("No errors");
 
             // Prepare digest
+            let tag = Buffer.alloc(32);
+            tag.write("FLOW-V0.0-transaction");
+
             const hasher = new jsSHA("SHA3-256", "UINT8ARRAY");
+            hasher.update(tag)
             hasher.update(txBlob)
             const digest = hasher.getHash("HEX");
 
@@ -973,7 +1013,11 @@ describe('Basic checks', function () {
             expect(resp.errorMessage).toEqual("No errors");
 
             // Prepare digest
+            let tag = Buffer.alloc(32);
+            tag.write("FLOW-V0.0-transaction");
+
             const hasher = new jsSHA("SHA3-256", "UINT8ARRAY");
+            hasher.update(tag)
             hasher.update(txBlob)
             const digest = hasher.getHash("HEX");
 
@@ -1024,7 +1068,11 @@ describe('Basic checks', function () {
             expect(resp.errorMessage).toEqual("No errors");
 
             // Prepare digest
+            let tag = Buffer.alloc(32);
+            tag.write("FLOW-V0.0-transaction");
+
             const hasher = new jsSHA("SHA3-256", "UINT8ARRAY");
+            hasher.update(tag)
             hasher.update(txBlob)
             const digest = hasher.getHash("HEX");
 

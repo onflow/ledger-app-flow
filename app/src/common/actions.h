@@ -25,8 +25,8 @@
 extern uint16_t action_addr_len;
 
 __Z_INLINE void app_sign() {
-    const uint8_t *message = tx_get_buffer();
-    const uint16_t messageLength = tx_get_buffer_length();
+    const uint8_t *message = get_signable();
+    const uint16_t messageLength = get_signable_length();
 
     uint16_t replyLen = 0;
     zxerr_t err = crypto_sign(G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 3, message, messageLength, &replyLen);
