@@ -39,7 +39,7 @@ void buffering_init(uint8_t *ram_buffer,
     flash.in_use = 0;
 }
 
-void buffering_reset() {
+void buffering_reset() { 
     ram.pos = 0;
     ram.in_use = 1;
     flash.pos = 0;
