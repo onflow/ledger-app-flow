@@ -112,8 +112,10 @@ async function transactionTest(txHexBlob, txExpectedPageCount, sigAlgo, hashAlgo
         tag.write("FLOW-V0.0-transaction");
 
         const hasher = new jsSHA(hashAlgo.name, "UINT8ARRAY");
+
         hasher.update(tag);
-        hasher.update(txBlob)
+        hasher.update(txBlob);
+
         const digest = hasher.getHash("HEX");
 
         // Verify transaction signature against the digest
