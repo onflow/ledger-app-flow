@@ -108,7 +108,11 @@ async function transactionTest(txHexBlob, txExpectedPageCount, sigAlgo, hashAlgo
         expect(resp.errorMessage).toEqual("No errors");
 
         // Prepare digest by hashing transaction
+        let tag = Buffer.alloc(32);
+        tag.write("FLOW-V0.0-transaction");
+
         const hasher = new jsSHA(hashAlgo.name, "UINT8ARRAY");
+        hasher.update(tag);
         hasher.update(txBlob)
         const digest = hasher.getHash("HEX");
 
