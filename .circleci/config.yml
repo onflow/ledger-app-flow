@@ -6,6 +6,7 @@ jobs:
     steps:
       - checkout
       - run: git submodule update --init --recursive
+      - run: apt-get update && apt-get -y install python3.6 && apt -y install python3-pip && pip3 install conan
       - run: cmake -DCMAKE_BUILD_TYPE=Debug . && make
       # Unfortunately need to disable leak sanitizer https://github.com/google/sanitizers/issues/916
       # Still run all other ASAN components

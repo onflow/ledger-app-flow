@@ -44,6 +44,17 @@ storage_t NV_CONST N_appdata_impl __attribute__ ((aligned(64)));
 
 parser_context_t ctx_parsed_tx;
 
+// UTF-8 encoding of "FLOW-V0.0-transaction" padded with zeros to 32 bytes
+#define DOMAIN_TAG_LENGTH 32
+const uint8_t TX_DOMAIN_TAG[DOMAIN_TAG_LENGTH] = {\
+    0x46, 0x4C, 0x4F, 0x57, 0x2D, 0x56, 0x30, 0x2E, 
+    0x30, 0x2D, 0x74, 0x72, 0x61, 0x6E, 0x73, 0x61, 
+    0x63, 0x74, 0x69, 0x6F, 0x6E,    0,    0,    0,
+       0,    0,    0,    0,    0,    0,    0,    0,
+};
+
+#define TX_BUFFER_OFFSET DOMAIN_TAG_LENGTH
+
 void tx_initialize() {
     buffering_init(
             ram_buffer,
@@ -55,6 +66,7 @@ void tx_initialize() {
 
 void tx_reset() {
     buffering_reset();
+    buffering_append(TX_DOMAIN_TAG, DOMAIN_TAG_LENGTH);
 }
 
 uint32_t tx_append(unsigned char *buffer, uint32_t length) {
@@ -62,10 +74,21 @@ uint32_t tx_append(unsigned char *buffer, uint32_t length) {
 }
 
 uint32_t tx_get_buffer_length() {
+    if (buffering_get_buffer()->pos >= TX_BUFFER_OFFSET) {
+        return buffering_get_buffer()->pos - TX_BUFFER_OFFSET;
+    }
+    return 0;
+}
+
+uint32_t get_signable_length() {
     return buffering_get_buffer()->pos;
 }
 
 uint8_t *tx_get_buffer() {
+    return buffering_get_buffer()->data + TX_BUFFER_OFFSET;
+}
+
+uint8_t *get_signable() {
     return buffering_get_buffer()->data;
 }
 
