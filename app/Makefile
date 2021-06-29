@@ -48,7 +48,7 @@ endif
 
 APPVERSION_M=0
 APPVERSION_N=9
-APPVERSION_P=6
+APPVERSION_P=7
 
 $(info COIN  = [$(COIN)])
 ifeq ($(COIN),FLOW)
@@ -57,7 +57,7 @@ DEFINES += APP_CONSUMER
 APPNAME = "Flow"
 APPPATH = "44'/539'"
 ifeq ($(TARGET_NAME),TARGET_NANOS)
-SCRIPT_LD:=$(CURDIR)/script.ld
+APP_STACK_SIZE:=2480
 endif
 
 else ifeq ($(COIN),FLOW_2)
@@ -170,6 +170,8 @@ LDLIBS   += -lm -lgcc -lc
 #LDLIBS   += -Lrust/target/thumbv6m-none-eabi/release -lrslib
 
 ##########################
+GLYPH_SRC_DIR = glyphs
+INCLUDES_PATH += $(MY_DIR)/glyphs
 include $(BOLOS_SDK)/Makefile.glyphs
 
 APP_SOURCE_PATH += $(MY_DIR)/src
