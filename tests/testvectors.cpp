@@ -27,6 +27,8 @@
 
 using ::testing::TestWithParam;
 
+uint32_t hdPath[HDPATH_LEN_DEFAULT];
+
 void check_testcase(const testcase_t &testcase) {
     auto tc = ReadTestCaseData(testcase.testcases, testcase.index);
 

@@ -18,7 +18,7 @@
 #include "coin.h"
 #include "zxmacros.h"
 
-uint32_t hdPath[HDPATH_LEN_DEFAULT];
+extern uint32_t hdPath[HDPATH_LEN_DEFAULT];
 
 bool isTestnet() {
     return hdPath[0] == HDPATH_0_TESTNET &&
