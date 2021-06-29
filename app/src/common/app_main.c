@@ -28,6 +28,8 @@
 #include "coin.h"
 #include "zxmacros.h"
 
+uint32_t hdPath[HDPATH_LEN_DEFAULT];
+
 unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 
 unsigned char io_event(unsigned char channel) {
@@ -143,6 +145,7 @@ bool process_chunk(volatile uint32_t *tx, uint32_t rx) {
     THROW(APDU_CODE_INVALIDP1P2);
 }
 
+// TO DELETE?
 void handle_generic_apdu(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     if (rx > 4 && os_memcmp(G_io_apdu_buffer, "\xE0\x01\x00\x00", 4) == 0) {
         // Respond to get device info command
@@ -171,18 +174,7 @@ void handle_generic_apdu(volatile uint32_t *flags, volatile uint32_t *tx, uint32
 void app_init() {
     io_seproxyhal_init();
 
-#ifdef TARGET_NANOX
-    // grab the current plane mode setting
-    G_io_app.plane_mode = os_setting_get(OS_SETTING_PLANEMODE, NULL, 0);
-#endif // TARGET_NANOX
-
     USB_power(0);
     USB_power(1);
     view_idle_show(0);
-
-#ifdef HAVE_BLE
-    // Enable Bluetooth
-    BLE_power(0, NULL);
-    BLE_power(1, "Nano X");
-#endif // HAVE_BLE
 }

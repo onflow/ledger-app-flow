@@ -27,7 +27,6 @@
 #include "zxmacros.h"
 #include "view_templates.h"
 #include "tx.h"
-#include "addr.h"
 #include "app_mode.h"
 #include "zxerror.h"
 
@@ -178,17 +177,6 @@ void view_idle_show(uint8_t item_idx) {
     view_idle_show_impl(item_idx);
 }
 
-void view_review_init(viewfunc_getItem_t viewfuncGetItem,
-                      viewfunc_getNumItems_t viewfuncGetNumItems,
-                      viewfunc_accept_t viewfuncAccept) {
-    viewdata.viewfuncGetItem = viewfuncGetItem;
-    viewdata.viewfuncGetNumItems = viewfuncGetNumItems;
-    viewdata.viewfuncAccept = viewfuncAccept;
-}
-
-void view_review_show() {
-    view_review_show_impl();
-}
 
 void view_error_show() {
     snprintf(viewdata.key, MAX_CHARS_PER_KEY_LINE, "ERROR");

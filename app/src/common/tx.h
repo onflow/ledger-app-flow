@@ -35,17 +35,9 @@ uint32_t tx_append(unsigned char *buffer, uint32_t length);
 /// \return
 uint32_t tx_get_buffer_length();
 
-/// Returns size of the signable buffer including the domain tag and the transaction
-/// \return
-uint32_t get_signable_length();
-
 /// Returns the raw json transaction buffer
 /// \return
 uint8_t *tx_get_buffer();
-
-/// Returns the signable buffer including the domain tag and the transaction
-/// \return
-uint8_t *get_signable();
 
 
 /// Parse message stored in transaction buffer

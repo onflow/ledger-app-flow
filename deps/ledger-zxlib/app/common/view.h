@@ -46,8 +46,3 @@ void view_idle_show(uint8_t item_idx);
 /// view_error (error view)
 void view_error_show();
 
-void view_review_init(viewfunc_getItem_t viewfuncGetItem,
-                      viewfunc_getNumItems_t viewfuncGetNumItems,
-                      viewfunc_accept_t viewfuncAccept);
-
-void view_review_show();

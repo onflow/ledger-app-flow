@@ -38,7 +38,7 @@ typedef enum {
     secp256r1
 } curve_e;
 
-#if defined(TARGET_NANOS) || defined(TARGET_NANOX)
+#if defined(TARGET_NANOS)
 #else
 #define CX_SHA256_SIZE 32
 #endif
@@ -47,11 +47,7 @@ void sha256(const uint8_t *message, uint16_t messageLen, uint8_t message_digest[
 
 extern uint32_t hdPath[HDPATH_LEN_DEFAULT];
 
-bool isTestnet();
-
 zxerr_t crypto_extractPublicKey(const uint32_t path[HDPATH_LEN_DEFAULT], uint8_t *pubKey, uint16_t pubKeyLen);
-
-zxerr_t crypto_fillAddress(uint8_t *buffer, uint16_t bufferLen, uint16_t *addrLen);
 
 zxerr_t crypto_sign(uint8_t *signature,
                      uint16_t signatureMaxlen,

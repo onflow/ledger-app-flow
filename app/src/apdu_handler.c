@@ -24,7 +24,6 @@
 #include "view.h"
 #include "actions.h"
 #include "tx.h"
-#include "addr.h"
 #include "crypto.h"
 #include "coin.h"
 #include "account.h"
@@ -32,20 +31,6 @@
 
 __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     extractHDPath(rx, OFFSET_DATA);
-
-    uint8_t requireConfirmation = G_io_apdu_buffer[OFFSET_P1];
-
-    if (requireConfirmation) {
-        app_fill_address();
-
-        view_review_init(addr_getItem, addr_getNumItems, app_reply_address);
-        view_review_show();
-
-        *flags |= IO_ASYNCH_REPLY;
-        return;
-    }
-
-    *tx = app_fill_address();
     THROW(APDU_CODE_OK);
 }
 
@@ -64,8 +49,6 @@ __Z_INLINE void handleSign(volatile uint32_t *flags, volatile uint32_t *tx, uint
     }
 
     CHECK_APP_CANARY()
-    view_review_init(tx_getItem, tx_getNumItems, app_sign);
-    view_review_show();
     *flags |= IO_ASYNCH_REPLY;
 }
 
@@ -119,8 +102,6 @@ __Z_INLINE void handleSetSlot(volatile uint32_t *flags, volatile uint32_t *tx, u
         THROW(APDU_CODE_DATA_INVALID);
     }
 
-    view_review_init(slot_getItem, slot_getNumItems, app_slot_setSlot);
-    view_review_show();
     *flags |= IO_ASYNCH_REPLY;
 }
 
