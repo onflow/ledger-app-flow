@@ -39,7 +39,7 @@ extern "C" {
 #define SECP256R1_PK_LEN            65u
 
 typedef enum {
-    addr_secp256k1 = 0,
+    ADDR_SECP256K1 = 0,
 } address_kind_e;
 
 #define VIEW_ADDRESS_OFFSET_SECP256K1       (SECP256K1_PK_LEN )

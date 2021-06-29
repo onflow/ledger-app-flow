@@ -83,7 +83,7 @@ TEST(JSON, basicSingleKeyValue) {
     auto err = json_parse(&parsedJson, sendToken, strlen(sendToken));
 
     // We could parse valid JSON
-    EXPECT_THAT(err, parser_ok);
+    EXPECT_THAT(err, PARSER_OK);
     EXPECT_TRUE(parsedJson.isValid);
     EXPECT_EQ(5, parsedJson.numberOfTokens);
 
@@ -95,25 +95,25 @@ TEST(JSON, basicSingleKeyValue) {
 
     char tmpBuffer[100];
 
-    ASSERT_THAT(json_extractToken(tmpBuffer, sizeof(tmpBuffer), &parsedJson, 1), parser_ok);
+    ASSERT_THAT(json_extractToken(tmpBuffer, sizeof(tmpBuffer), &parsedJson, 1), PARSER_OK);
     EXPECT_STREQ(tmpBuffer, "type");
-    ASSERT_THAT(json_matchToken(&parsedJson, 1, (char *) "type"), parser_ok);
+    ASSERT_THAT(json_matchToken(&parsedJson, 1, (char *) "type"), PARSER_OK);
 
-    ASSERT_THAT(json_extractToken(tmpBuffer, sizeof(tmpBuffer), &parsedJson, 2), parser_ok);
+    ASSERT_THAT(json_extractToken(tmpBuffer, sizeof(tmpBuffer), &parsedJson, 2), PARSER_OK);
     EXPECT_STREQ(tmpBuffer, "UFix64");
-    ASSERT_THAT(json_matchToken(&parsedJson, 2, (char *) "UFix64"), parser_ok);
+    ASSERT_THAT(json_matchToken(&parsedJson, 2, (char *) "UFix64"), PARSER_OK);
 
-    ASSERT_THAT(json_extractToken(tmpBuffer, sizeof(tmpBuffer), &parsedJson, 3), parser_ok);
+    ASSERT_THAT(json_extractToken(tmpBuffer, sizeof(tmpBuffer), &parsedJson, 3), PARSER_OK);
     EXPECT_STREQ(tmpBuffer, "value");
-    ASSERT_THAT(json_matchToken(&parsedJson, 3, (char *) "value"), parser_ok);
+    ASSERT_THAT(json_matchToken(&parsedJson, 3, (char *) "value"), PARSER_OK);
 
-    ASSERT_THAT(json_extractToken(tmpBuffer, sizeof(tmpBuffer), &parsedJson, 4), parser_ok);
+    ASSERT_THAT(json_extractToken(tmpBuffer, sizeof(tmpBuffer), &parsedJson, 4), PARSER_OK);
     EXPECT_STREQ(tmpBuffer, "545.77");
-    ASSERT_THAT(json_matchToken(&parsedJson, 4, (char *) "545.77"), parser_ok);
+    ASSERT_THAT(json_matchToken(&parsedJson, 4, (char *) "545.77"), PARSER_OK);
 
     uint16_t internalTokenElementIdx;
     ASSERT_THAT(
             json_matchKeyValue(&parsedJson, 0, (char *) "UFix64", JSMN_STRING, &internalTokenElementIdx),
-            parser_ok);
+            PARSER_OK);
     ASSERT_THAT(internalTokenElementIdx, 4);
 }
