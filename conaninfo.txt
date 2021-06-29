@@ -1,0 +1,42 @@
+[settings]
+    arch=x86_64
+    build_type=Debug
+    compiler=apple-clang
+    compiler.libcxx=libc++
+    compiler.version=11.0
+    os=Macos
+
+[requires]
+    fmt/7.Y.Z
+    jsoncpp/1.Y.Z
+
+[options]
+
+
+[full_settings]
+    arch=x86_64
+    arch_build=x86_64
+    build_type=Debug
+    compiler=apple-clang
+    compiler.libcxx=libc++
+    compiler.version=11.0
+    os=Macos
+    os_build=Macos
+
+[full_requires]
+    fmt/7.0.2:5fed66895e5b85fca4af6ac05bb157e1ffecb806
+    jsoncpp/1.9.3:5fed66895e5b85fca4af6ac05bb157e1ffecb806
+
+[full_options]
+    fmt:fPIC=True
+    fmt:header_only=False
+    fmt:shared=False
+    fmt:with_fmt_alias=False
+    jsoncpp:fPIC=True
+    jsoncpp:shared=False
+
+[recipe_hash]
+
+
+[env]
+
