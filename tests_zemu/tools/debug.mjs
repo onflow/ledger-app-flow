@@ -8,7 +8,7 @@ const seed = "equip will roof matter pink blind book anxiety banner elbow sun yo
 const SIM_OPTIONS = {
     logging: true,
     start_delay: 4000,
-    X11: true,
+    X11: false,
     custom: `-s "${seed}" --color LAGOON_BLUE`
 };
 
