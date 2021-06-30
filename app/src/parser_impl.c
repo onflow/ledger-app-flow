@@ -200,7 +200,7 @@ parser_error_t json_matchKeyValue(parsed_json_t *parsedJson,
     CHECK_PARSER_ERR(json_validateToken(parsedJson, tokenIdx))
 
     if (tokenIdx + 4 >= parsedJson->numberOfTokens) {
-        // we need this token a 4 more
+        // we need this token and 4 more
         return PARSER_JSON_INVALID_TOKEN_IDX;
     }
 
@@ -231,7 +231,7 @@ parser_error_t json_matchOptionalKeyValue(parsed_json_t *parsedJson,
     CHECK_PARSER_ERR(json_validateToken(parsedJson, tokenIdx))
 
     if (tokenIdx + 4 >= parsedJson->numberOfTokens) {
-        // we need this token a 4 more
+        // we need this token and 4 more
         return PARSER_JSON_INVALID_TOKEN_IDX;
     }
 

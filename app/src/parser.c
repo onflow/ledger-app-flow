@@ -193,6 +193,37 @@ parser_error_t parser_printArgument(const flow_argument_list_t *v,
     return PARSER_OK;
 }
 
+
+parser_error_t parser_printArgumentOptionalDelegatorID(const flow_argument_list_t *v,
+                                               uint8_t argIndex, char *expectedType, jsmntype_t jsonType,
+                                               char *outVal, uint16_t outValLen,
+                                               uint8_t pageIdx, uint8_t *pageCount) {
+    MEMZERO(outVal, outValLen);
+
+    if (argIndex >= v->argCount) {
+        return PARSER_UNEXPECTED_NUMBER_ITEMS;
+    }
+
+    *pageCount = 1;
+
+    parsed_json_t parsedJson = {false};
+    CHECK_PARSER_ERR(json_parse(&parsedJson, (char *) v->argCtx[argIndex].buffer, v->argCtx[argIndex].bufferLen));
+    uint16_t valueTokenIndex;
+    CHECK_PARSER_ERR(json_matchOptionalKeyValue(&parsedJson, 0, expectedType, jsonType, &valueTokenIndex))
+    if (valueTokenIndex == JSON_MATCH_VALUE_IDX_NONE) {
+        if (outValLen < 5) {
+            return PARSER_UNEXPECTED_BUFFER_END;
+        }         
+        strncpy_s(outVal, "None", 5);
+    }
+    else {
+        CHECK_PARSER_ERR(json_extractToken(outVal, outValLen, &parsedJson, valueTokenIndex))
+    }
+
+    return PARSER_OK;
+}
+
+
 parser_error_t parser_printArgumentString(const parser_context_t *argumentCtx,
                                              char *outVal, uint16_t outValLen,
                                              uint8_t pageIdx, uint8_t *pageCount) {

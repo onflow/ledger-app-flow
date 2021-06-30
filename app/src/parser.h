@@ -22,6 +22,7 @@ extern "C" {
 
 #include "parser_impl.h"
 #include "crypto.h"
+#include "jsmn.h"
 
 const char *parser_getErrorDescription(parser_error_t err);
 
@@ -42,6 +43,13 @@ parser_error_t parser_getItem(const parser_context_t *ctx,
                               char *outKey, uint16_t outKeyLen,
                               char *outVal, uint16_t outValLen,
                               uint8_t pageIdx, uint8_t *pageCount);
+
+
+////for testing purposes
+parser_error_t parser_printArgumentOptionalDelegatorID(const flow_argument_list_t *v,
+                                               uint8_t argIndex, char *expectedType, jsmntype_t jsonType,
+                                               char *outVal, uint16_t outValLen,
+                                               uint8_t pageIdx, uint8_t *pageCount);
 
 #ifdef __cplusplus
 }
