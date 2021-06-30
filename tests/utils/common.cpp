@@ -25,7 +25,7 @@ std::vector<std::string> dumpUI(parser_context_t *ctx,
 
     uint8_t numItems;
     parser_error_t err = parser_getNumItems(ctx, &numItems);
-    if (err != parser_ok) {
+    if (err != PARSER_OK) {
         return answer;
     }
 
@@ -50,7 +50,7 @@ std::vector<std::string> dumpUI(parser_context_t *ctx,
             }
             ss << " : ";
 
-            if (err == parser_ok) {
+            if (err == PARSER_OK) {
                 ss << valueBuffer;
             } else {
                 ss << parser_getErrorDescription(err);
