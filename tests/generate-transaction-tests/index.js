@@ -223,35 +223,43 @@ const baseEnvelopeTx = (network) => {
   };
 };
 
-const sampleArguments = (arguments, network) => {
-  return arguments.map(({ type }) => {
+const createPayloadTestcase = (valid) => {
+  return (x) => ({
+    title: x[0],	
+    valid: valid,	
+    chainID: x[2],	
+    payloadMessage: x[1],	
+    envelopeMessage: { ...x[1], payloadSigs: [] },	
+    encodedTransactionPayloadHex: encodeTransactionPayload(x[1]),	
+    encodedTransactionEnvelopeHex: encodeTransactionEnvelope({ ...x[1], payloadSigs: [] }),
+  });
+};
+
+const createEnvelopeTestcase = (valid) => {
+  return (x) => ({	
+    title: x[0],	
+    valid: valid,	
+    chainID: x[2],	
+    payloadMessage: x[1],	
+    envelopeMessage: { ...x[1], payloadSigs: [] },	
+    encodedTransactionPayloadHex: encodeTransactionPayload(x[1]),	
+    encodedTransactionEnvelopeHex: encodeTransactionEnvelope({ ...x[1], payloadSigs: [] }),
+  });
+};
+
+const sampleArguments = (arguments) => {
+  return arguments.map(({ type, sampleValue }) => {
     return {
       type: type,
-      value: sampleArgumentValue(type, network),
+      value: sampleValue,
     };
   });
 };
 
-const sampleArgumentValue = (type, network) => {
-  switch (type) {
-    case "UFix64":
-      return "10.0";
-    case "UInt8":
-      return "3";
-    case "String":
-      return "f0874204ab2f2ff1c112421c49be9608ccfc48f5e890f89a8fe50e8f5cb36d9d";
-    case "Address":
-      return `0x${ADDRESSES[network]}`;
-  };
-
-  return "";
-};
-
-
 const testnetTemplates = JSON.parse(fs.readFileSync('manifest.testnet.json')).templates;
 const mainnetTemplates = JSON.parse(fs.readFileSync('manifest.mainnet.json')).templates;
 
-const validTestnetPayloadCases = testnetTemplates.map((template) => {
+const manifestTestnetPayloadCases = testnetTemplates.map((template) => {
   return [
     `${template.id} - ${template.name}`,
     buildPayloadTx(TESTNET, {
@@ -262,7 +270,7 @@ const validTestnetPayloadCases = testnetTemplates.map((template) => {
   ]
 });
 
-const validMainnetPayloadCases = mainnetTemplates.map((template) => {
+const manifestMainnetPayloadCases = mainnetTemplates.map((template) => {
   return [
     `${template.id} - ${template.name}`,
     buildPayloadTx(MAINNET, {
@@ -273,7 +281,7 @@ const validMainnetPayloadCases = mainnetTemplates.map((template) => {
   ]
 });
 
-const validTestnetEnvelopeCases = testnetTemplates.map((template) => {
+const manifestTestnetEnvelopeCases = testnetTemplates.map((template) => {
   return [
     `${template.id} - ${template.name}`,
     buildEnvelopeTx(TESTNET, {
@@ -284,7 +292,7 @@ const validTestnetEnvelopeCases = testnetTemplates.map((template) => {
   ]
 });
 
-const validMainnetEnvelopeCases = mainnetTemplates.map((template) => {
+const manifestMainnetEnvelopeCases = mainnetTemplates.map((template) => {
   return [
     `${template.id} - ${template.name}`,
     buildEnvelopeTx(MAINNET, {
@@ -294,6 +302,16 @@ const validMainnetEnvelopeCases = mainnetTemplates.map((template) => {
     MAINNET,
   ]
 });
+
+const manifestPayloadCases = [
+  ...manifestTestnetPayloadCases,
+  ...manifestMainnetPayloadCases,
+].map(createPayloadTestcase(true));
+
+const manifestEnvelopeCases = [
+  ...manifestTestnetEnvelopeCases,
+  ...manifestMainnetEnvelopeCases,
+].map(createEnvelopeTestcase(true));
 
 const invalidPayloadCases = [
   [
@@ -336,15 +354,7 @@ const invalidPayloadCases = [
     }),
     MAINNET,
   ],
-].map(x => ({
-    title: x[0],
-    valid: false,
-    chainID: x[2],
-    payloadMessage: x[1],
-    envelopeMessage: { ...x[1], payloadSigs: [] },
-    encodedTransactionPayloadHex: encodeTransactionPayload(x[1]),
-    encodedTransactionEnvelopeHex: encodeTransactionEnvelope({ ...x[1], payloadSigs: [] }),
-}));
+].map(createPayloadTestcase(false));
 
 const validPayloadTransferCases = 
   Object.entries(TXS_TRANSFER_TOKENS).
@@ -476,17 +486,7 @@ const validPayloadCases = [
       MAINNET,
     ]
   )),
-  ...validTestnetPayloadCases,
-  ...validMainnetPayloadCases,
-].map(x => ({
-  title: x[0],
-  valid: true,
-  chainID: x[2],
-  payloadMessage: x[1],
-  envelopeMessage: { ...x[1], payloadSigs: [] },
-  encodedTransactionPayloadHex: encodeTransactionPayload(x[1]),
-  encodedTransactionEnvelopeHex: encodeTransactionEnvelope({ ...x[1], payloadSigs: [] }),
-}));
+].map(createPayloadTestcase(true));
 
 const invalidEnvelopeCases = [
   [
@@ -529,15 +529,7 @@ const invalidEnvelopeCases = [
     }),
     MAINNET,
   ],
-].map(x => ({
-    title: x[0],
-    valid: false,
-    chainID: x[2],
-    payloadMessage: x[1],
-    envelopeMessage: { ...x[1], payloadSigs: [] },
-    encodedTransactionPayloadHex: encodeTransactionPayload(x[1]),
-    encodedTransactionEnvelopeHex: encodeTransactionEnvelope({ ...x[1], payloadSigs: [] }),
-}));
+].map(createEnvelopeTestcase(false));
 
 const validEnvelopeTransferCases = 
   Object.entries(TXS_TRANSFER_TOKENS).
@@ -691,15 +683,8 @@ const validEnvelopeCases = [
       MAINNET,
     ]
   )),
-  ...validTestnetEnvelopeCases,
-  ...validMainnetEnvelopeCases,
-].map(x => ({
-  title: x[0],
-  valid: true,
-  chainID: x[2],
-  envelopeMessage: x[1],
-  encodedTransactionEnvelopeHex: encodeTransactionEnvelope(x[1]),
-}));
+].map(createEnvelopeTestcase(true));
+
 
 const args = process.argv.slice(2);
 const outDir = args[0];
@@ -708,3 +693,6 @@ fs.writeFileSync(path.join(outDir, "validPayloadCases.json"), JSON.stringify(val
 fs.writeFileSync(path.join(outDir, "invalidPayloadCases.json"), JSON.stringify(invalidPayloadCases, null, 2));
 fs.writeFileSync(path.join(outDir, "validEnvelopeCases.json"), JSON.stringify(validEnvelopeCases, null, 2));
 fs.writeFileSync(path.join(outDir, "invalidEnvelopeCases.json"), JSON.stringify(invalidEnvelopeCases, null, 2));
+
+fs.writeFileSync(path.join(outDir, "manifestEnvelopeCases.json"), JSON.stringify(manifestEnvelopeCases, null, 2));
+fs.writeFileSync(path.join(outDir, "manifestPayloadCases.json"), JSON.stringify(manifestPayloadCases, null, 2));

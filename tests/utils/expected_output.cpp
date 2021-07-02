@@ -57,6 +57,12 @@ void addTo(std::vector<std::string> &answer, const S &format_str, Args &&... arg
 
 void addMultiStringArgumentTo(std::vector<std::string> &answer, const std::string &name, uint16_t item, const Json::Value &v) {
     auto chunks = formatStringParts(v);
+
+    if (chunks.size() == 1) {
+        addTo(answer, "{} | {} : {}", item, name, chunks[0]);
+        return;
+    }
+
     for (uint16_t j = 0; j < (uint16_t) chunks.size(); j++) {
         addTo(answer, "{} | {} [{}/{}] : {}", item, name, j + 1, chunks.size(), chunks[j]);
     }

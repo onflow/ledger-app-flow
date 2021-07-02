@@ -124,6 +124,19 @@ INSTANTIATE_TEST_SUITE_P(
         ::testing::ValuesIn(GetJsonTestCases("testvectors/invalidEnvelopeCases.json")), VerifyTestVectors::PrintToStringParamName()
 );
 
+INSTANTIATE_TEST_SUITE_P(
+        ManifestEnvelopeCases,
+        VerifyTestVectors,
+        ::testing::ValuesIn(GetJsonTestCases("testvectors/manifestEnvelopeCases.json")), VerifyTestVectors::PrintToStringParamName()
+);
+
+INSTANTIATE_TEST_SUITE_P(
+        ManifestPayloadCases,
+        VerifyTestVectors,
+        ::testing::ValuesIn(GetJsonTestCases("testvectors/manifestPayloadCases.json")), VerifyTestVectors::PrintToStringParamName()
+);
+
+
 TEST_P(VerifyTestVectors, CheckUIOutput_Manual) { check_testcase(GetParam()); }
 
 #pragma clang diagnostic pop

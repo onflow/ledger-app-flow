@@ -20,6 +20,7 @@ TESTS_ZEMU_DIR?=$(CURDIR)/tests_zemu
 EXAMPLE_VUE_DIR?=$(CURDIR)/example_vue
 TESTS_JS_PACKAGE?=
 TESTS_JS_DIR?=
+TESTS_GENERATE_DIR?=$(CURDIR)/tests/generate-transaction-tests
 
 LEDGER_SRC=$(CURDIR)/app
 DOCKER_APP_SRC=/project
@@ -234,6 +235,10 @@ zemu_debug:
 	cd $(TESTS_ZEMU_DIR)/tools && node debug.mjs $(COIN) debug
 
 ########################## TEST Section ###############################
+
+.PHONY: generate_test_vectors
+generate_test_vectors:
+	cd $(TESTS_GENERATE_DIR) && yarn run generate
 
 .PHONY: zemu_test
 zemu_test:
