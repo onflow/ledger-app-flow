@@ -24,7 +24,7 @@
 parser_tx_t parser_tx_obj;
 
 #define CHECK_KIND(KIND, EXPECTED_KIND) \
-    if (KIND != EXPECTED_KIND) { return parser_rlp_error_invalid_kind; }
+    if (KIND != EXPECTED_KIND) { return PARSER_RLP_ERROR_INVALID_KIND; }
 
 parser_error_t parser_init_context(parser_context_t *ctx,
                                    const uint8_t *buffer,
@@ -35,78 +35,78 @@ parser_error_t parser_init_context(parser_context_t *ctx,
 
     if (bufferSize == 0 || buffer == NULL) {
         // Not available, use defaults
-        return parser_init_context_empty;
+        return PARSER_INIT_CONTEXT_EMPTY;
     }
 
     ctx->buffer = buffer;
     ctx->bufferLen = bufferSize;
-    return parser_ok;
+    return PARSER_OK;
 }
 
 parser_error_t parser_init(parser_context_t *ctx, const uint8_t *buffer, uint16_t bufferSize) {
     CHECK_PARSER_ERR(parser_init_context(ctx, buffer, bufferSize))
-    return parser_ok;
+    return PARSER_OK;
 }
 
 const char *parser_getErrorDescription(parser_error_t err) {
     switch (err) {
         // General errors
-        case parser_ok:
+        case PARSER_OK:
             return "No error";
-        case parser_no_data:
+        case PARSER_NO_DATA:
             return "No more data";
-        case parser_init_context_empty:
+        case PARSER_INIT_CONTEXT_EMPTY:
             return "Initialized empty context";
-        case parser_display_idx_out_of_range:
+        case PARSER_DISPLAY_IDX_OUT_OF_RANGE:
             return "display_idx_out_of_range";
-        case parser_display_page_out_of_range:
+        case PARSER_DISPLAY_PAGE_OUT_OF_RANGE:
             return "display_page_out_of_range";
-        case parser_unexpected_error:
+        case PARSER_UNEXPECTED_ERROR:
             return "Unexepected internal error";
             // Coin specific
-        case parser_rlp_error_invalid_kind:
+        case PARSER_RLP_ERROR_INVALID_KIND:
             return "parser_rlp_error_invalid_kind";
-        case parser_rlp_error_invalid_value_len:
+        case PARSER_RLP_ERROR_INVALID_VALUE_LEN:
             return "parser_rlp_error_invalid_value_len";
-        case parser_rlp_error_invalid_field_offset:
+        case PARSER_RLP_ERROR_INVALID_FIELD_OFFSET:
             return "parser_rlp_error_invalid_field_offset";
-        case parser_rlp_error_buffer_too_small:
+        case PARSER_RLP_ERROR_BUFFER_TOO_SMALL:
             return "parser_rlp_error_buffer_too_small";
-        case parser_rlp_error_invalid_page:
+        case PARSER_RLP_ERROR_INVALID_PAGE:
             return "parser_rlp_error_invalid_page";
-        case parser_unexpected_tx_version:
+        case PARSER_UNEXPECTED_TX_VERSION:
             return "tx version is not supported";
-        case parser_unexpected_type:
+        case PARSER_UNEXPECTED_TYPE:
             return "Unexpected data type";
-        case parser_unexpected_script:
+        case PARSER_UNEXPECTED_SCRIPT:
             return "Unexpected script";
-        case parser_unexpected_method:
+        case PARSER_UNEXPECTED_METHOD:
             return "Unexpected method";
-        case parser_unexpected_buffer_end:
+        case PARSER_UNEXPECTED_BUFFER_END:
             return "Unexpected buffer end";
-        case parser_unexpected_value:
+        case PARSER_UNEXPECTED_VALUE:
             return "Unexpected value";
-        case parser_unexpected_number_items:
+        case PARSER_UNEXPECTED_NUMBER_ITEMS:
             return "Unexpected number of items";
-        case parser_unexpected_characters:
+        case PARSER_UNEXPECTED_CHARACTERS:
             return "Unexpected characters";
-        case parser_unexpected_field:
+        case PARSER_UNEXPECTED_FIELD:
             return "Unexpected field";
-        case parser_value_out_of_range:
+        case PARSER_VALUE_OUT_OF_RANGE:
             return "Value out of range";
-        case parser_invalid_address:
+        case PARSER_INVALID_ADDRESS:
             return "Invalid address format";
             /////////// Context specific
-        case parser_context_mismatch:
+        case PARSER_CONTEXT_MISMATCH:
             return "context prefix is invalid";
-        case parser_context_unexpected_size:
+        case PARSER_CONTEXT_UNEXPECTED_SIZE:
             return "context unexpected size";
-        case parser_context_invalid_chars:
+        case PARSER_CONTEXT_INVALID_CHARS:
             return "context invalid chars";
             // Required fields error
-        case parser_required_nonce:
+        case PARSER_REQUIRED_NONCE:
             return "Required field nonce";
-        case parser_required_method:
+        case PARSER_REQUIRED_METHOD:
             return "Required field method";
         default:
             return "Unrecognized error code";
@@ -125,23 +125,23 @@ __Z_INLINE char hexDigit(uint8_t v) {
 
 parser_error_t json_validateToken(parsed_json_t *parsedJson, uint16_t tokenIdx) {
     if (!parsedJson->isValid) {
-        return parser_json_invalid;
+        return PARSER_JSON_INVALID;
     }
 
     if (tokenIdx >= parsedJson->numberOfTokens) {
-        return parser_json_invalid_token_idx;
+        return PARSER_JSON_INVALID_TOKEN_IDX;
     }
 
     const jsmntok_t token = parsedJson->tokens[tokenIdx];
     if (token.start < 0) {
-        return parser_json_unexpected_error;
+        return PARSER_JSON_UNEXPECTED_ERROR;
     }
 
     if (token.end > parsedJson->bufferLen) {
-        return parser_unexpected_buffer_end;
+        return PARSER_UNEXPECTED_BUFFER_END;
     }
 
-    return parser_ok;
+    return PARSER_OK;
 }
 
 parser_error_t json_extractToken(char *outVal, uint16_t outValLen, parsed_json_t *parsedJson, uint16_t tokenIdx) {
@@ -150,11 +150,11 @@ parser_error_t json_extractToken(char *outVal, uint16_t outValLen, parsed_json_t
 
     const jsmntok_t token = parsedJson->tokens[tokenIdx];
     if (token.end - token.start > outValLen - 1) {
-        return parser_unexpected_buffer_end;
+        return PARSER_UNEXPECTED_BUFFER_END;
     }
 
     MEMCPY(outVal, parsedJson->buffer + token.start, token.end - token.start);
-    return parser_ok;
+    return PARSER_OK;
 }
 
 parser_error_t json_matchToken(parsed_json_t *parsedJson, uint16_t tokenIdx, char *expectedValue) {
@@ -162,18 +162,18 @@ parser_error_t json_matchToken(parsed_json_t *parsedJson, uint16_t tokenIdx, cha
 
     const jsmntok_t token = parsedJson->tokens[tokenIdx];
     if (token.type != JSMN_STRING) {
-        return parser_unexpected_type;
+        return PARSER_UNEXPECTED_TYPE;
     }
 
     if (token.end < token.start || strlen(expectedValue) != (size_t)(token.end - token.start)) {
-        return parser_unexpected_value;
+        return PARSER_UNEXPECTED_VALUE;
     }
 
     if (MEMCMP(expectedValue, parsedJson->buffer + token.start, token.end - token.start) != 0) {
-        return parser_unexpected_value;
+        return PARSER_UNEXPECTED_VALUE;
     }
 
-    return parser_ok;
+    return PARSER_OK;
 }
 
 parser_error_t json_matchKeyValue(parsed_json_t *parsedJson,
@@ -182,15 +182,15 @@ parser_error_t json_matchKeyValue(parsed_json_t *parsedJson,
 
     if (tokenIdx + 4 >= parsedJson->numberOfTokens) {
         // we need this token a 4 more
-        return parser_json_invalid_token_idx;
+        return PARSER_JSON_INVALID_TOKEN_IDX;
     }
 
     if (parsedJson->tokens[tokenIdx].type != JSMN_OBJECT) {
-        return parser_unexpected_type;
+        return PARSER_UNEXPECTED_TYPE;
     }
 
     if (parsedJson->tokens[tokenIdx].size != 2) {
-        return parser_unexpected_number_items;
+        return PARSER_UNEXPECTED_NUMBER_ITEMS;
     }
 
     // Type key/value
@@ -198,25 +198,25 @@ parser_error_t json_matchKeyValue(parsed_json_t *parsedJson,
     CHECK_PARSER_ERR(json_matchToken(parsedJson, tokenIdx + 2, expectedType))
     CHECK_PARSER_ERR(json_matchToken(parsedJson, tokenIdx + 3, (char *) "value"))
     if (parsedJson->tokens[tokenIdx + 4].type != jsonType) {
-        return parser_unexpected_number_items;
+        return PARSER_UNEXPECTED_NUMBER_ITEMS;
     }
 
     *valueTokenIdx = tokenIdx + 4;
 
-    return parser_ok;
+    return PARSER_OK;
 }
 
 parser_error_t formatStrUInt8AsHex(const char *decStr, char *hexStr) {
     uint16_t decLen = strnlen(decStr, 5);
     if (decLen > 3 || decLen == 0) {
-        return parser_unexpected_buffer_end;
+        return PARSER_UNEXPECTED_BUFFER_END;
     }
 
     uint16_t v = 0;
     uint16_t m = 1;
     for (int16_t i = decLen - 1; i >= 0; i--) {
         if (decStr[i] < '0' || decStr[i] > '9') {
-            return parser_unexpected_value;
+            return PARSER_UNEXPECTED_VALUE;
         }
         v += (decStr[i] - '0') * m;
         m *= 10;
@@ -225,7 +225,7 @@ parser_error_t formatStrUInt8AsHex(const char *decStr, char *hexStr) {
     hexStr[0] = hexDigit(v / 16);
     hexStr[1] = hexDigit(v % 16);
     hexStr[2] = 0;
-    return parser_ok;
+    return PARSER_OK;
 }
 
 parser_error_t json_extractString(char *outVal, uint16_t outValLen, parsed_json_t *parsedJson, uint16_t tokenIdx) {
@@ -237,164 +237,164 @@ parser_error_t json_extractString(char *outVal, uint16_t outValLen, parsed_json_
 
     CHECK_PARSER_ERR(json_extractToken(outVal, outValLen, parsedJson, internalTokenElemIdx))
 
-    return parser_ok;
+    return PARSER_OK;
 }
 
 parser_error_t _matchScriptType(uint8_t scriptHash[32], script_type_e *scriptType) {
-    *scriptType = script_unknown;
+    *scriptType = SCRIPT_UNKNOWN;
 
     char buffer[100];
     MEMZERO(buffer, sizeof(buffer));
 
     // Check it is a known script digest
     if (array_to_hexstr(buffer, sizeof(buffer), scriptHash, CX_SHA256_SIZE) != 64) {
-        return parser_unexpected_error;
+        return PARSER_UNEXPECTED_ERROR;
     }
 
     if (
         (MEMCMP(TEMPLATE_HASH_TOKEN_TRANSFER_EMULATOR, buffer, 64) == 0) ||
         (MEMCMP(TEMPLATE_HASH_TOKEN_TRANSFER_TESTNET, buffer, 64) == 0) ||
         (MEMCMP(TEMPLATE_HASH_TOKEN_TRANSFER_MAINNET, buffer, 64) == 0)) {
-        *scriptType = script_token_transfer;
-        return parser_ok;
+        *scriptType = SCRIPT_TOKEN_TRANSFER;
+        return PARSER_OK;
     }
 
     if (MEMCMP(TEMPLATE_HASH_CREATE_ACCOUNT, buffer, 64) == 0) {
-        *scriptType = script_create_account;
-        return parser_ok;
+        *scriptType = SCRIPT_CREATE_ACCOUNT;
+        return PARSER_OK;
     }
 
     if (MEMCMP(TEMPLATE_HASH_ADD_NEW_KEY, buffer, 64) == 0) {
-        *scriptType = script_add_new_key;
-        return parser_ok;
+        *scriptType = SCRIPT_ADD_NEW_KEY;
+        return PARSER_OK;
     }
 
     if (
         (MEMCMP(TEMPLATE_HASH_TH01_WITHDRAW_UNLOCKED_TOKENS_TESTNET, buffer, 64) == 0) ||
         (MEMCMP(TEMPLATE_HASH_TH01_WITHDRAW_UNLOCKED_TOKENS_MAINNET, buffer, 64) == 0)) {
-        *scriptType = script_th01_withdraw_unlocked_tokens;
-        return parser_ok;
+        *scriptType = SCRIPT_TH01_WITHDRAW_UNLOCKED_TOKENS;
+        return PARSER_OK;
     }
 
     if (
         (MEMCMP(TEMPLATE_HASH_TH02_DEPOSIT_UNLOCKED_TOKENS_TESTNET, buffer, 64) == 0) ||
         (MEMCMP(TEMPLATE_HASH_TH02_DEPOSIT_UNLOCKED_TOKENS_MAINNET, buffer, 64) == 0)) {
-        *scriptType = script_th02_deposit_unlocked_tokens;
-        return parser_ok;
+        *scriptType = SCRIPT_TH02_DEPOSIT_UNLOCKED_TOKENS;
+        return PARSER_OK;
     }
 
     if (
         (MEMCMP(TEMPLATE_HASH_TH06_REGISTER_NODE_TESTNET, buffer, 64) == 0) ||
         (MEMCMP(TEMPLATE_HASH_TH06_REGISTER_NODE_MAINNET, buffer, 64) == 0)) {
-        *scriptType = script_th06_register_node;
-        return parser_ok;
+        *scriptType = SCRIPT_TH06_REGISTER_NODE;
+        return PARSER_OK;
     }
 
     if (
         (MEMCMP(TEMPLATE_HASH_TH08_STAKE_NEW_TOKENS_TESTNET, buffer, 64) == 0) ||
         (MEMCMP(TEMPLATE_HASH_TH08_STAKE_NEW_TOKENS_MAINNET, buffer, 64) == 0)) {
-        *scriptType = script_th08_stake_new_tokens;
-        return parser_ok;
+        *scriptType = SCRIPT_TH08_STAKE_NEW_TOKENS;
+        return PARSER_OK;
     }
     if (
         (MEMCMP(TEMPLATE_HASH_TH09_RESTAKE_UNSTAKED_TOKENS_TESTNET, buffer, 64) == 0) ||
         (MEMCMP(TEMPLATE_HASH_TH09_RESTAKE_UNSTAKED_TOKENS_MAINNET, buffer, 64) == 0)) {
-        *scriptType = script_th09_restake_unstaked_tokens;
-        return parser_ok;
+        *scriptType = SCRIPT_TH09_RESTAKE_UNSTAKED_TOKENS;
+        return PARSER_OK;
     }
 
     if (
         (MEMCMP(TEMPLATE_HASH_TH10_RESTAKE_REWARDED_TOKENS_TESTNET, buffer, 64) == 0) ||
         (MEMCMP(TEMPLATE_HASH_TH10_RESTAKE_REWARDED_TOKENS_MAINNET, buffer, 64) == 0)) {
-        *scriptType = script_th10_restake_rewarded_tokens;
-        return parser_ok;
+        *scriptType = SCRIPT_TH10_RESTAKE_REWARDED_TOKENS;
+        return PARSER_OK;
     }
 
     if (
         (MEMCMP(TEMPLATE_HASH_TH11_UNSTAKE_TOKENS_TESTNET, buffer, 64) == 0) ||
         (MEMCMP(TEMPLATE_HASH_TH11_UNSTAKE_TOKENS_MAINNET, buffer, 64) == 0)) {
-        *scriptType = script_th11_unstake_tokens;
-        return parser_ok;
+        *scriptType = SCRIPT_TH11_UNSTAKE_TOKENS;
+        return PARSER_OK;
     }
 
     if (
         (MEMCMP(TEMPLATE_HASH_TH12_UNSTAKE_ALL_TOKENS_TESTNET, buffer, 64) == 0) ||
         (MEMCMP(TEMPLATE_HASH_TH12_UNSTAKE_ALL_TOKENS_MAINNET, buffer, 64) == 0)) {
-        *scriptType = script_th12_unstake_all_tokens;
-        return parser_ok;
+        *scriptType = SCRIPT_TH12_UNSTAKE_ALL_TOKENS;
+        return PARSER_OK;
     }
 
     if (
         (MEMCMP(TEMPLATE_HASH_TH13_WITHDRAW_UNSTAKED_TOKENS_TESTNET, buffer, 64) == 0) ||
         (MEMCMP(TEMPLATE_HASH_TH13_WITHDRAW_UNSTAKED_TOKENS_MAINNET, buffer, 64) == 0)) {
-        *scriptType = script_th13_withdraw_unstaked_tokens;
-        return parser_ok;
+        *scriptType = SCRIPT_TH13_WITHDRAW_UNSTAKED_TOKENS;
+        return PARSER_OK;
     }
 
     if (
         (MEMCMP(TEMPLATE_HASH_TH14_WITHDRAW_REWARDED_TOKENS_TESTNET, buffer, 64) == 0) ||
         (MEMCMP(TEMPLATE_HASH_TH14_WITHDRAW_REWARDED_TOKENS_MAINNET, buffer, 64) == 0)) {
-        *scriptType = script_th14_withdraw_rewarded_tokens;
-        return parser_ok;
+        *scriptType = SCRIPT_TH14_WITHDRAW_REWARDED_TOKENS;
+        return PARSER_OK;
     }
 
     if (
         (MEMCMP(TEMPLATE_HASH_TH16_REGISTER_OPERATOR_NODE_TESTNET, buffer, 64) == 0) ||
         (MEMCMP(TEMPLATE_HASH_TH16_REGISTER_OPERATOR_NODE_MAINNET, buffer, 64) == 0)) {
-        *scriptType = script_th16_register_operator_node;
-        return parser_ok;
+        *scriptType = SCRIPT_TH16_REGISTER_OPERATOR_NODE;
+        return PARSER_OK;
     }
 
     if (
         (MEMCMP(TEMPLATE_HASH_TH17_REGISTER_DELEGATOR_TESTNET, buffer, 64) == 0) ||
         (MEMCMP(TEMPLATE_HASH_TH17_REGISTER_DELEGATOR_MAINNET, buffer, 64) == 0)) {
-        *scriptType = script_th17_register_delegator;
-        return parser_ok;
+        *scriptType = SCRIPT_TH17_REGISTER_DELEGATOR;
+        return PARSER_OK;
     }
 
     if (
         (MEMCMP(TEMPLATE_HASH_TH19_DELEGATE_NEW_TOKENS_TESTNET, buffer, 64) == 0) ||
         (MEMCMP(TEMPLATE_HASH_TH19_DELEGATE_NEW_TOKENS_MAINNET, buffer, 64) == 0)) {
-        *scriptType = script_th19_delegate_new_tokens;
-        return parser_ok;
+        *scriptType = SCRIPT_TH19_DELEGATE_NEW_TOKENS;
+        return PARSER_OK;
     }
 
     if (
         (MEMCMP(TEMPLATE_HASH_TH20_RESTAKE_UNSTAKED_DELEGATED_TOKENS_TESTNET, buffer, 64) == 0) ||
         (MEMCMP(TEMPLATE_HASH_TH20_RESTAKE_UNSTAKED_DELEGATED_TOKENS_MAINNET, buffer, 64) == 0)) {
-        *scriptType = script_th20_restake_unstaked_delegated_tokens;
-        return parser_ok;
+        *scriptType = SCRIPT_TH20_RESTAKE_UNSTAKED_DELEGATED_TOKENS;
+        return PARSER_OK;
     }
 
     if (
         (MEMCMP(TEMPLATE_HASH_TH21_RESTAKE_REWARDED_DELEGATED_TOKENS_TESTNET, buffer, 64) == 0) ||
         (MEMCMP(TEMPLATE_HASH_TH21_RESTAKE_REWARDED_DELEGATED_TOKENS_MAINNET, buffer, 64) == 0)) {
-        *scriptType = script_th21_restake_rewarded_delegated_tokens;
-        return parser_ok;
+        *scriptType = SCRIPT_TH21_RESTAKE_REWARDED_DELEGATED_TOKENS;
+        return PARSER_OK;
     }
 
     if (
         (MEMCMP(TEMPLATE_HASH_TH22_UNSTAKE_DELEGATED_TOKENS_TESTNET, buffer, 64) == 0) ||
         (MEMCMP(TEMPLATE_HASH_TH22_UNSTAKE_DELEGATED_TOKENS_MAINNET, buffer, 64) == 0)) {
-        *scriptType = script_th22_unstake_delegated_tokens;
-        return parser_ok;
+        *scriptType = SCRIPT_TH22_UNSTAKE_DELEGATED_TOKENS;
+        return PARSER_OK;
     }
 
     if (
         (MEMCMP(TEMPLATE_HASH_TH23_WITHDRAW_UNSTAKED_DELEGATED_TOKENS_TESTNET, buffer, 64) == 0) ||
         (MEMCMP(TEMPLATE_HASH_TH23_WITHDRAW_UNSTAKED_DELEGATED_TOKENS_MAINNET, buffer, 64) == 0)) {
-        *scriptType = script_th23_withdraw_unstaked_delegated_tokens;
-        return parser_ok;
+        *scriptType = SCRIPT_TH23_WITHDRAW_UNSTAKED_DELEGATED_TOKENS;
+        return PARSER_OK;
     }
 
     if (
         (MEMCMP(TEMPLATE_HASH_TH24_WITHDRAW_REWARDED_DELEGATED_TOKENS_TESTNET, buffer, 64) == 0) ||
         (MEMCMP(TEMPLATE_HASH_TH24_WITHDRAW_REWARDED_DELEGATED_TOKENS_MAINNET, buffer, 64) == 0)) {
-        *scriptType = script_th24_withdraw_rewarded_delegated_tokens;
-        return parser_ok;
+        *scriptType = SCRIPT_TH24_WITHDRAW_REWARDED_DELEGATED_TOKENS;
+        return PARSER_OK;
     }
 
-    return parser_unexpected_script;
+    return PARSER_UNEXPECTED_SCRIPT;
 }
 
 parser_error_t _readScript(parser_context_t *c, flow_script_t *v) {
@@ -405,14 +405,14 @@ parser_error_t _readScript(parser_context_t *c, flow_script_t *v) {
 
     CHECK_PARSER_ERR(rlp_decode(c, &v->ctx, &kind, &bytesConsumed));
     CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
-    CHECK_KIND(kind, kind_string)
+    CHECK_KIND(kind, RLP_KIND_STRING)
 
     MEMZERO(v->digest, sizeof(v->digest));
     sha256(v->ctx.buffer, v->ctx.bufferLen, v->digest);
 
     CHECK_PARSER_ERR(_matchScriptType(v->digest, &v->type))
 
-    return parser_ok;
+    return PARSER_OK;
 }
 
 parser_error_t _readArguments(parser_context_t *c, flow_argument_list_t *v) {
@@ -424,21 +424,21 @@ parser_error_t _readArguments(parser_context_t *c, flow_argument_list_t *v) {
     // Consume external list
     CHECK_PARSER_ERR(rlp_decode(c, &v->ctx, &kind, &bytesConsumed));
     CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
-    CHECK_KIND(kind, kind_list)
+    CHECK_KIND(kind, RLP_KIND_LIST)
 
     v->argCount = 0;
     while (v->ctx.offset < v->ctx.bufferLen && v->argCount < PARSER_MAX_ARGCOUNT) {
         CHECK_PARSER_ERR(rlp_decode(&v->ctx, &v->argCtx[v->argCount], &kind, &bytesConsumed))
         CTX_CHECK_AND_ADVANCE(&v->ctx, bytesConsumed)
-        CHECK_KIND(kind, kind_string)
+        CHECK_KIND(kind, RLP_KIND_STRING)
         v->argCount++;
     }
     v->ctx.offset = 0;
     if (v->argCount >= PARSER_MAX_ARGCOUNT) {
-        return parser_unexpected_number_items;
+        return PARSER_UNEXPECTED_NUMBER_ITEMS;
     }
 
-    return parser_ok;
+    return PARSER_OK;
 }
 
 parser_error_t _readReferenceBlockId(parser_context_t *c, flow_reference_block_id_t *v) {
@@ -450,8 +450,8 @@ parser_error_t _readReferenceBlockId(parser_context_t *c, flow_reference_block_i
     // Consume external list
     CHECK_PARSER_ERR(rlp_decode(c, &v->ctx, &kind, &bytesConsumed));
     CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
-    CHECK_KIND(kind, kind_string)
-    return parser_ok;
+    CHECK_KIND(kind, RLP_KIND_STRING)
+    return PARSER_OK;
 }
 
 parser_error_t _readGasLimit(parser_context_t *c, flow_gaslimit_t *v) {
@@ -463,11 +463,11 @@ parser_error_t _readGasLimit(parser_context_t *c, flow_gaslimit_t *v) {
 
     CHECK_PARSER_ERR(rlp_decode(c, &ctx_local, &kind, &bytesConsumed));
     CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
-    CHECK_KIND(kind, kind_string)
+    CHECK_KIND(kind, RLP_KIND_STRING)
 
     CHECK_PARSER_ERR(rlp_readUInt64(&ctx_local, kind, v))
 
-    return parser_ok;
+    return PARSER_OK;
 }
 
 parser_error_t _readProposalKeyAddress(parser_context_t *c, flow_proposal_key_address_t *v) {
@@ -478,8 +478,8 @@ parser_error_t _readProposalKeyAddress(parser_context_t *c, flow_proposal_key_ad
 
     CHECK_PARSER_ERR(rlp_decode(c, &v->ctx, &kind, &bytesConsumed));
     CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
-    CHECK_KIND(kind, kind_string)
-    return parser_ok;
+    CHECK_KIND(kind, RLP_KIND_STRING)
+    return PARSER_OK;
 }
 
 parser_error_t _readProposalKeyId(parser_context_t *c, flow_proposal_keyid_t *v) {
@@ -491,11 +491,11 @@ parser_error_t _readProposalKeyId(parser_context_t *c, flow_proposal_keyid_t *v)
 
     CHECK_PARSER_ERR(rlp_decode(c, &ctx_local, &kind, &bytesConsumed));
     CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
-    CHECK_KIND(kind, kind_string)
+    CHECK_KIND(kind, RLP_KIND_STRING)
 
     CHECK_PARSER_ERR(rlp_readUInt64(&ctx_local, kind, v))
 
-    return parser_ok;
+    return PARSER_OK;
 }
 
 parser_error_t _readProposalKeySequenceNumber(parser_context_t *c, flow_proposal_key_sequence_number_t *v) {
@@ -507,11 +507,11 @@ parser_error_t _readProposalKeySequenceNumber(parser_context_t *c, flow_proposal
 
     CHECK_PARSER_ERR(rlp_decode(c, &ctx_local, &kind, &bytesConsumed));
     CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
-    CHECK_KIND(kind, kind_string)
+    CHECK_KIND(kind, RLP_KIND_STRING)
 
     CHECK_PARSER_ERR(rlp_readUInt64(&ctx_local, kind, v))
 
-    return parser_ok;
+    return PARSER_OK;
 }
 
 parser_error_t _readPayer(parser_context_t *c, flow_payer_t *v) {
@@ -522,8 +522,8 @@ parser_error_t _readPayer(parser_context_t *c, flow_payer_t *v) {
 
     CHECK_PARSER_ERR(rlp_decode(c, &v->ctx, &kind, &bytesConsumed));
     CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
-    CHECK_KIND(kind, kind_string)
-    return parser_ok;
+    CHECK_KIND(kind, RLP_KIND_STRING)
+    return PARSER_OK;
 }
 
 parser_error_t _readProposalAuthorizer(parser_context_t *c, flow_proposal_authorizer_t *v) {
@@ -535,9 +535,9 @@ parser_error_t _readProposalAuthorizer(parser_context_t *c, flow_proposal_author
 
     CHECK_PARSER_ERR(rlp_decode(c, &v->ctx, &kind, &bytesConsumed));
     CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
-    CHECK_KIND(kind, kind_string)
+    CHECK_KIND(kind, RLP_KIND_STRING)
 
-    return parser_ok;
+    return PARSER_OK;
 }
 
 parser_error_t _readProposalAuthorizers(parser_context_t *c, flow_proposal_authorizers_t *v) {
@@ -548,11 +548,11 @@ parser_error_t _readProposalAuthorizers(parser_context_t *c, flow_proposal_autho
 
     CHECK_PARSER_ERR(rlp_decode(c, &v->ctx, &kind, &bytesConsumed));
     CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
-    CHECK_KIND(kind, kind_list)
+    CHECK_KIND(kind, RLP_KIND_LIST)
 
     while (v->ctx.offset < v->ctx.bufferLen) {
         if (v->authorizer_count >= 16) {
-           return parser_unexpected_number_items;
+           return PARSER_UNEXPECTED_NUMBER_ITEMS;
         }
 
         CHECK_PARSER_ERR(_readProposalAuthorizer(&v->ctx, &v->authorizer[v->authorizer_count]))
@@ -561,7 +561,7 @@ parser_error_t _readProposalAuthorizers(parser_context_t *c, flow_proposal_autho
     }
     v->ctx.offset = 0;
 
-    return parser_ok;
+    return PARSER_OK;
 }
 
 parser_error_t _read(parser_context_t *c, parser_tx_t *v) {
@@ -574,16 +574,16 @@ parser_error_t _read(parser_context_t *c, parser_tx_t *v) {
     // Consume external list
     CHECK_PARSER_ERR(rlp_decode(c, &ctx_rootList, &kind, &bytesConsumed))
     CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
-    CHECK_KIND(kind, kind_list)
+    CHECK_KIND(kind, RLP_KIND_LIST)
     if (bytesConsumed != c->bufferLen) {
         // root list should consume the complete buffer
-        return parser_unexpected_buffer_end;
+        return PARSER_UNEXPECTED_BUFFER_END;
     }
 
     // Consume external list
     CHECK_PARSER_ERR(rlp_decode(&ctx_rootList, &ctx_rootInnerList, &kind, &bytesConsumed))
     CTX_CHECK_AND_ADVANCE(&ctx_rootList, bytesConsumed)
-    CHECK_KIND(kind, kind_list)
+    CHECK_KIND(kind, RLP_KIND_LIST)
 
     // Go through the inner list
     CHECK_PARSER_ERR(_readScript(&ctx_rootInnerList, &v->script))
@@ -598,18 +598,18 @@ parser_error_t _read(parser_context_t *c, parser_tx_t *v) {
 
     if (ctx_rootInnerList.offset != ctx_rootInnerList.bufferLen) {
         // ctx_rootInnerList should be consumed completely
-        return parser_unexpected_buffer_end;
+        return PARSER_UNEXPECTED_BUFFER_END;
     }
 
     // Check last item? signers?
     // TODO: Do we want to show signers too?
     // TODO: confirm that things are not completed
-    return parser_ok;
+    return PARSER_OK;
 }
 
 parser_error_t _validateTx(const parser_context_t *c, const parser_tx_t *v) {
     // Placeholder to run any coin specific validation
-    return parser_ok;
+    return PARSER_OK;
 }
 
 uint8_t _countArgumentItems(const flow_argument_list_t *v, uint8_t argumentIndex) {
@@ -628,7 +628,7 @@ uint8_t _countArgumentItems(const flow_argument_list_t *v, uint8_t argumentIndex
     uint16_t arrayTokenCount;
     CHECK_PARSER_ERR(array_get_element_count(&parsedJson, internalTokenElementIdx, &arrayTokenCount));
     if (arrayTokenCount > 64) {
-        return parser_unexpected_number_items;
+        return PARSER_UNEXPECTED_NUMBER_ITEMS;
     }
 
     return arrayTokenCount;
@@ -636,49 +636,49 @@ uint8_t _countArgumentItems(const flow_argument_list_t *v, uint8_t argumentIndex
 
 uint8_t _getNumItems(const parser_context_t *c, const parser_tx_t *v) {
     switch (v->script.type) {
-        case script_token_transfer:
+        case SCRIPT_TOKEN_TRANSFER:
             return 10 + v->authorizers.authorizer_count;
-        case script_create_account:
+        case SCRIPT_CREATE_ACCOUNT:
             return 8 + _countArgumentItems(&v->arguments, 0) + v->authorizers.authorizer_count;
-        case script_add_new_key:
+        case SCRIPT_ADD_NEW_KEY:
             return 9 + v->authorizers.authorizer_count;
-        case script_th01_withdraw_unlocked_tokens:
+        case SCRIPT_TH01_WITHDRAW_UNLOCKED_TOKENS:
             return 9 + v->authorizers.authorizer_count;
-        case script_th02_deposit_unlocked_tokens:
+        case SCRIPT_TH02_DEPOSIT_UNLOCKED_TOKENS:
             return 9 + v->authorizers.authorizer_count;
-        case script_th06_register_node:
+        case SCRIPT_TH06_REGISTER_NODE:
             return 14 + v->authorizers.authorizer_count;
-        case script_th08_stake_new_tokens:
+        case SCRIPT_TH08_STAKE_NEW_TOKENS:
             return 9 + v->authorizers.authorizer_count;
-        case script_th09_restake_unstaked_tokens:
+        case SCRIPT_TH09_RESTAKE_UNSTAKED_TOKENS:
             return 9 + v->authorizers.authorizer_count;
-        case script_th10_restake_rewarded_tokens:
+        case SCRIPT_TH10_RESTAKE_REWARDED_TOKENS:
             return 9 + v->authorizers.authorizer_count;
-        case script_th11_unstake_tokens:
+        case SCRIPT_TH11_UNSTAKE_TOKENS:
             return 9 + v->authorizers.authorizer_count;
-        case script_th12_unstake_all_tokens:
+        case SCRIPT_TH12_UNSTAKE_ALL_TOKENS:
             return 8 + v->authorizers.authorizer_count;
-        case script_th13_withdraw_unstaked_tokens:
+        case SCRIPT_TH13_WITHDRAW_UNSTAKED_TOKENS:
             return 9 + v->authorizers.authorizer_count;
-        case script_th14_withdraw_rewarded_tokens:
+        case SCRIPT_TH14_WITHDRAW_REWARDED_TOKENS:
             return 9 + v->authorizers.authorizer_count;
-        case script_th16_register_operator_node:
+        case SCRIPT_TH16_REGISTER_OPERATOR_NODE:
             return 11 + v->authorizers.authorizer_count;
-        case script_th17_register_delegator:
+        case SCRIPT_TH17_REGISTER_DELEGATOR:
             return 10 + v->authorizers.authorizer_count;
-        case script_th19_delegate_new_tokens:
+        case SCRIPT_TH19_DELEGATE_NEW_TOKENS:
             return 9 + v->authorizers.authorizer_count;
-        case script_th20_restake_unstaked_delegated_tokens:
+        case SCRIPT_TH20_RESTAKE_UNSTAKED_DELEGATED_TOKENS:
             return 9 + v->authorizers.authorizer_count;
-        case script_th21_restake_rewarded_delegated_tokens:
+        case SCRIPT_TH21_RESTAKE_REWARDED_DELEGATED_TOKENS:
             return 9 + v->authorizers.authorizer_count;
-        case script_th22_unstake_delegated_tokens:
+        case SCRIPT_TH22_UNSTAKE_DELEGATED_TOKENS:
             return 9 + v->authorizers.authorizer_count;
-        case script_th23_withdraw_unstaked_delegated_tokens:
+        case SCRIPT_TH23_WITHDRAW_UNSTAKED_DELEGATED_TOKENS:
             return 9 + v->authorizers.authorizer_count;
-        case script_th24_withdraw_rewarded_delegated_tokens:
+        case SCRIPT_TH24_WITHDRAW_REWARDED_DELEGATED_TOKENS:
             return 9 + v->authorizers.authorizer_count;
-        case script_unknown:
+        case SCRIPT_UNKNOWN:
         default:
             return 0;
     }

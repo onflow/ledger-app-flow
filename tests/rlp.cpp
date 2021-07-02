@@ -42,18 +42,18 @@ INSTANTIATE_TEST_SUITE_P(
         InstantiationName,
         RLPDecodeTest,
         Values(
-                RLPValueTestCase{"00", kind_string, 1, 0, 1}, // Byte string (00)
-                RLPValueTestCase{"01", kind_string, 1, 0, 1}, // Byte string (01)
-                RLPValueTestCase{"7F", kind_string, 1, 0, 1}, // Byte string (7F)
+                RLPValueTestCase{"00", RLP_KIND_STRING, 1, 0, 1}, // Byte string (00)
+                RLPValueTestCase{"01", RLP_KIND_STRING, 1, 0, 1}, // Byte string (01)
+                RLPValueTestCase{"7F", RLP_KIND_STRING, 1, 0, 1}, // Byte string (7F)
 
-                RLPValueTestCase{"80", kind_string, 0, 1, 1},       // Empty string ("")
-                RLPValueTestCase{"83646F67", kind_string, 3, 1, 4}, // Short string ("dog")
+                RLPValueTestCase{"80", RLP_KIND_STRING, 0, 1, 1},       // Empty string ("")
+                RLPValueTestCase{"83646F67", RLP_KIND_STRING, 3, 1, 4}, // Short string ("dog")
 
                 RLPValueTestCase{"B7"
                                  "0000000000000000000000000000000000000000000000000000000000000000"
                                  "0000000000000000000000000000000000000000000000000000000000000000"
                                  "0000000000000000000000000000000000000000000000000000000000000000"
-                                 "0000000000000000000000000000000000000000000000000000000000000000", kind_string, 55, 1,
+                                 "0000000000000000000000000000000000000000000000000000000000000000", RLP_KIND_STRING, 55, 1,
                                  56},
                 RLPValueTestCase{"B90400"
                                  "0000000000000000000000000000000000000000000000000000000000000000"
@@ -87,15 +87,15 @@ INSTANTIATE_TEST_SUITE_P(
                                  "0000000000000000000000000000000000000000000000000000000000000000"
                                  "0000000000000000000000000000000000000000000000000000000000000000"
                                  "0000000000000000000000000000000000000000000000000000000000000000"
-                                 "0000000000000000000000000000000000000000000000000000000000000000", kind_string, 1024,
+                                 "0000000000000000000000000000000000000000000000000000000000000000", RLP_KIND_STRING, 1024,
                                  3, 1027},
-                RLPValueTestCase{"C0", kind_list, 0, 1, 1},
-                RLPValueTestCase{"C80000000000000000", kind_list, 8, 1, 9},
+                RLPValueTestCase{"C0", RLP_KIND_LIST, 0, 1, 1},
+                RLPValueTestCase{"C80000000000000000", RLP_KIND_LIST, 8, 1, 9},
                 RLPValueTestCase{"F7"
                                  "0000000000000000000000000000000000000000000000000000000000000000"
                                  "0000000000000000000000000000000000000000000000000000000000000000"
                                  "0000000000000000000000000000000000000000000000000000000000000000"
-                                 "0000000000000000000000000000000000000000000000000000000000000000", kind_list, 55, 1,
+                                 "0000000000000000000000000000000000000000000000000000000000000000", RLP_KIND_LIST, 55, 1,
                                  56},
                 RLPValueTestCase{"F90400"
                                  "0000000000000000000000000000000000000000000000000000000000000000"
@@ -129,7 +129,7 @@ INSTANTIATE_TEST_SUITE_P(
                                  "0000000000000000000000000000000000000000000000000000000000000000"
                                  "0000000000000000000000000000000000000000000000000000000000000000"
                                  "0000000000000000000000000000000000000000000000000000000000000000"
-                                 "0000000000000000000000000000000000000000000000000000000000000000", kind_list, 1024, 3,
+                                 "0000000000000000000000000000000000000000000000000000000000000000", RLP_KIND_LIST, 1024, 3,
                                  1027}
         )
 );
@@ -152,7 +152,7 @@ TEST_P(RLPDecodeTest, decodeElement) {
 
     parser_error_t err = rlp_decode(&ctx_in, &ctx_out, &kind, &bytesConsumed);
 
-    EXPECT_THAT(err, parser_ok);
+    EXPECT_THAT(err, PARSER_OK);
     EXPECT_THAT(kind, testing::Eq(params.expectedKind));
     EXPECT_THAT(ctx_out.bufferLen, testing::Eq(params.expectedLen));
     EXPECT_THAT(ctx_out.buffer - ctx_in.buffer, testing::Eq(params.expectedDataOffset));

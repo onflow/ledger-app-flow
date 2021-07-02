@@ -17,8 +17,8 @@
 #include "rlp.h"
 
 #define CHECK_AVAILABLE(ctx, size) \
-    if (ctx->offset > ctx->bufferLen) return parser_unexpected_buffer_end; \
-    if (ctx->bufferLen - ctx->offset < size ) return parser_unexpected_buffer_end;
+    if (ctx->offset > ctx->bufferLen) return PARSER_UNEXPECTED_BUFFER_END; \
+    if (ctx->bufferLen - ctx->offset < size ) return PARSER_UNEXPECTED_BUFFER_END;
 
 parser_error_t rlp_decode(
         const parser_context_t *input,
@@ -29,32 +29,32 @@ parser_error_t rlp_decode(
     outputPayload->buffer = input->buffer + input->offset;
     outputPayload->bufferLen = 0;
     outputPayload->offset = 0;
-    *outputKind = kind_unknown;
+    *outputKind = RLP_KIND_UNKNOWN;
     *bytesConsumed = 0;
 
     CHECK_AVAILABLE(input, 1)
     uint8_t p = *outputPayload->buffer;
 
     if (p >= 0 && p <= 0x7F) {
-        *outputKind = kind_string;
+        *outputKind = RLP_KIND_STRING;
         outputPayload->bufferLen = 1;
         outputPayload->buffer += 0;
         *bytesConsumed = 1; // 1 byte to consume from the stream
         CHECK_AVAILABLE(input, *bytesConsumed)
-        return parser_ok;
+        return PARSER_OK;
     }
 
     if (p >= 0x80 && p <= 0xb7) {
-        *outputKind = kind_string;
+        *outputKind = RLP_KIND_STRING;
         outputPayload->bufferLen = p - 0x80;
         outputPayload->buffer += 1;
         *bytesConsumed = 1 + outputPayload->bufferLen;
         CHECK_AVAILABLE(input, *bytesConsumed)
-        return parser_ok;
+        return PARSER_OK;
     }
 
     if (p >= 0xb8 && p <= 0xbf) {
-        *outputKind = kind_string;
+        *outputKind = RLP_KIND_STRING;
         const uint8_t len_len = p - 0xb7;
         CHECK_AVAILABLE(input, 1 + len_len)
 
@@ -66,20 +66,20 @@ parser_error_t rlp_decode(
         outputPayload->buffer += 1 + len_len;
         *bytesConsumed = 1 + len_len + outputPayload->bufferLen;
         CHECK_AVAILABLE(input, *bytesConsumed)
-        return parser_ok;
+        return PARSER_OK;
     }
 
     if (p >= 0xc0 && p <= 0xf7) {
-        *outputKind = kind_list;
+        *outputKind = RLP_KIND_LIST;
         outputPayload->bufferLen = p - 0xc0;
         outputPayload->buffer += 1;
         *bytesConsumed = 1 + outputPayload->bufferLen;
         CHECK_AVAILABLE(input, *bytesConsumed)
-        return parser_ok;
+        return PARSER_OK;
     }
 
     if (p >= 0xf8 && p <= 0xff) {
-        *outputKind = kind_list;
+        *outputKind = RLP_KIND_LIST;
         const uint8_t len_len = p - 0xf7;
         CHECK_AVAILABLE(input, 1 + len_len)
 
@@ -92,34 +92,34 @@ parser_error_t rlp_decode(
         outputPayload->buffer += 1 + len_len;
         *bytesConsumed = 1 + len_len + outputPayload->bufferLen;
         CHECK_AVAILABLE(input, *bytesConsumed)
-        return parser_ok;
+        return PARSER_OK;
     }
 
-    return parser_unexpected_error;
+    return PARSER_UNEXPECTED_ERROR;
 }
 
 parser_error_t rlp_readByte(const parser_context_t *ctx, rlp_kind_e kind, uint8_t *value) {
-    if (kind != kind_string) {
-        return parser_rlp_error_invalid_kind;
+    if (kind != RLP_KIND_STRING) {
+        return PARSER_RLP_ERROR_INVALID_KIND;
     }
 
     if (ctx->bufferLen != 1) {
-        return parser_rlp_error_invalid_value_len;
+        return PARSER_RLP_ERROR_INVALID_VALUE_LEN;
     }
 
     if (ctx->offset != 0) {
-        return parser_rlp_error_invalid_field_offset;
+        return PARSER_RLP_ERROR_INVALID_FIELD_OFFSET;
     }
     *value = *ctx->buffer;
 
-    return parser_ok;
+    return PARSER_OK;
 }
 
 parser_error_t rlp_readUInt64(const parser_context_t *ctx,
                               rlp_kind_e kind,
                               uint64_t *value) {
-    if (kind != kind_string) {
-        return parser_rlp_error_invalid_kind;
+    if (kind != RLP_KIND_STRING) {
+        return PARSER_RLP_ERROR_INVALID_KIND;
     }
 
     // handle case when string is a single byte
@@ -127,12 +127,12 @@ parser_error_t rlp_readUInt64(const parser_context_t *ctx,
         uint8_t tmp = 0;
         CHECK_PARSER_ERR(rlp_readByte(ctx, kind, &tmp))
         *value = tmp;
-        return parser_ok;
+        return PARSER_OK;
     }
 
     // max size of uint64_t is 8 bytes
     if (ctx->bufferLen > 8) {
-        return parser_rlp_error_invalid_value_len;
+        return PARSER_RLP_ERROR_INVALID_VALUE_LEN;
     }
 
     *value = 0;
@@ -142,5 +142,5 @@ parser_error_t rlp_readUInt64(const parser_context_t *ctx,
         *value += *(ctx->buffer + ctx->offset + i);
     }
 
-    return parser_ok;
+    return PARSER_OK;
 }

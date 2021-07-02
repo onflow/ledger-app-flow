@@ -27,15 +27,15 @@ extern "C" {
 #include <zxerror.h>
 
 typedef enum {
-    hash_unknown,
-    sha2_256,
-    sha3_256
+    HASH_UNKNOWN,
+    HASH_SHA2_256,
+    HASH_SHA3_256
 } digest_type_e;
 
 typedef enum {
-    curve_unknown,
-    secp256k1,
-    secp256r1
+    CURVE_UNKNOWN,
+    CURVE_SECP256K1,
+    CURVE_SECP256R1
 } curve_e;
 
 #if defined(TARGET_NANOS) || defined(TARGET_NANOX)

@@ -19,9 +19,9 @@
 #include "apdu_codes.h"
 
 typedef enum {
-    slotop_set,
-    slotop_update,
-    slotop_delete
+    SLOT_OP_SET,
+    SLOT_OP_UPDATE,
+    SLOT_UP_DELETE
 } slotop_t;
 
 account_slot_t tmp_slot;
@@ -39,15 +39,15 @@ uint8_t slot_is_empty(const account_slot_t *tmp) {
 zxerr_t slot_getNumItems(uint8_t *num_items) {
     *num_items = 0;
     switch (tmp_slotop) {
-        case slotop_set: {
+        case SLOT_OP_SET: {
             *num_items = 3;
             return zxerr_ok;
         }
-        case slotop_update: {
+        case SLOT_OP_UPDATE: {
             *num_items = 5;
             return zxerr_ok;
         }
-        case slotop_delete: {
+        case SLOT_UP_DELETE: {
             *num_items = 3;
             return zxerr_ok;
         }
@@ -63,7 +63,7 @@ zxerr_t slot_getItem(int8_t displayIdx,
     *pageCount = 1;
 
     switch (tmp_slotop) {
-        case slotop_set: {
+        case SLOT_OP_SET: {
             switch (displayIdx) {
                 case 0: {
                     snprintf(outKey, outKeyLen, "Set");
@@ -86,7 +86,7 @@ zxerr_t slot_getItem(int8_t displayIdx,
                     return zxerr_no_data;
             }
         }
-        case slotop_update: {
+        case SLOT_OP_UPDATE: {
             const account_slot_t *oldSlot = &N_slot_store.slot[tmp_slotIdx];
             switch (displayIdx) {
                 case 0: {
@@ -123,7 +123,7 @@ zxerr_t slot_getItem(int8_t displayIdx,
             }
             break;
         }
-        case slotop_delete: {
+        case SLOT_UP_DELETE: {
             const account_slot_t *oldSlot = &N_slot_store.slot[tmp_slotIdx];
             switch (displayIdx) {
                 case 0: {
@@ -223,11 +223,11 @@ zxerr_t slot_parseSlot(uint8_t *buffer, uint16_t bufferLen) {
         return zxerr_out_of_bounds;
     }
 
-    tmp_slotop = slotop_update;
+    tmp_slotop = SLOT_OP_UPDATE;
     if (slot_is_empty(&N_slot_store.slot[tmp_slotIdx])) {
-        tmp_slotop = slotop_set;
+        tmp_slotop = SLOT_OP_SET;
     } else if (slot_is_empty(&tmp_slot)) {
-        tmp_slotop = slotop_delete;
+        tmp_slotop = SLOT_UP_DELETE;
     }
 
     return zxerr_ok;

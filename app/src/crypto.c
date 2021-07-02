@@ -33,13 +33,13 @@ __Z_INLINE digest_type_e get_hash_type() {
     switch(hash_type) {
         case 0x01:
             zemu_log_stack("path: sha2_256");
-            return sha2_256;
+            return HASH_SHA2_256;
         case 0x03:
             zemu_log_stack("path: sha3_256");
-            return sha3_256;
+            return HASH_SHA3_256;
         default:
             zemu_log_stack("path: unknown");
-            return hash_unknown;
+            return HASH_UNKNOWN;
     }
 }
 
@@ -61,10 +61,10 @@ __Z_INLINE cx_curve_t get_cx_curve() {
 
 __Z_INLINE enum cx_md_e get_cx_hash_kind() {
     switch(get_hash_type()) {
-        case sha2_256: {
+        case HASH_SHA2_256: {
             return CX_SHA256;
         }
-        case sha3_256: {
+        case HASH_SHA3_256: {
             return CX_SHA3;
         }
         default:
@@ -136,7 +136,7 @@ void sha256(const uint8_t *message, uint16_t messageLen, uint8_t message_digest[
 
 uint16_t digest_message(uint8_t *digest, uint16_t digestMax, const uint8_t *message, uint16_t messageLen) {
     switch(get_hash_type()) {
-        case sha2_256: {
+        case HASH_SHA2_256: {
             zemu_log_stack("sha2_256");
             if (digestMax < CX_SHA256_SIZE) {
                 zemu_log_stack("digest_message: zxerr_buffer_too_small");
@@ -145,7 +145,7 @@ uint16_t digest_message(uint8_t *digest, uint16_t digestMax, const uint8_t *mess
             sha256(message, messageLen, digest);
             return CX_SHA256_SIZE;
         }
-        case sha3_256: {
+        case HASH_SHA3_256: {
             if (digestMax < 32) {
                 return zxerr_buffer_too_small;
             }

@@ -98,14 +98,14 @@ const char *tx_parse() {
         tx_get_buffer(),
         tx_get_buffer_length());
 
-    if (err != parser_ok) {
+    if (err != PARSER_OK) {
         return parser_getErrorDescription(err);
     }
 
     err = parser_validate(&ctx_parsed_tx);
     CHECK_APP_CANARY()
 
-    if (err != parser_ok) {
+    if (err != PARSER_OK) {
         return parser_getErrorDescription(err);
     }
 
@@ -115,7 +115,7 @@ const char *tx_parse() {
 zxerr_t tx_getNumItems(uint8_t *num_items) {
     parser_error_t err = parser_getNumItems(&ctx_parsed_tx, num_items);
 
-    if (err != parser_ok) {
+    if (err != PARSER_OK) {
         return zxerr_no_data;
     }
 
@@ -141,12 +141,12 @@ zxerr_t tx_getItem(int8_t displayIdx,
                                         pageIdx, pageCount);
 
     // Convert error codes
-    if (err == parser_no_data ||
-        err == parser_display_idx_out_of_range ||
-        err == parser_display_page_out_of_range)
+    if (err == PARSER_NO_DATA ||
+        err == PARSER_DISPLAY_IDX_OUT_OF_RANGE ||
+        err == PARSER_DISPLAY_PAGE_OUT_OF_RANGE)
         return zxerr_no_data;
 
-    if (err != parser_ok)
+    if (err != PARSER_OK)
         return zxerr_unknown;
 
     return zxerr_ok;

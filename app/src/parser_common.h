@@ -25,55 +25,55 @@ extern "C" {
 #define CHECK_PARSER_ERR(__CALL) { \
     parser_error_t __err = __CALL;  \
     CHECK_APP_CANARY()  \
-    if (__err!=parser_ok) return __err;}
+    if (__err != PARSER_OK) return __err;}
 
 #define CTX_CHECK_AND_ADVANCE(CTX, SIZE) \
     CTX_CHECK_AVAIL((CTX), (SIZE))   \
     (CTX)->offset += (SIZE);
 
 #define CTX_CHECK_AVAIL(CTX, SIZE) \
-    if ( (CTX) == NULL || ((CTX)->offset + SIZE) > (CTX)->bufferLen) { return parser_unexpected_buffer_end; }
+    if ( (CTX) == NULL || ((CTX)->offset + SIZE) > (CTX)->bufferLen) { return PARSER_UNEXPECTED_BUFFER_END; }
 
 typedef enum {
     // Generic errors
-    parser_ok = 0,
-    parser_no_data,
-    parser_init_context_empty,
-    parser_display_idx_out_of_range,
-    parser_display_page_out_of_range,
-    parser_unexpected_error,
+    PARSER_OK = 0,
+    PARSER_NO_DATA,
+    PARSER_INIT_CONTEXT_EMPTY,
+    PARSER_DISPLAY_IDX_OUT_OF_RANGE,
+    PARSER_DISPLAY_PAGE_OUT_OF_RANGE,
+    PARSER_UNEXPECTED_ERROR,
     // Coin specific
-    parser_rlp_error_invalid_kind,
-    parser_rlp_error_invalid_value_len,
-    parser_rlp_error_invalid_field_offset,
-    parser_rlp_error_buffer_too_small,
-    parser_rlp_error_invalid_page,
-    parser_json_invalid,
-    parser_json_invalid_token_idx,
-    parser_json_too_many_tokens,
-    parser_json_incomplete_json,
-    parser_json_unexpected_error,
-    parser_json_zero_tokens,
+    PARSER_RLP_ERROR_INVALID_KIND,
+    PARSER_RLP_ERROR_INVALID_VALUE_LEN,
+    PARSER_RLP_ERROR_INVALID_FIELD_OFFSET,
+    PARSER_RLP_ERROR_BUFFER_TOO_SMALL,
+    PARSER_RLP_ERROR_INVALID_PAGE,
+    PARSER_JSON_INVALID,
+    PARSER_JSON_INVALID_TOKEN_IDX,
+    PARSER_JSON_TOO_MANY_TOKENS,
+    PARSER_JSON_INCOMPLETE_JSON,
+    PARSER_JSON_UNEXPECTED_ERROR,
+    PARSER_JSON_ZERO_TOKENS,
     ///
-    parser_unexpected_tx_version,
-    parser_unexpected_type,
-    parser_unexpected_script,
-    parser_unexpected_method,
-    parser_unexpected_buffer_end,
-    parser_unexpected_value,
-    parser_unexpected_number_items,
-    parser_unexpected_characters,
-    parser_unexpected_field,
-    parser_value_out_of_range,
-    parser_invalid_address,
+    PARSER_UNEXPECTED_TX_VERSION,
+    PARSER_UNEXPECTED_TYPE,
+    PARSER_UNEXPECTED_SCRIPT,
+    PARSER_UNEXPECTED_METHOD,
+    PARSER_UNEXPECTED_BUFFER_END,
+    PARSER_UNEXPECTED_VALUE,
+    PARSER_UNEXPECTED_NUMBER_ITEMS,
+    PARSER_UNEXPECTED_CHARACTERS,
+    PARSER_UNEXPECTED_FIELD,
+    PARSER_VALUE_OUT_OF_RANGE,
+    PARSER_INVALID_ADDRESS,
     // Context related errors
-    parser_context_mismatch,
-    parser_context_unexpected_size,
-    parser_context_invalid_chars,
-    parser_context_unknown_prefix,
+    PARSER_CONTEXT_MISMATCH,
+    PARSER_CONTEXT_UNEXPECTED_SIZE,
+    PARSER_CONTEXT_INVALID_CHARS,
+    PARSER_CONTEXT_UNKNOWN_PREFIX,
     // Required fields
-    parser_required_nonce,
-    parser_required_method,
+    PARSER_REQUIRED_NONCE,
+    PARSER_REQUIRED_METHOD,
 } parser_error_t;
 
 typedef struct {
