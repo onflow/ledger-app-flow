@@ -226,6 +226,12 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
             break;
         }
+        case SCRIPT_TH25_UNSTAKE_ALL: {
+            addTo(answer, "{} | Type : Unstake All", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[0]["value"]);
+            break;
+        }
         default:
             addTo(answer, "{} | Type : ERROR", item++);
             break;

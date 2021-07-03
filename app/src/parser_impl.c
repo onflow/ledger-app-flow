@@ -425,6 +425,13 @@ parser_error_t _matchScriptType(uint8_t scriptHash[32], script_type_e *scriptTyp
         i++;
     }
 
+    if (
+        (MEMCMP(TEMPLATE_HASH_TH25_UNSTAKE_ALL_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(TEMPLATE_HASH_TH25_UNSTAKE_ALL_MAINNET, buffer, 64) == 0)) {
+        *scriptType = SCRIPT_TH25_UNSTAKE_ALL;
+        return PARSER_OK;
+    }
+
     return PARSER_UNEXPECTED_SCRIPT;
 }
 
@@ -708,6 +715,8 @@ uint8_t _getNumItems(const parser_context_t *c, const parser_tx_t *v) {
         case SCRIPT_TH23_WITHDRAW_UNSTAKED_DELEGATED_TOKENS:
             return 9 + v->authorizers.authorizer_count;
         case SCRIPT_TH24_WITHDRAW_REWARDED_DELEGATED_TOKENS:
+            return 9 + v->authorizers.authorizer_count;
+        case SCRIPT_TH25_UNSTAKE_ALL:
             return 9 + v->authorizers.authorizer_count;
         case SCRIPT_UNKNOWN:
         default:

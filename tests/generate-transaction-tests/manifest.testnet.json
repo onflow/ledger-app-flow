@@ -311,6 +311,21 @@
       ],
       "network": "testnet",
       "hash": "385042aa453566fcff0b2bd418b837d8f46fbc23b1b46e6651b25a395bc04be8"
+    },
+    {
+      "id": "TH.25",
+      "name": "Unstake All FLOW",
+      "source": "import FlowStakingCollection from 0x95e019a17d0e23d7\n\n/// Requests to unstake ALL tokens for the specified node or delegator in the staking collection\n\ntransaction(nodeID: String) {\n    \n    let stakingCollectionRef: \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: AuthAccount) {\n        self.stakingCollectionRef = account.borrow\u003c\u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n    }\n\n    execute {\n        self.stakingCollectionRef.unstakeAll(nodeID: nodeID)\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "String",
+          "name": "id",
+          "label": "Node ID",
+          "sampleValue": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+        }
+      ],
+      "network": "testnet",
+      "hash": "0bde358f3965ba2f4c18fb45b6536857c3f53d7d3b740fe66fe93a4ebf7524c1"
     }
   ]
 }
