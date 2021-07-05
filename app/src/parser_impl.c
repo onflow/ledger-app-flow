@@ -164,11 +164,9 @@ parser_error_t json_matchToken(parsed_json_t *parsedJson, uint16_t tokenIdx, cha
     if (token.type != JSMN_STRING) {
         return PARSER_UNEXPECTED_TYPE;
     }
-
     if (token.end < token.start || strlen(expectedValue) != (size_t)(token.end - token.start)) {
         return PARSER_UNEXPECTED_VALUE;
     }
-
     if (MEMCMP(expectedValue, parsedJson->buffer + token.start, token.end - token.start) != 0) {
         return PARSER_UNEXPECTED_VALUE;
     }
@@ -426,9 +424,16 @@ parser_error_t _matchScriptType(uint8_t scriptHash[32], script_type_e *scriptTyp
     }
 
     if (
-        (MEMCMP(TEMPLATE_HASH_TH25_UNSTAKE_ALL_TESTNET, buffer, 64) == 0) ||
-        (MEMCMP(TEMPLATE_HASH_TH25_UNSTAKE_ALL_MAINNET, buffer, 64) == 0)) {
-        *scriptType = SCRIPT_TH25_UNSTAKE_ALL;
+        (MEMCMP(TEMPLATE_HASH_SCO09_UNSTAKE_ALL_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(TEMPLATE_HASH_SCO09_UNSTAKE_ALL_MAINNET, buffer, 64) == 0)) {
+        *scriptType = SCRIPT_SCO09_UNSTAKE_ALL;
+        return PARSER_OK;
+    }
+
+    if (
+        (MEMCMP(TEMPLATE_HASH_SCO11_WITHDRAW_UNSTAKED_TOKENS_TESTNET, buffer, 64) == 0) ||
+        (MEMCMP(TEMPLATE_HASH_SCO11_WITHDRAW_UNSTAKED_TOKENS_MAINNET, buffer, 64) == 0)) {
+        *scriptType = SCRIPT_SCO11_WITHDRAW_UNSTAKED_TOKENS;
         return PARSER_OK;
     }
 
@@ -716,8 +721,10 @@ uint8_t _getNumItems(const parser_context_t *c, const parser_tx_t *v) {
             return 9 + v->authorizers.authorizer_count;
         case SCRIPT_TH24_WITHDRAW_REWARDED_DELEGATED_TOKENS:
             return 9 + v->authorizers.authorizer_count;
-        case SCRIPT_TH25_UNSTAKE_ALL:
+        case SCRIPT_SCO09_UNSTAKE_ALL:
             return 9 + v->authorizers.authorizer_count;
+        case SCRIPT_SCO11_WITHDRAW_UNSTAKED_TOKENS:
+            return 11 + v->authorizers.authorizer_count;
         case SCRIPT_UNKNOWN:
         default:
             return 0;

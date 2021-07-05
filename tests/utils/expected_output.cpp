@@ -226,10 +226,21 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
             break;
         }
-        case SCRIPT_TH25_UNSTAKE_ALL: {
+        case SCRIPT_SCO09_UNSTAKE_ALL: {
             addTo(answer, "{} | Type : Unstake All", item++);
             addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
             addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[0]["value"]);
+            break;
+        }
+        case SCRIPT_SCO11_WITHDRAW_UNSTAKED_TOKENS: {
+            addTo(answer, "{} | Type : Withdraw Unstaked Tokens", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[0]["value"]);
+            if (tcd.arguments[1]["value"].isObject())
+                addTo(answer, "{} | Delegator ID : {}", item++, tcd.arguments[1]["value"]["value"].asString());
+            else
+                addTo(answer, "{} | Delegator ID : None", item++);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[2]["value"].asString());
             break;
         }
         default:

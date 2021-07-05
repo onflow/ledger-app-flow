@@ -247,12 +247,13 @@ const createEnvelopeTestcase = (valid) => {
   });
 };
 
-const sampleArguments = (arguments) => {
-  return arguments.map(({ type, sampleValue }) => {
-    return {
+const sampleArguments = (i, arguments) => {
+  return arguments.map(({ type, sampleValues }) => {
+    return sampleValues[Math.min(i, Object.keys(sampleValues).length-1)];
+/*    return {
       type: type,
       value: sampleValue,
-    };
+    };*/
   });
 };
 
@@ -260,13 +261,13 @@ const testnetTemplates = JSON.parse(fs.readFileSync('manifest.testnet.json')).te
 const mainnetTemplates = JSON.parse(fs.readFileSync('manifest.mainnet.json')).templates;
 
 const manifestTestnetPayloadCases = testnetTemplates.map((template) => {
-  return [
+  return  [
     `${template.id} - ${template.name}`,
     buildPayloadTx(TESTNET, {
       script: template.source,
-      arguments: sampleArguments(template.arguments || [], TESTNET),
-    }),
-    TESTNET,
+      arguments: sampleArguments(1, template.arguments || [], TESTNET),
+    }), 
+    TESTNET, 
   ]
 });
 
@@ -275,7 +276,7 @@ const manifestMainnetPayloadCases = mainnetTemplates.map((template) => {
     `${template.id} - ${template.name}`,
     buildPayloadTx(MAINNET, {
       script: template.source,
-      arguments: sampleArguments(template.arguments || [], MAINNET),
+      arguments: sampleArguments(0, template.arguments || [], MAINNET),
     }),
     MAINNET,
   ]
@@ -286,7 +287,7 @@ const manifestTestnetEnvelopeCases = testnetTemplates.map((template) => {
     `${template.id} - ${template.name}`,
     buildEnvelopeTx(TESTNET, {
       script: template.source,
-      arguments: sampleArguments(template.arguments || [], TESTNET),
+      arguments: sampleArguments(0, template.arguments || [], TESTNET),
     }),
     TESTNET,
   ]
@@ -297,7 +298,7 @@ const manifestMainnetEnvelopeCases = mainnetTemplates.map((template) => {
     `${template.id} - ${template.name}`,
     buildEnvelopeTx(MAINNET, {
       script: template.source,
-      arguments: sampleArguments(template.arguments || [], MAINNET),
+      arguments: sampleArguments(1, template.arguments || [], MAINNET),
     }),
     MAINNET,
   ]
