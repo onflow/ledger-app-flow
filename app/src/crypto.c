@@ -100,7 +100,6 @@ zxerr_t crypto_sign(uint8_t *buffer, uint16_t signatureMaxlen, const uint8_t *me
     const uint32_t domainSize = 32;
     uint8_t messageDigest[32];
 
-    const enum cx_md_e cxhash_kind = CX_SHA256;
     const uint16_t messageDigestSize = digest_message(messageDigest, sizeof(messageDigest), message, messageLen );
     if (messageDigestSize != 32) {
         zemu_log_stack("crypto_sign: zxerr_out_of_bounds");
@@ -163,11 +162,11 @@ typedef struct {
     uint8_t padding[4];
 } __attribute__((packed)) answer_t;
 
-zxerr_t crypto_fillAddress(uint8_t *buffer, uint16_t buffer_len, uint16_t *addrLen) {
+zxerr_t crypto_fill_publickey(uint8_t *buffer, uint16_t buffer_len, uint16_t *addrLen) {
     MEMZERO(buffer, buffer_len);
 
     if (buffer_len < sizeof(answer_t)) {
-        zemu_log_stack("crypto_fillAddress: zxerr_buffer_too_small");
+        zemu_log_stack("crypto_fill_publickey: zxerr_buffer_too_small");
         return zxerr_buffer_too_small;
     }
 
