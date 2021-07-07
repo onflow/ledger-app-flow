@@ -24,10 +24,8 @@
 #include "view.h"
 #include "actions.h"
 #include "tx.h"
-#include "addr.h"
 #include "crypto.h"
 #include "coin.h"
-#include "account.h"
 #include "zxmacros.h"
 
 __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {

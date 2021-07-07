@@ -1,3 +1,4 @@
+
 #include "glyphs.h"
 unsigned int const C_digit_dot_colors[] = {
   0x00000000,

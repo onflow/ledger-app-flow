@@ -40,11 +40,6 @@ __Z_INLINE void app_sign() {
     }
 }
 
-__Z_INLINE void app_reject() {
-    set_code(G_io_apdu_buffer, 0, APDU_CODE_COMMAND_NOT_ALLOWED);
-    io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, 2);
-}
-
 __Z_INLINE uint8_t app_fill_publickey() {
     // Put data directly in the apdu buffer
     MEMZERO(G_io_apdu_buffer, IO_APDU_BUFFER_SIZE);
@@ -57,14 +52,4 @@ __Z_INLINE uint8_t app_fill_publickey() {
     }
 
     return action_addr_len;
-}
-
-__Z_INLINE void app_reply_address() {
-    set_code(G_io_apdu_buffer, action_addr_len, APDU_CODE_OK);
-    io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, action_addr_len + 2);
-}
-
-__Z_INLINE void app_reply_error() {
-    set_code(G_io_apdu_buffer, 0, APDU_CODE_DATA_INVALID);
-    io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, 2);
 }
