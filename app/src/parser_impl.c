@@ -225,7 +225,7 @@ parser_error_t json_matchKeyValue(parsed_json_t *parsedJson,
     return PARSER_OK;
 }
 
-//valueTokenIdx is -1 if the optional is null
+//valueTokenIdx is JSON_MATCH_VALUE_IDX_NONE if the optional is null
 parser_error_t json_matchOptionalKeyValue(parsed_json_t *parsedJson,
                                   uint16_t tokenIdx, char *expectedType, jsmntype_t jsonType, uint16_t *valueTokenIdx) {
     CHECK_PARSER_ERR(json_validateToken(parsedJson, tokenIdx))
@@ -255,6 +255,46 @@ parser_error_t json_matchOptionalKeyValue(parsed_json_t *parsedJson,
     
     if (parsedJson->tokens[tokenIdx + 4].type == JSMN_OBJECT) {  //optional not not null
         return json_matchKeyValue(parsedJson, tokenIdx+4, expectedType, jsonType, valueTokenIdx);          
+    }
+     
+    return PARSER_UNEXPECTED_VALUE;
+}
+
+//valueTokenIdx is JSON_MATCH_VALUE_IDX_NONE if the optional is null
+parser_error_t json_matchOptionalArray(parsed_json_t *parsedJson,
+                                  uint16_t tokenIdx, uint16_t *valueTokenIdx) {
+    CHECK_PARSER_ERR(json_validateToken(parsedJson, tokenIdx))
+
+    if (tokenIdx + 4 >= parsedJson->numberOfTokens) {
+        // we need this token and 4 more
+        return PARSER_JSON_INVALID_TOKEN_IDX;
+    }
+
+    if (parsedJson->tokens[tokenIdx].type != JSMN_OBJECT) {
+        return PARSER_UNEXPECTED_TYPE ;
+    }
+
+    if (parsedJson->tokens[tokenIdx].size != 2) {
+        return PARSER_UNEXPECTED_NUMBER_ITEMS;
+    }
+
+    // Type key/value
+    CHECK_PARSER_ERR(json_matchToken(parsedJson, tokenIdx + 1, (char *) "type"))
+    CHECK_PARSER_ERR(json_matchToken(parsedJson, tokenIdx + 2, (char *) "Optional"))
+    CHECK_PARSER_ERR(json_matchToken(parsedJson, tokenIdx + 3, (char *) "value"))
+    if (parsedJson->tokens[tokenIdx + 4].type == JSMN_PRIMITIVE) {  //optional null
+        CHECK_PARSER_ERR(json_matchNull(parsedJson, tokenIdx + 4))
+        *valueTokenIdx = JSON_MATCH_VALUE_IDX_NONE;
+        return PARSER_OK; 
+    }    
+    if (parsedJson->tokens[tokenIdx + 4].type == JSMN_OBJECT) {  //optional not null
+        CHECK_PARSER_ERR(json_matchToken(parsedJson, tokenIdx + 5, (char *) "type"))
+        CHECK_PARSER_ERR(json_matchToken(parsedJson, tokenIdx + 6, (char *) "Array"))
+        CHECK_PARSER_ERR(json_matchToken(parsedJson, tokenIdx + 7, (char *) "value"))
+        if (parsedJson->tokens[tokenIdx + 8].type == JSMN_ARRAY) {
+            *valueTokenIdx = tokenIdx + 8;
+            return PARSER_OK; 
+        }
     }
      
     return PARSER_UNEXPECTED_VALUE;

@@ -55,6 +55,8 @@ parser_error_t json_matchKeyValue(parsed_json_t *parsedJson,
 parser_error_t json_matchOptionalKeyValue(parsed_json_t *parsedJson,
                                   uint16_t tokenIdx, char *expectedType, jsmntype_t jsonType, uint16_t *valueTokenIdx);
 
+parser_error_t json_matchOptionalArray(parsed_json_t *parsedJson, uint16_t tokenIdx, uint16_t *valueTokenIdx);
+
 parser_error_t formatStrUInt8AsHex(const char *decStr, char *hexStr);
 
 parser_error_t json_extractString(char *outVal, uint16_t outValLen, parsed_json_t *parsedJson, uint16_t tokenIdx);
