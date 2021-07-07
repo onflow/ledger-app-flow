@@ -17,7 +17,6 @@
 #include "tx.h"
 #include "apdu_codes.h"
 #include "buffering.h"
-#include "parser.h"
 #include <string.h>
 #include "zxmacros.h"
 
@@ -38,8 +37,6 @@ typedef struct {
 storage_t NV_CONST N_appdata_impl __attribute__ ((aligned(64)));
 #define N_appdata (*(NV_VOLATILE storage_t *)PIC(&N_appdata_impl))
 #endif
-
-parser_context_t ctx_parsed_tx;
 
 void tx_initialize() {
     buffering_init(
@@ -64,25 +61,5 @@ uint32_t tx_get_buffer_length() {
 
 uint8_t *tx_get_buffer() {
     return buffering_get_buffer()->data;
-}
-
-const char *tx_parse() {
-    uint8_t err = parser_parse(
-        &ctx_parsed_tx,
-        tx_get_buffer(),
-        tx_get_buffer_length());
-
-    if (err != parser_ok) {
-        return parser_getErrorDescription(err);
-    }
-
-    err = parser_validate(&ctx_parsed_tx);
-    CHECK_APP_CANARY()
-
-    if (err != parser_ok) {
-        return parser_getErrorDescription(err);
-    }
-
-    return NULL;
 }
 
