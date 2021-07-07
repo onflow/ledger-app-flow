@@ -226,6 +226,23 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
             break;
         }
+        case SCRIPT_SCO03_REGISTER_NODE: {
+            addTo(answer, "{} | Type : Register Node", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[0]["value"]);
+            addTo(answer, "{} | Node Role : {}", item++, tcd.arguments[1]["value"].asString());
+            addMultiStringArgumentTo(answer, "Networking Address", item++, tcd.arguments[2]["value"]);
+            addMultiStringArgumentTo(answer, "Networking Key", item++, tcd.arguments[3]["value"]);
+            addMultiStringArgumentTo(answer, "Staking Key", item++, tcd.arguments[4]["value"]);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[5]["value"].asString());
+            if (tcd.arguments[6]["value"].isObject()) {
+                addMultiStringArgumentTo(answer, "Pub key 1", item++, tcd.arguments[6]["value"]["value"][0]["value"]);
+            }
+            else {
+                addTo(answer, "{} | Pub key 1 : None", item++);
+            }
+            break;
+        }
         case SCRIPT_SCO09_UNSTAKE_ALL: {
             addTo(answer, "{} | Type : Unstake All", item++);
             addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);

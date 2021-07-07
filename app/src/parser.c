@@ -1624,6 +1624,104 @@ parser_error_t parser_getItemWithdrawRewardedDelegatedTokens(const parser_contex
     return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
 }
 
+parser_error_t parser_getItemRegisterNodeSCO(const parser_context_t *ctx,
+                                       uint16_t displayIdx,
+                                       char *outKey, uint16_t outKeyLen,
+                                       char *outVal, uint16_t outValLen,
+                                       uint8_t pageIdx, uint8_t *pageCount) {
+    zemu_log_stack("parser_getItemCreateAccount");
+    *pageCount = 1;
+
+    switch (displayIdx) {
+        case 0:
+            snprintf(outKey, outKeyLen, "Type");
+            snprintf(outVal, outValLen, "Register Node");
+            return PARSER_OK;
+        case 1:
+            snprintf(outKey, outKeyLen, "ChainID");
+            return parser_printChainID(&parser_tx_obj.payer,
+                                       outVal, outValLen, pageIdx, pageCount);
+        case 2:
+            snprintf(outKey, outKeyLen, "Node ID");
+            return parser_printArgumentString(&parser_tx_obj.arguments.argCtx[0],
+                                              outVal, outValLen, pageIdx, pageCount);
+        case 3:
+            snprintf(outKey, outKeyLen, "Node Role");
+            return parser_printArgument(&parser_tx_obj.arguments, 1,
+                                        "UInt8", JSMN_STRING,
+                                        outVal, outValLen, pageIdx, pageCount);
+        case 4:
+            snprintf(outKey, outKeyLen, "Networking Address");
+            return parser_printArgumentString(&parser_tx_obj.arguments.argCtx[2],
+                                              outVal, outValLen, pageIdx, pageCount);
+        case 5:
+            snprintf(outKey, outKeyLen, "Networking Key");
+            return parser_printArgumentString(&parser_tx_obj.arguments.argCtx[3],
+                                              outVal, outValLen, pageIdx, pageCount);
+        case 6:
+            snprintf(outKey, outKeyLen, "Staking Key");
+            return parser_printArgumentString(&parser_tx_obj.arguments.argCtx[4],
+                                              outVal, outValLen, pageIdx, pageCount);
+        case 7:
+            snprintf(outKey, outKeyLen, "Amount");
+            return parser_printArgument(&parser_tx_obj.arguments, 5,
+                                        "UFix64", JSMN_STRING,
+                                        outVal, outValLen, pageIdx, pageCount);
+        default:
+            break;
+    }
+    displayIdx -= 8;
+    
+
+    const uint8_t pkCount = _countArgumentOptionalItems(&parser_tx_obj.arguments, 6);
+    if (pkCount == 0) {
+        return PARSER_UNEXPECTED_VALUE;
+    }
+    if (displayIdx < pkCount) {
+        snprintf(outKey, outKeyLen, "Pub key %d", displayIdx + 1);
+        CHECK_PARSER_ERR(
+                parser_printArgumentOptionalPublicKeys(
+                        &parser_tx_obj.arguments.argCtx[6],
+                        displayIdx, outVal, outValLen,
+                        pageIdx, pageCount))
+        return PARSER_OK;
+    }
+    displayIdx -= pkCount;
+
+    switch (displayIdx) {
+        case 0:
+            snprintf(outKey, outKeyLen, "Ref Block");
+            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
+        case 1:
+            snprintf(outKey, outKeyLen, "Gas Limit");
+            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
+        case 2:
+            snprintf(outKey, outKeyLen, "Prop Key Addr");
+            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
+        case 3:
+            snprintf(outKey, outKeyLen, "Prop Key Id");
+            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
+        case 4:
+            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
+            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
+                                          pageCount);
+        case 5:
+            snprintf(outKey, outKeyLen, "Payer");
+            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
+        default:
+            break;
+    }
+    displayIdx -= 6;
+
+    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
+        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
+        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
+                                      pageCount);
+    }
+
+    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+}
+
 parser_error_t parser_getItemUnstakeAll(const parser_context_t *ctx,
                                        uint16_t displayIdx,
                                        char *outKey, uint16_t outKeyLen,
@@ -1823,6 +1921,9 @@ parser_error_t parser_getItem(const parser_context_t *ctx,
                                                                  outValLen, pageIdx, pageCount);
         case SCRIPT_TH24_WITHDRAW_REWARDED_DELEGATED_TOKENS:
             return parser_getItemWithdrawRewardedDelegatedTokens(ctx, displayIdx, outKey, outKeyLen, outVal, 
+                                                                 outValLen, pageIdx, pageCount);
+        case SCRIPT_SCO03_REGISTER_NODE:
+            return parser_getItemRegisterNodeSCO(ctx, displayIdx, outKey, outKeyLen, outVal, 
                                                                  outValLen, pageIdx, pageCount);
         case SCRIPT_SCO09_UNSTAKE_ALL:
             return parser_getItemUnstakeAll(ctx, displayIdx, outKey, outKeyLen, outVal, 
