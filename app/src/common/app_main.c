@@ -145,7 +145,6 @@ bool process_chunk(volatile uint32_t *tx, uint32_t rx) {
     THROW(APDU_CODE_INVALIDP1P2);
 }
 
-// TO DELETE?
 void handle_generic_apdu(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     if (rx > 4 && os_memcmp(G_io_apdu_buffer, "\xE0\x01\x00\x00", 4) == 0) {
         // Respond to get device info command

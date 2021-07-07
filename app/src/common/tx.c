@@ -17,6 +17,7 @@
 #include "tx.h"
 #include "apdu_codes.h"
 #include "buffering.h"
+#include "parser.h"
 #include <string.h>
 #include "zxmacros.h"
 
@@ -37,6 +38,8 @@ typedef struct {
 storage_t NV_CONST N_appdata_impl __attribute__ ((aligned(64)));
 #define N_appdata (*(NV_VOLATILE storage_t *)PIC(&N_appdata_impl))
 #endif
+
+parser_context_t ctx_parsed_tx;
 
 void tx_initialize() {
     buffering_init(
@@ -64,10 +67,61 @@ uint8_t *tx_get_buffer() {
 }
 
 const char *tx_parse() {
-    // here parse the tx daya
+    uint8_t err = parser_parse(
+        &ctx_parsed_tx,
+        tx_get_buffer(),
+        tx_get_buffer_length());
+
+    if (err != parser_ok) {
+        return parser_getErrorDescription(err);
+    }
+
+    err = parser_validate(&ctx_parsed_tx);
+    CHECK_APP_CANARY()
+
+    if (err != parser_ok) {
+        return parser_getErrorDescription(err);
+    }
+
     return NULL;
 }
 
+zxerr_t tx_getNumItems(uint8_t *num_items) {
+    parser_error_t err = parser_getNumItems(&ctx_parsed_tx, num_items);
 
+    if (err != parser_ok) {
+        return zxerr_no_data;
+    }
 
+    return zxerr_ok;
+}
 
+zxerr_t tx_getItem(int8_t displayIdx,
+                   char *outKey, uint16_t outKeyLen,
+                   char *outVal, uint16_t outValLen,
+                   uint8_t pageIdx, uint8_t *pageCount) {
+    uint8_t numItems = 0;
+
+    CHECK_ZXERR(tx_getNumItems(&numItems))
+
+    if (displayIdx < 0 || displayIdx > numItems) {
+        return zxerr_no_data;
+    }
+
+    parser_error_t err = parser_getItem(&ctx_parsed_tx,
+                                        displayIdx,
+                                        outKey, outKeyLen,
+                                        outVal, outValLen,
+                                        pageIdx, pageCount);
+
+    // Convert error codes
+    if (err == parser_no_data ||
+        err == parser_display_idx_out_of_range ||
+        err == parser_display_page_out_of_range)
+        return zxerr_no_data;
+
+    if (err != parser_ok)
+        return zxerr_unknown;
+
+    return zxerr_ok;
+}

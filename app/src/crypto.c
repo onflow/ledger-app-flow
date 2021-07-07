@@ -163,5 +163,24 @@ typedef struct {
     uint8_t padding[4];
 } __attribute__((packed)) answer_t;
 
+zxerr_t crypto_fillAddress(uint8_t *buffer, uint16_t buffer_len, uint16_t *addrLen) {
+    MEMZERO(buffer, buffer_len);
 
+    if (buffer_len < sizeof(answer_t)) {
+        zemu_log_stack("crypto_fillAddress: zxerr_buffer_too_small");
+        return zxerr_buffer_too_small;
+    }
+
+    answer_t *const answer = (answer_t *) buffer;
+
+    zxerr_t err = crypto_extractPublicKey(hdPath, answer->publicKey, sizeof_field(answer_t, publicKey));
+    if ( err != zxerr_ok ) {
+        return err;
+    }
+
+    array_to_hexstr(answer->addrStr, sizeof_field(answer_t, addrStr) + 2, answer->publicKey, sizeof_field(answer_t, publicKey) );
+
+    *addrLen = sizeof(answer_t) - sizeof_field(answer_t, padding);
+    return zxerr_ok;
+}
 
