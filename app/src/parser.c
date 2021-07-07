@@ -297,6 +297,48 @@ parser_error_t parser_printArgumentPublicKeys(const parser_context_t *argumentCt
     return PARSER_OK;
 }
 
+parser_error_t parser_printArgumentOptionalPublicKeys(const parser_context_t *argumentCtx, uint8_t argumentIndex,
+                                              char *outVal, uint16_t outValLen,
+                                              uint8_t pageIdx, uint8_t *pageCount) {
+    MEMZERO(outVal, outValLen);
+
+    parsed_json_t parsedJson = {false};
+    CHECK_PARSER_ERR(json_parse(&parsedJson, (char *) argumentCtx->buffer, argumentCtx->bufferLen));
+
+    // Estimate number of pages
+    uint16_t internalTokenElementIdx;
+    CHECK_PARSER_ERR(json_matchOptionalArray(&parsedJson, 0, &internalTokenElementIdx));
+    if (internalTokenElementIdx == JSON_MATCH_VALUE_IDX_NONE) {
+        if (outValLen < 5) {
+            return  PARSER_UNEXPECTED_BUFFER_END;
+        }
+        *pageCount = 1;
+        strncpy_s(outVal, "None", 5);
+    }
+    else {
+        uint16_t arrayTokenCount;
+        CHECK_PARSER_ERR(array_get_element_count(&parsedJson, internalTokenElementIdx, &arrayTokenCount));
+        if (arrayTokenCount > 64) {
+            return PARSER_UNEXPECTED_NUMBER_ITEMS;
+        }
+
+        zemu_log_stack("PublicKeys");
+
+        uint16_t arrayElementToken;
+        char bufferUI[ARGUMENT_BUFFER_SIZE_ACCOUNT_KEY];
+        CHECK_PARSER_ERR(array_get_nth_element(&parsedJson, internalTokenElementIdx, argumentIndex, &arrayElementToken))
+        CHECK_PARSER_ERR(json_extractString(bufferUI, sizeof(bufferUI), &parsedJson, arrayElementToken))
+        pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
+
+        // Check requested page is in range
+        if (pageIdx > *pageCount) {
+            return PARSER_DISPLAY_PAGE_OUT_OF_RANGE;
+        }
+    }
+
+    return PARSER_OK;
+}
+
 parser_error_t parser_printBlockId(const flow_reference_block_id_t *v,
                                    char *outVal, uint16_t outValLen,
                                    uint8_t pageIdx, uint8_t *pageCount) {
