@@ -29,26 +29,6 @@ jobs:
             cd /home/zondax/project
             make
 
-  test_fuzz_crash_fixes:
-    docker:
-      - image: zondax/circleci@sha256:37f78ab294b35a055768c2305b3f13813e55fb9db4e65f72745ede61dd842c08
-    steps:
-      - checkout
-      - run: git submodule update --init --recursive
-      - run: sudo apt update && sudo apt -y install clang-10
-      - run:
-          name: Build
-          command: |
-            cmake -B build \
-                    -DCMAKE_C_COMPILER=clang-10 \
-                    -DCMAKE_CXX_COMPILER=clang++-10 \
-                    -DCMAKE_BUILD_TYPE=Debug \
-                    -DENABLE_FUZZING=1 \
-                    -DENABLE_SANITIZERS=1 \
-                    .
-            make -C build
-      - run: ./run-fuzz-crashes.py
-
   test_zemu:
     machine:
       image: ubuntu-1604:201903-01
@@ -80,23 +60,6 @@ jobs:
             nvm use 14.4.0
             make zemu_test
 
-  build_package:
-    docker:
-      - image: zondax/builder-bolos:latest
-    environment:
-      - BOLOS_SDK=/home/zondax/project/deps/nanos-secure-sdk
-      - BOLOS_ENV=/opt/bolos
-    steps:
-      - checkout
-      - run: git submodule update --init --recursive
-      - run:
-          name: Build
-          command: |
-            source /home/zondax/.cargo/env
-            cd /home/zondax/project
-            make
-      - run: /home/zondax/go/bin/ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete $(/home/zondax/project/app/pkg/zxtool.sh version) /home/zondax/project/app/pkg/zxtool.sh
-
 workflows:
   version: 2
 
@@ -105,12 +68,3 @@ workflows:
       - build
       - build_ledger
       - test_zemu
-      - build_package:
-          requires:
-            - build
-            - build_ledger
-            - test_zemu
-          filters:
-            branches:
-              only:
-                - master
