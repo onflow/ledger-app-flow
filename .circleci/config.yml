@@ -29,7 +29,7 @@ jobs:
             cd /home/zondax/project
             make
 
-  test_zemu:
+  test:
     machine:
       image: ubuntu-1604:201903-01
     working_directory: ~/repo
@@ -53,12 +53,12 @@ jobs:
           name: Build/Install build js deps
           command: |
             nvm use 14.4.0
-            make zemu_install
+            make test_install
       - run:
-          name: Run zemu tests
+          name: Run tests
           command: |
             nvm use 14.4.0
-            make zemu_test
+            make test
 
 workflows:
   version: 2
@@ -67,4 +67,4 @@ workflows:
     jobs:
       - build
       - build_ledger
-      - test_zemu
+      - test
