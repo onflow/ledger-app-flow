@@ -25,6 +25,7 @@
 extern "C" {
 #endif
 
+
 extern parser_tx_t parser_tx_obj;
 
 parser_error_t parser_init(parser_context_t *ctx, const uint8_t *buffer, uint16_t bufferSize);
@@ -45,7 +46,13 @@ parser_error_t json_extractToken(char *outVal, uint16_t outValLen, parsed_json_t
 
 parser_error_t json_matchToken(parsed_json_t *parsedJson, uint16_t tokenIdx, char *expectedValue);
 
+parser_error_t json_matchNull(parsed_json_t *parsedJson, uint16_t tokenIdx);
+
 parser_error_t json_matchKeyValue(parsed_json_t *parsedJson,
+                                  uint16_t tokenIdx, char *expectedType, jsmntype_t jsonType, uint16_t *valueTokenIdx);
+
+#define JSON_MATCH_VALUE_IDX_NONE 65535
+parser_error_t json_matchOptionalKeyValue(parsed_json_t *parsedJson,
                                   uint16_t tokenIdx, char *expectedType, jsmntype_t jsonType, uint16_t *valueTokenIdx);
 
 parser_error_t formatStrUInt8AsHex(const char *decStr, char *hexStr);

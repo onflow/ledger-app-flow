@@ -24,6 +24,9 @@
 
 const auto sendToken = "{\"type\":\"UFix64\",\"value\":\"545.77\"}";
 
+const auto sendToken2 = "{\"type\":\"Optional\",\"value\":null}";
+const auto sendToken3 = "{\"type\":\"Optional\",\"value\":{\"type\":\"UFix64\",\"value\":\"545.77\"}}";
+
 const auto validCreationInput = "{\n"
                                 "  \"type\": \"Array\",\n"
                                 "  \"value\": [\n"
@@ -116,4 +119,89 @@ TEST(JSON, basicSingleKeyValue) {
             json_matchKeyValue(&parsedJson, 0, (char *) "UFix64", JSMN_STRING, &internalTokenElementIdx),
             PARSER_OK);
     ASSERT_THAT(internalTokenElementIdx, 4);
+}
+
+TEST(JSON, OptionalKeyValueNull) {
+    parsed_json_t parsedJson = {false};
+
+    auto err = json_parse(&parsedJson, sendToken2, strlen(sendToken2));
+
+     // We could parse valid JSON
+    EXPECT_THAT(err, PARSER_OK);
+    EXPECT_TRUE(parsedJson.isValid);
+    EXPECT_EQ(5, parsedJson.numberOfTokens);
+
+    EXPECT_EQ(parsedJson.tokens[0].type, jsmntype_t::JSMN_OBJECT);
+    EXPECT_EQ(parsedJson.tokens[1].type, jsmntype_t::JSMN_STRING);
+    EXPECT_EQ(parsedJson.tokens[2].type, jsmntype_t::JSMN_STRING);
+    EXPECT_EQ(parsedJson.tokens[3].type, jsmntype_t::JSMN_STRING);
+    EXPECT_EQ(parsedJson.tokens[4].type, jsmntype_t::JSMN_PRIMITIVE);
+
+    char tmpBuffer[100];
+
+    ASSERT_THAT(json_extractToken(tmpBuffer, sizeof(tmpBuffer), &parsedJson, 1), PARSER_OK);
+    EXPECT_STREQ(tmpBuffer, "type");
+    ASSERT_THAT(json_matchToken(&parsedJson, 1, (char *) "type"), PARSER_OK);
+
+    ASSERT_THAT(json_extractToken(tmpBuffer, sizeof(tmpBuffer), &parsedJson, 2), PARSER_OK);
+    EXPECT_STREQ(tmpBuffer, "Optional");
+    ASSERT_THAT(json_matchToken(&parsedJson, 2, (char *) "Optional"), PARSER_OK);
+
+    ASSERT_THAT(json_extractToken(tmpBuffer, sizeof(tmpBuffer), &parsedJson, 3), PARSER_OK);
+    EXPECT_STREQ(tmpBuffer, "value");
+    ASSERT_THAT(json_matchToken(&parsedJson, 3, (char *) "value"), PARSER_OK);
+
+    ASSERT_THAT(json_extractToken(tmpBuffer, sizeof(tmpBuffer), &parsedJson, 4), PARSER_OK);
+    EXPECT_STREQ(tmpBuffer, "null");
+    ASSERT_THAT(json_matchNull(&parsedJson, 4), PARSER_OK);
+
+    uint16_t internalTokenElementIdx;
+    EXPECT_EQ(5, parsedJson.numberOfTokens);
+    ASSERT_THAT(
+            json_matchOptionalKeyValue(&parsedJson, 0, (char *) "UFix64", JSMN_STRING, &internalTokenElementIdx),
+            PARSER_OK);
+    ASSERT_THAT(internalTokenElementIdx, JSON_MATCH_VALUE_IDX_NONE);
+}
+
+
+TEST(JSON, OptionalKeyValueNotNull) {
+    parsed_json_t parsedJson = {false};
+
+    auto err = json_parse(&parsedJson, sendToken3, strlen(sendToken3));
+
+     // We could parse valid JSON
+    EXPECT_THAT(err, PARSER_OK);
+    EXPECT_TRUE(parsedJson.isValid);
+    EXPECT_EQ(9, parsedJson.numberOfTokens);
+
+    EXPECT_EQ(parsedJson.tokens[0].type, jsmntype_t::JSMN_OBJECT);
+    EXPECT_EQ(parsedJson.tokens[1].type, jsmntype_t::JSMN_STRING);
+    EXPECT_EQ(parsedJson.tokens[2].type, jsmntype_t::JSMN_STRING);
+    EXPECT_EQ(parsedJson.tokens[3].type, jsmntype_t::JSMN_STRING);
+    EXPECT_EQ(parsedJson.tokens[4].type, jsmntype_t::JSMN_OBJECT);
+    EXPECT_EQ(parsedJson.tokens[5].type, jsmntype_t::JSMN_STRING);
+    EXPECT_EQ(parsedJson.tokens[6].type, jsmntype_t::JSMN_STRING);
+    EXPECT_EQ(parsedJson.tokens[7].type, jsmntype_t::JSMN_STRING);
+    EXPECT_EQ(parsedJson.tokens[8].type, jsmntype_t::JSMN_STRING);
+
+    char tmpBuffer[100];
+
+    ASSERT_THAT(json_extractToken(tmpBuffer, sizeof(tmpBuffer), &parsedJson, 1), PARSER_OK);
+    EXPECT_STREQ(tmpBuffer, "type");
+    ASSERT_THAT(json_matchToken(&parsedJson, 1, (char *) "type"), PARSER_OK);
+
+    ASSERT_THAT(json_extractToken(tmpBuffer, sizeof(tmpBuffer), &parsedJson, 2), PARSER_OK);
+    EXPECT_STREQ(tmpBuffer, "Optional");
+    ASSERT_THAT(json_matchToken(&parsedJson, 2, (char *) "Optional"), PARSER_OK);
+
+    ASSERT_THAT(json_extractToken(tmpBuffer, sizeof(tmpBuffer), &parsedJson, 3), PARSER_OK);
+    EXPECT_STREQ(tmpBuffer, "value");
+    ASSERT_THAT(json_matchToken(&parsedJson, 3, (char *) "value"), PARSER_OK);
+
+
+    uint16_t internalTokenElementIdx;
+    ASSERT_THAT(
+            json_matchOptionalKeyValue(&parsedJson, 0, (char *) "UFix64", JSMN_STRING, &internalTokenElementIdx),
+            PARSER_OK);
+    ASSERT_THAT(internalTokenElementIdx, 8);
 }
