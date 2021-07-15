@@ -324,7 +324,7 @@ parser_error_t _matchScriptType(uint8_t scriptHash[32], script_type_e *scriptTyp
 
     int i = 0;
     while (KNOWN_TYPES[i].template) {
-        if (MEMCMP(KNOWN_TYPES[i].template, buffer, 64) == 0) {
+        if (MEMCMP(PIC(KNOWN_TYPES[i].template), buffer, 64) == 0) {
             *scriptType = KNOWN_TYPES[i].script_type;
             return PARSER_OK;
         }
