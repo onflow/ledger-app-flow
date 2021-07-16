@@ -29,6 +29,7 @@ void __assert_fail(const char * assertion, const char * file, unsigned int line,
 }
 #endif
 
+
 #define FLOW_PUBLIC_KEY_SIZE 64     // 64 bytes for public key
 #define FLOW_SIG_ALGO_SIZE 1        // 8 bits for signature algorithm (uint8)
 #define FLOW_HASH_ALGO_SIZE 1       // 8 bits for hash algorithm (uint8)
@@ -44,6 +45,8 @@ void __assert_fail(const char * assertion, const char * file, unsigned int line,
 ) + 2)
 
 #define ARGUMENT_BUFFER_SIZE_STRING 256
+
+#define MAX_JSON_ARRAY_TOKEN_COUNT 64  
 
 parser_error_t parser_parse(parser_context_t *ctx, const uint8_t *data, size_t dataLen) {
     CHECK_PARSER_ERR(parser_init(ctx, data, dataLen))
@@ -277,7 +280,7 @@ parser_error_t parser_printArgumentPublicKeys(const parser_context_t *argumentCt
     CHECK_PARSER_ERR(json_matchKeyValue(&parsedJson, 0, (char *) "Array", JSMN_ARRAY, &internalTokenElementIdx));
     uint16_t arrayTokenCount;
     CHECK_PARSER_ERR(array_get_element_count(&parsedJson, internalTokenElementIdx, &arrayTokenCount));
-    if (arrayTokenCount > 64) {
+    if (MAX_JSON_ARRAY_TOKEN_COUNT > 64) {  //indirectly limits the maximum number of public keys
         return PARSER_UNEXPECTED_NUMBER_ITEMS;
     }
 
@@ -292,6 +295,48 @@ parser_error_t parser_printArgumentPublicKeys(const parser_context_t *argumentCt
     // Check requested page is in range
     if (pageIdx > *pageCount) {
         return PARSER_DISPLAY_PAGE_OUT_OF_RANGE;
+    }
+
+    return PARSER_OK;
+}
+
+parser_error_t parser_printArgumentOptionalPublicKeys(const parser_context_t *argumentCtx, uint8_t argumentIndex,
+                                              char *outVal, uint16_t outValLen,
+                                              uint8_t pageIdx, uint8_t *pageCount) {
+    MEMZERO(outVal, outValLen);
+
+    parsed_json_t parsedJson = {false};
+    CHECK_PARSER_ERR(json_parse(&parsedJson, (char *) argumentCtx->buffer, argumentCtx->bufferLen));
+
+    // Estimate number of pages
+    uint16_t internalTokenElementIdx;
+    CHECK_PARSER_ERR(json_matchOptionalArray(&parsedJson, 0, &internalTokenElementIdx));
+    if (internalTokenElementIdx == JSON_MATCH_VALUE_IDX_NONE) {
+        if (outValLen < 5) {
+            return  PARSER_UNEXPECTED_BUFFER_END;
+        }
+        *pageCount = 1;
+        strncpy_s(outVal, "None", 5);
+    }
+    else {
+        uint16_t arrayTokenCount;
+        CHECK_PARSER_ERR(array_get_element_count(&parsedJson, internalTokenElementIdx, &arrayTokenCount));
+        if (arrayTokenCount > MAX_JSON_ARRAY_TOKEN_COUNT) { //indirectly limits the maximum number of public keys
+            return PARSER_UNEXPECTED_NUMBER_ITEMS;
+        }
+
+        zemu_log_stack("PublicKeys");
+
+        uint16_t arrayElementToken;
+        char bufferUI[ARGUMENT_BUFFER_SIZE_ACCOUNT_KEY];
+        CHECK_PARSER_ERR(array_get_nth_element(&parsedJson, internalTokenElementIdx, argumentIndex, &arrayElementToken))
+        CHECK_PARSER_ERR(json_extractString(bufferUI, sizeof(bufferUI), &parsedJson, arrayElementToken))
+        pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
+
+        // Check requested page is in range
+        if (pageIdx > *pageCount) {
+            return PARSER_DISPLAY_PAGE_OUT_OF_RANGE;
+        }
     }
 
     return PARSER_OK;

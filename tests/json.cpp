@@ -27,6 +27,8 @@ const auto sendToken = "{\"type\":\"UFix64\",\"value\":\"545.77\"}";
 const auto sendToken2 = "{\"type\":\"Optional\",\"value\":null}";
 const auto sendToken3 = "{\"type\":\"Optional\",\"value\":{\"type\":\"UFix64\",\"value\":\"545.77\"}}";
 
+const auto sendToken4 = "{\"type\":\"Optional\",\"value\":{\"type\":\"Array\",\"value\":[{\"type\":\"UFix64\",\"value\":\"545.77\"}]}}";
+
 const auto validCreationInput = "{\n"
                                 "  \"type\": \"Array\",\n"
                                 "  \"value\": [\n"
@@ -202,6 +204,34 @@ TEST(JSON, OptionalKeyValueNotNull) {
     uint16_t internalTokenElementIdx;
     ASSERT_THAT(
             json_matchOptionalKeyValue(&parsedJson, 0, (char *) "UFix64", JSMN_STRING, &internalTokenElementIdx),
+            PARSER_OK);
+    ASSERT_THAT(internalTokenElementIdx, 8);
+}
+
+TEST(JSON, OptionalArrayNull) {
+    parsed_json_t parsedJson = {false};
+
+    auto err = json_parse(&parsedJson, sendToken2, strlen(sendToken2));
+
+     // We could parse valid JSON
+
+    uint16_t internalTokenElementIdx;
+    ASSERT_THAT(
+            json_matchOptionalArray(&parsedJson, 0, &internalTokenElementIdx),
+            PARSER_OK);
+    ASSERT_THAT(internalTokenElementIdx, JSON_MATCH_VALUE_IDX_NONE);
+}
+
+TEST(JSON, OptionalArrayNotNull) {
+    parsed_json_t parsedJson = {false};
+
+    auto err = json_parse(&parsedJson, sendToken4, strlen(sendToken4));
+
+     // We could parse valid JSON
+
+    uint16_t internalTokenElementIdx;
+    ASSERT_THAT(
+            json_matchOptionalArray(&parsedJson, 0, &internalTokenElementIdx),
             PARSER_OK);
     ASSERT_THAT(internalTokenElementIdx, 8);
 }
