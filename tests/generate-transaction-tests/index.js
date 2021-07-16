@@ -256,49 +256,61 @@ const sampleArguments = (i, arguments) => {
 const testnetTemplates = JSON.parse(fs.readFileSync('manifest.testnet.json')).templates;
 const mainnetTemplates = JSON.parse(fs.readFileSync('manifest.mainnet.json')).templates;
 
-const manifestTestnetPayloadCases = testnetTemplates.map((template) => {
-  return [
-    `${template.id} - ${template.name}`,
+const numberOfRequiredTests = (arguments) => {
+  return Math.max(1, ...arguments.map(({ type, sampleValues }) => Object.keys(sampleValues).length));
+};
+
+const manifestTestnetPayloadCases = [].concat.apply([], testnetTemplates.map((template) => {
+  const maxSv = numberOfRequiredTests(template.arguments);
+  return [...Array(maxSv).keys()].map((samplevalueNumber) => [
+    (maxSv==1)?`${template.id} - ${template.name}`: 
+               `${template.id} - ${template.name} - ${samplevalueNumber+1}`,
     buildPayloadTx(TESTNET, {
       script: template.source,
-      arguments: sampleArguments(0, template.arguments || [], TESTNET),
+      arguments: sampleArguments(samplevalueNumber, template.arguments || [], TESTNET),
     }), 
     TESTNET, 
-  ]
-});
+  ])
+}));
 
-const manifestMainnetPayloadCases = mainnetTemplates.map((template) => {
-  return [
-    `${template.id} - ${template.name}`,
+const manifestMainnetPayloadCases = [].concat.apply([], mainnetTemplates.map((template) => {
+  const maxSv = numberOfRequiredTests(template.arguments);
+  return [...Array(maxSv).keys()].map((samplevalueNumber) => [
+    (maxSv==1)?`${template.id} - ${template.name}`: 
+               `${template.id} - ${template.name} - ${samplevalueNumber+1}`,
     buildPayloadTx(MAINNET, {
       script: template.source,
-      arguments: sampleArguments(1, template.arguments || [], MAINNET),
+      arguments: sampleArguments(samplevalueNumber, template.arguments || [], MAINNET),
     }),
     MAINNET,
-  ]
-});
+  ])
+}));
 
-const manifestTestnetEnvelopeCases = testnetTemplates.map((template) => {
-  return [
-    `${template.id} - ${template.name}`,
+const manifestTestnetEnvelopeCases = [].concat.apply([], testnetTemplates.map((template) => {
+  const maxSv = numberOfRequiredTests(template.arguments);
+  return [...Array(maxSv).keys()].map((samplevalueNumber) => [
+    (maxSv==1)?`${template.id} - ${template.name}`: 
+               `${template.id} - ${template.name} - ${samplevalueNumber+1}`,
     buildEnvelopeTx(TESTNET, {
       script: template.source,
-      arguments: sampleArguments(2, template.arguments || [], TESTNET),
+      arguments: sampleArguments(samplevalueNumber, template.arguments || [], TESTNET),
     }),
     TESTNET,
-  ]
-});
+  ])
+}));
 
-const manifestMainnetEnvelopeCases = mainnetTemplates.map((template) => {
-  return [
-    `${template.id} - ${template.name}`,
+const manifestMainnetEnvelopeCases = [].concat.apply([], mainnetTemplates.map((template) => {
+  const maxSv = numberOfRequiredTests(template.arguments);
+  return [...Array(maxSv).keys()].map((samplevalueNumber) => [
+    (maxSv==1)?`${template.id} - ${template.name}`: 
+               `${template.id} - ${template.name} - ${samplevalueNumber+1}`,
     buildEnvelopeTx(MAINNET, {
       script: template.source,
-      arguments: sampleArguments(3, template.arguments || [], MAINNET),
+      arguments: sampleArguments(samplevalueNumber, template.arguments || [], MAINNET),
     }),
     MAINNET,
-  ]
-});
+  ])
+}));
 
 const manifestPayloadCases = [
   ...manifestTestnetPayloadCases,
