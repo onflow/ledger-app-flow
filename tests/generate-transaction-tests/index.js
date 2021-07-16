@@ -272,7 +272,7 @@ const manifestMainnetPayloadCases = mainnetTemplates.map((template) => {
     `${template.id} - ${template.name}`,
     buildPayloadTx(MAINNET, {
       script: template.source,
-      arguments: sampleArguments(0, template.arguments || [], MAINNET),
+      arguments: sampleArguments(1, template.arguments || [], MAINNET),
     }),
     MAINNET,
   ]
@@ -283,7 +283,7 @@ const manifestTestnetEnvelopeCases = testnetTemplates.map((template) => {
     `${template.id} - ${template.name}`,
     buildEnvelopeTx(TESTNET, {
       script: template.source,
-      arguments: sampleArguments(0, template.arguments || [], TESTNET),
+      arguments: sampleArguments(2, template.arguments || [], TESTNET),
     }),
     TESTNET,
   ]
@@ -294,7 +294,7 @@ const manifestMainnetEnvelopeCases = mainnetTemplates.map((template) => {
     `${template.id} - ${template.name}`,
     buildEnvelopeTx(MAINNET, {
       script: template.source,
-      arguments: sampleArguments(0, template.arguments || [], MAINNET),
+      arguments: sampleArguments(3, template.arguments || [], MAINNET),
     }),
     MAINNET,
   ]
