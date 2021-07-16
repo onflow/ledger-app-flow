@@ -44,6 +44,10 @@ function getArgumentPageCount(arg) {
         return count;
     }
 
+    if (arg.type == "Optional" && arg.value != null) {
+        return getArgumentPageCount(arg.value);
+    }
+
     return 1;
 }
 

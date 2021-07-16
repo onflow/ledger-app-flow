@@ -247,57 +247,72 @@ const createEnvelopeTestcase = (valid) => {
   });
 };
 
-const sampleArguments = (i, arguments) => {
-  return arguments.map(({ type, sampleValues }) => {
-    return sampleValues[Math.min(i, Object.keys(sampleValues).length-1)];
+const sampleArguments = (transactionArguments, samplevaluesIdx) => {
+  return transactionArguments.map(({ type, sampleValues }) => {
+    return sampleValues[Math.min(samplevaluesIdx, sampleValues.length-1)];
   });
 };
 
 const testnetTemplates = JSON.parse(fs.readFileSync('manifest.testnet.json')).templates;
 const mainnetTemplates = JSON.parse(fs.readFileSync('manifest.mainnet.json')).templates;
 
-const manifestTestnetPayloadCases = testnetTemplates.map((template) => {
-  return [
-    `${template.id} - ${template.name}`,
+const numberOfRequiredTests = (arguments) => {
+  return Math.max(1, ...arguments.map(({ type, sampleValues }) => sampleValues.length));
+};
+
+//If arguments have multiple samplevalues the testcases are generated as follows:
+//we generate number of numberOfRequiredTests testcases for each template.
+//Testcase i contains i-th samplevalue (or the last samplevalue, if i-th samplevalue does not exist)
+const manifestTestnetPayloadCases = testnetTemplates.flatMap((template) => {
+  const maxSv = numberOfRequiredTests(template.arguments);
+  return range(0, maxSv).map((sampleValuesIdx) => [
+    (maxSv==1)?`${template.id} - ${template.name}`: 
+               `${template.id} - ${template.name} - ${sampleValuesIdx+1}`,
     buildPayloadTx(TESTNET, {
       script: template.source,
-      arguments: sampleArguments(0, template.arguments || [], TESTNET),
+      arguments: sampleArguments(template.arguments || [], sampleValuesIdx),
     }), 
     TESTNET, 
-  ]
+  ])
 });
 
-const manifestMainnetPayloadCases = mainnetTemplates.map((template) => {
-  return [
-    `${template.id} - ${template.name}`,
+const manifestMainnetPayloadCases = mainnetTemplates.flatMap((template) => {
+  const maxSv = numberOfRequiredTests(template.arguments);
+  return range(0, maxSv).map((sampleValuesIdx) => [
+    (maxSv==1)?`${template.id} - ${template.name}`: 
+               `${template.id} - ${template.name} - ${sampleValuesIdx+1}`,
     buildPayloadTx(MAINNET, {
       script: template.source,
-      arguments: sampleArguments(1, template.arguments || [], MAINNET),
+      arguments: sampleArguments(template.arguments || [], sampleValuesIdx),
     }),
     MAINNET,
-  ]
+  ])
 });
 
-const manifestTestnetEnvelopeCases = testnetTemplates.map((template) => {
-  return [
-    `${template.id} - ${template.name}`,
+const manifestTestnetEnvelopeCases = testnetTemplates.flatMap((template) => {
+  const maxSv = numberOfRequiredTests(template.arguments);
+  return range(0, maxSv).map((sampleValuesIdx) => [
+    (maxSv==1)?`${template.id} - ${template.name}`: 
+               `${template.id} - ${template.name} - ${sampleValuesIdx+1}`,
     buildEnvelopeTx(TESTNET, {
       script: template.source,
-      arguments: sampleArguments(2, template.arguments || [], TESTNET),
+      arguments: sampleArguments(template.arguments || [], sampleValuesIdx),
     }),
     TESTNET,
-  ]
+  ])
 });
 
-const manifestMainnetEnvelopeCases = mainnetTemplates.map((template) => {
-  return [
-    `${template.id} - ${template.name}`,
+const manifestMainnetEnvelopeCases = mainnetTemplates.flatMap((template) => {
+  const maxSv = numberOfRequiredTests(template.arguments);
+  return range(0, maxSv).map((sampleValuesIdx) => [
+    (maxSv==1)?`${template.id} - ${template.name}`: 
+               `${template.id} - ${template.name} - ${sampleValuesIdx+1}`,
     buildEnvelopeTx(MAINNET, {
       script: template.source,
-      arguments: sampleArguments(3, template.arguments || [], MAINNET),
+      arguments: sampleArguments(template.arguments || [], sampleValuesIdx),
     }),
     MAINNET,
-  ]
+  ])
 });
 
 const manifestPayloadCases = [
