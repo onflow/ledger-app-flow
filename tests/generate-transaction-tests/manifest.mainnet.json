@@ -436,6 +436,54 @@
       ],
       "network": "mainnet",
       "hash": "239ffa449eae5560eec3e99633dcf9c63b1e9c99996d1c5636644dceef9ec44b"
-    }
-  ]
+    },
+    {
+      "id": "SCO.11",
+      "name": "Withdraw Unstaked Tokens",
+      "source": "import FlowStakingCollection from 0x8d0e87b65159ae63\n\n/// Request to withdraw unstaked tokens for the specified node or delegator in the staking collection\n/// The tokens are automatically deposited to the unlocked account vault first,\n/// And then any locked tokens are deposited into the locked account vault if it is there\n\ntransaction(nodeID: String, delegatorID: UInt32?, amount: UFix64) {\n    \n    let stakingCollectionRef: \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: AuthAccount) {\n        self.stakingCollectionRef = account.borrow\u003c\u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n    }\n\n    execute {\n        self.stakingCollectionRef.withdrawUnstakedTokens(nodeID: nodeID, delegatorID: delegatorID, amount: amount)\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "String",
+          "name": "nodeID",
+          "label": "Node ID",
+          "sampleValues": [
+            {
+              "type": "String",
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+            }
+          ]
+        },
+        {
+          "type": "UInt32?",
+          "name": "delegatorID",
+          "label": "Delegator ID",
+          "sampleValues": [
+            {
+              "type": "Optional",
+              "value": {
+                "type": "UInt32",
+                "value": "42"
+              }
+            },
+            {
+              "type": "Optional",
+              "value": null
+            }
+          ]
+        },
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount",
+          "sampleValues": [
+            {
+              "type": "UFix64",
+              "value": "92233720368.54775808"
+            }
+          ]
+        }
+      ],
+      "network": "mainnet",
+      "hash": "6d50ab1ef3d74203081c38306da74f5ad8fdd489e49fba732f8ba194d0c781c8"
+    }  ]
 }

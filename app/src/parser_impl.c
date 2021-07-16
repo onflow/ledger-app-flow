@@ -181,7 +181,7 @@ parser_error_t json_matchNull(parsed_json_t *parsedJson, uint16_t tokenIdx) {
 
     const jsmntok_t token = parsedJson->tokens[tokenIdx];
     if (token.type != JSMN_PRIMITIVE) {
-        return PARSER_UNEXPECTED_VALUE;
+        return PARSER_UNEXPECTED_TYPE;
     }
 
     if (token.end < token.start || 4 != (size_t)(token.end - token.start)) {
@@ -412,6 +412,9 @@ parser_error_t _matchScriptType(uint8_t scriptHash[32], script_type_e *scriptTyp
 
         {SCRIPT_TH24_WITHDRAW_REWARDED_DELEGATED_TOKENS, TEMPLATE_HASH_TH24_WITHDRAW_REWARDED_DELEGATED_TOKENS_TESTNET},
         {SCRIPT_TH24_WITHDRAW_REWARDED_DELEGATED_TOKENS, TEMPLATE_HASH_TH24_WITHDRAW_REWARDED_DELEGATED_TOKENS_MAINNET},
+
+        {SCRIPT_SCO11_WITHDRAW_UNSTAKED_TOKENS, TEMPLATE_HASH_SCO11_WITHDRAW_UNSTAKED_TOKENS_TESTNET},
+        {SCRIPT_SCO11_WITHDRAW_UNSTAKED_TOKENS, TEMPLATE_HASH_SCO11_WITHDRAW_UNSTAKED_TOKENS_MAINNET},
         // sentinel, do not remove
         {0, NULL}
     };
@@ -709,6 +712,8 @@ uint8_t _getNumItems(const parser_context_t *c, const parser_tx_t *v) {
             return 9 + v->authorizers.authorizer_count;
         case SCRIPT_TH24_WITHDRAW_REWARDED_DELEGATED_TOKENS:
             return 9 + v->authorizers.authorizer_count;
+        case SCRIPT_SCO11_WITHDRAW_UNSTAKED_TOKENS:
+            return 11 + v->authorizers.authorizer_count;
         case SCRIPT_UNKNOWN:
         default:
             return 0;
