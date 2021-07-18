@@ -131,6 +131,34 @@ transaction(id: String,
 }
 `;
 
+const TX_CREATE_MACHINE_ACCOUNT_SCO = 
+`import FlowStakingCollection from 0x8d0e87b65159ae63
+
+/// Creates a machine account for a node that is already in the staking collection
+/// and adds public keys to the new account
+
+transaction(nodeID: String, publicKeys: [String]) {
+    
+    let stakingCollectionRef: &FlowStakingCollection.StakingCollection
+
+    prepare(account: AuthAccount) {
+        self.stakingCollectionRef = account.borrow<&FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
+            ?? panic("Could not borrow ref to StakingCollection")
+
+        if let machineAccount = self.stakingCollectionRef.createMachineAccountForExistingNode(nodeID: nodeID, payer: account) {
+            if publicKeys == nil || publicKeys!.length == 0 {
+                panic("Cannot provide zero keys for the machine account")
+            }
+            for key in publicKeys! {
+                machineAccount.addPublicKey(key.decodeHex())
+            }
+        } else {
+            panic("Could not create a machine account for the node")
+        }
+    }
+}
+`;
+
 const TXS_TRANSFER_TOKENS = {
   [EMULATOR]: TX_TRANSFER_TOKENS_EMULATOR,
   [TESTNET]: TX_TRANSFER_TOKENS_TESTNET,
@@ -455,6 +483,40 @@ const invalidPayloadCases = [
               }
             ]
           }
+        }
+      ]
+    }),
+    MAINNET,
+  ],
+  [
+    "Example Transaction - Invalid Payload - SCO.04 - Too Many Public Keys",
+    buildPayloadTx(MAINNET, {
+      script: TX_CREATE_MACHINE_ACCOUNT_SCO,
+      arguments: [
+        {
+          "type": "String",
+          "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+        },
+        {
+          "type": "Array",
+          "value": [
+            {
+              "type": "String",
+              "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+            },
+            {
+              "type": "String",
+              "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+            },
+            {
+              "type": "String",
+              "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+            },
+            {
+              "type": "String",
+              "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+            }
+          ]
         }
       ]
     }),
