@@ -413,6 +413,9 @@ parser_error_t _matchScriptType(uint8_t scriptHash[32], script_type_e *scriptTyp
         {SCRIPT_TH24_WITHDRAW_REWARDED_DELEGATED_TOKENS, TEMPLATE_HASH_TH24_WITHDRAW_REWARDED_DELEGATED_TOKENS_TESTNET},
         {SCRIPT_TH24_WITHDRAW_REWARDED_DELEGATED_TOKENS, TEMPLATE_HASH_TH24_WITHDRAW_REWARDED_DELEGATED_TOKENS_MAINNET},
 
+        {SCRIPT_SCO03_REGISTER_NODE, TEMPLATE_HASH_SCO03_REGISTER_NODE_TESTNET},
+        {SCRIPT_SCO03_REGISTER_NODE, TEMPLATE_HASH_SCO03_REGISTER_NODE_MAINNET},
+
         {SCRIPT_SCO11_WITHDRAW_UNSTAKED_TOKENS, TEMPLATE_HASH_SCO11_WITHDRAW_UNSTAKED_TOKENS_TESTNET},
         {SCRIPT_SCO11_WITHDRAW_UNSTAKED_TOKENS, TEMPLATE_HASH_SCO11_WITHDRAW_UNSTAKED_TOKENS_MAINNET},
         // sentinel, do not remove
@@ -668,6 +671,38 @@ uint8_t _countArgumentItems(const flow_argument_list_t *v, uint8_t argumentIndex
     return arrayTokenCount;
 }
 
+
+uint8_t _countArgumentOptionalItems(const flow_argument_list_t *v, uint8_t argumentIndex) {
+    parsed_json_t parsedJson = {false};
+
+    if (argumentIndex >= v->argCount) {
+        return 0;
+    }
+
+    const parser_context_t argCtx = v->argCtx[argumentIndex];
+    parser_error_t err = json_parse(&parsedJson, (char *) argCtx.buffer, argCtx.bufferLen);
+    if (err != PARSER_OK) {
+        return 0;
+    }
+
+    // Get numnber of items
+    uint16_t internalTokenElementIdx;
+    err = json_matchOptionalArray(&parsedJson, 0, &internalTokenElementIdx);
+    if (err != PARSER_OK) {
+        return 0;
+    }
+    if (internalTokenElementIdx == JSON_MATCH_VALUE_IDX_NONE) {
+        return 1;
+    }
+    
+    uint16_t arrayTokenCount;
+    err = array_get_element_count(&parsedJson, internalTokenElementIdx, &arrayTokenCount);
+    if (err != PARSER_OK || arrayTokenCount > 64) {
+        return 0;
+    }
+    return arrayTokenCount;
+}
+
 uint8_t _getNumItems(const parser_context_t *c, const parser_tx_t *v) {
     switch (v->script.type) {
         case SCRIPT_TOKEN_TRANSFER:
@@ -712,6 +747,8 @@ uint8_t _getNumItems(const parser_context_t *c, const parser_tx_t *v) {
             return 9 + v->authorizers.authorizer_count;
         case SCRIPT_TH24_WITHDRAW_REWARDED_DELEGATED_TOKENS:
             return 9 + v->authorizers.authorizer_count;
+        case SCRIPT_SCO03_REGISTER_NODE:
+            return 14 + _countArgumentOptionalItems(&v->arguments, 6) + v->authorizers.authorizer_count;
         case SCRIPT_SCO11_WITHDRAW_UNSTAKED_TOKENS:
             return 11 + v->authorizers.authorizer_count;
         case SCRIPT_UNKNOWN:

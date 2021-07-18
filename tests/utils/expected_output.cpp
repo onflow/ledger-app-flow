@@ -226,6 +226,25 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
             break;
         }
+        case SCRIPT_SCO03_REGISTER_NODE: {
+            addTo(answer, "{} | Type : Register Node", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[0]["value"]);
+            addTo(answer, "{} | Node Role : {}", item++, tcd.arguments[1]["value"].asString());
+            addMultiStringArgumentTo(answer, "Netw. Addr.", item++, tcd.arguments[2]["value"]);
+            addMultiStringArgumentTo(answer, "Netw. Key", item++, tcd.arguments[3]["value"]);
+            addMultiStringArgumentTo(answer, "Staking Key", item++, tcd.arguments[4]["value"]);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[5]["value"].asString());
+            if (tcd.arguments[6]["value"].isObject()) {
+                for (uint16_t i = 0; i < (uint16_t) tcd.arguments[6]["value"]["value"].size(); i++) {
+                    addMultiStringArgumentTo(answer, fmt::format("Pub key {}", i + 1), item++, tcd.arguments[6]["value"]["value"][i]["value"]);
+                }
+            }
+            else {
+                addTo(answer, "{} | Pub key 1 : None", item++);
+            }
+            break;
+        }
         case SCRIPT_SCO11_WITHDRAW_UNSTAKED_TOKENS: {
             addTo(answer, "{} | Type : Withdraw Unstaked Tokens", item++);
             addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);

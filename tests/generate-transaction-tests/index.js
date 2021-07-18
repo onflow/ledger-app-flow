@@ -91,6 +91,46 @@ getAccount(to)
 }
 }`;
 
+const TX_REGISTER_NODE_SCO = 
+`import FlowStakingCollection from 0x8d0e87b65159ae63
+
+/// Registers a delegator in the staking collection resource
+/// for the specified node information and the amount of tokens to commit
+
+transaction(id: String,
+            role: UInt8,
+            networkingAddress: String,
+            networkingKey: String,
+            stakingKey: String,
+            amount: UFix64,
+            publicKeys: [String]?) {
+    
+    let stakingCollectionRef: &FlowStakingCollection.StakingCollection
+
+    prepare(account: AuthAccount) {
+        self.stakingCollectionRef = account.borrow<&FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
+            ?? panic("Could not borrow ref to StakingCollection")
+
+        if let machineAccount = self.stakingCollectionRef.registerNode(
+            id: id,
+            role: role,
+            networkingAddress: networkingAddress,
+            networkingKey: networkingKey,
+            stakingKey: stakingKey,
+            amount: amount,
+            payer: account) 
+        {
+            if publicKeys == nil || publicKeys!.length == 0 {
+                panic("Cannot provide zero keys for the machine account")
+            }
+            for key in publicKeys! {
+                machineAccount.addPublicKey(key.decodeHex())
+            }
+        }
+    }
+}
+`;
+
 const TXS_TRANSFER_TOKENS = {
   [EMULATOR]: TX_TRANSFER_TOKENS_EMULATOR,
   [TESTNET]: TX_TRANSFER_TOKENS_TESTNET,
@@ -372,6 +412,63 @@ const invalidPayloadCases = [
 
         "028c6476bb0ee29e",
       ],
+    }),
+    MAINNET,
+  ],
+  [
+    "Example Transaction - Invalid Payload - SCO.03 - Too Many Public Keys",
+    buildPayloadTx(MAINNET, {
+      script: TX_REGISTER_NODE_SCO,
+      arguments: [
+        {
+          "type": "String",
+          "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+        },
+        {
+          "type": "UInt8",
+          "value": "1"
+        },
+        {
+          "type": "String",
+          "value": "flow-node.test:3569"
+        },
+        {
+          "type": "String",
+          "value": "1348307bc77c688e80049de9d081aa09755da33e6997605fa059db2144fc85e560cbe6f7da8d74b453f5916618cb8fd392c2db856f3e78221dc68db1b1d914e4"
+        },
+        {
+          "type": "String",
+          "value": "9e9ae0d645fd5fd9050792e0b0daa82cc1686d9133afa0f81a784b375c42ae48567d1545e7a9e1965f2c1a32f73cf8575ebb7a967f6e4d104d2df78eb8be409135d12da0499b8a00771f642c1b9c49397f22b440439f036c3bdee82f5309dab3"
+        },
+        {
+          "type": "UFix64",
+          "value": "92233720368.54775808"
+        },
+        {
+          "type": "Optional",
+          "value": {
+            "type": "Array",
+            "value": [
+              {
+                "type": "String",
+                "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+              },
+              {
+                "type": "String",
+                "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+              },
+              {
+                "type": "String",
+                "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+              },
+              {
+                "type": "String",
+                "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+              }
+            ]
+          }
+        }
+      ]
     }),
     MAINNET,
   ],
