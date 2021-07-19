@@ -537,6 +537,9 @@ parser_error_t parser_getItemCreateAccount(const parser_context_t *ctx,
     displayIdx--;
 
     const uint8_t pkCount = _countArgumentItems(&parser_tx_obj.arguments, 0);
+    if (pkCount > 5) {
+        return PARSER_UNEXPECTED_NUMBER_ITEMS;
+    }
     if (displayIdx < pkCount) {
         snprintf(outKey, outKeyLen, "Pub key %d", displayIdx + 1);
         CHECK_PARSER_ERR(
