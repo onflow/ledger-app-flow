@@ -688,11 +688,13 @@ parser_error_t _validateTx(const parser_context_t *c, const parser_tx_t *v) {
     return PARSER_OK;
 }
 
-uint8_t _countArgumentItems(const flow_argument_list_t *v, uint8_t argumentIndex) {
+parser_error_t _countArgumentItems(const flow_argument_list_t *v, uint8_t argumentIndex, 
+                                   uint8_t max_number_of_items, uint8_t *number_of_items) {
+    *number_of_items = 0;
     parsed_json_t parsedJson = {false};
 
     if (argumentIndex >= v->argCount) {
-        return 0;
+        return PARSER_UNEXPECTED_FIELD;
     }
 
     const parser_context_t argCtx = v->argCtx[argumentIndex];
@@ -703,51 +705,55 @@ uint8_t _countArgumentItems(const flow_argument_list_t *v, uint8_t argumentIndex
     CHECK_PARSER_ERR(json_matchKeyValue(&parsedJson, 0, (char *) "Array", JSMN_ARRAY, &internalTokenElementIdx));
     uint16_t arrayTokenCount;
     CHECK_PARSER_ERR(array_get_element_count(&parsedJson, internalTokenElementIdx, &arrayTokenCount));
-    if (arrayTokenCount > 64) {
+    if (arrayTokenCount > max_number_of_items) {
         return PARSER_UNEXPECTED_NUMBER_ITEMS;
     }
 
-    return arrayTokenCount;
+    *number_of_items = arrayTokenCount;
+    return PARSER_OK;
 }
 
-
-uint8_t _countArgumentOptionalItems(const flow_argument_list_t *v, uint8_t argumentIndex) {
+//if Optional is null, number_of_items is set to 1 as one screen is needed to dispay "None"
+parser_error_t _countArgumentOptionalItems(const flow_argument_list_t *v, uint8_t argumentIndex, 
+                                           uint8_t max_number_of_items, uint8_t *number_of_items) {
+    *number_of_items = 0;
     parsed_json_t parsedJson = {false};
 
     if (argumentIndex >= v->argCount) {
-        return 0;
+        return PARSER_UNEXPECTED_FIELD;
     }
 
     const parser_context_t argCtx = v->argCtx[argumentIndex];
-    parser_error_t err = json_parse(&parsedJson, (char *) argCtx.buffer, argCtx.bufferLen);
-    if (err != PARSER_OK) {
-        return 0;
-    }
+    CHECK_PARSER_ERR(json_parse(&parsedJson, (char *) argCtx.buffer, argCtx.bufferLen));
 
-    // Get numnber of items
     uint16_t internalTokenElementIdx;
-    err = json_matchOptionalArray(&parsedJson, 0, &internalTokenElementIdx);
-    if (err != PARSER_OK) {
-        return 0;
-    }
+    CHECK_PARSER_ERR(json_matchOptionalArray(&parsedJson, 0, &internalTokenElementIdx));
     if (internalTokenElementIdx == JSON_MATCH_VALUE_IDX_NONE) {
-        return 1;
+        *number_of_items = 1;
+        return PARSER_OK;
     }
     
+    // Get numnber of items
     uint16_t arrayTokenCount;
-    err = array_get_element_count(&parsedJson, internalTokenElementIdx, &arrayTokenCount);
-    if (err != PARSER_OK || arrayTokenCount > 64) {
-        return 0;
+    CHECK_PARSER_ERR(array_get_element_count(&parsedJson, internalTokenElementIdx, &arrayTokenCount));
+    if (arrayTokenCount > max_number_of_items) {
+        return PARSER_UNEXPECTED_NUMBER_ITEMS;
     }
-    return arrayTokenCount;
+
+    *number_of_items = arrayTokenCount;
+    return PARSER_OK;
 }
 
+//this function returns incorrect value on parser error, checks for parser errors are performed in next 
+//_countArgumentItems and _countArgumentOptionalItems calls
 uint8_t _getNumItems(const parser_context_t *c, const parser_tx_t *v) {
+    uint8_t arg_array_length = 0;
     switch (v->script.type) {
         case SCRIPT_TOKEN_TRANSFER:
             return 10 + v->authorizers.authorizer_count;
         case SCRIPT_CREATE_ACCOUNT:
-            return 8 + _countArgumentItems(&v->arguments, 0) + v->authorizers.authorizer_count;
+            _countArgumentItems(&v->arguments, 0, UINT8_MAX, &arg_array_length); //array lenght is checked later 
+            return 8 + arg_array_length + v->authorizers.authorizer_count;
         case SCRIPT_ADD_NEW_KEY:
             return 9 + v->authorizers.authorizer_count;
         case SCRIPT_TH01_WITHDRAW_UNLOCKED_TOKENS:
@@ -791,9 +797,11 @@ uint8_t _getNumItems(const parser_context_t *c, const parser_tx_t *v) {
         case SCRIPT_SCO02_REGISTER_DELEGATOR:
             return 10 + v->authorizers.authorizer_count;
         case SCRIPT_SCO03_REGISTER_NODE:
-            return 14 + _countArgumentOptionalItems(&v->arguments, 6) + v->authorizers.authorizer_count;
+            _countArgumentOptionalItems(&v->arguments, 6, UINT8_MAX, &arg_array_length); //array lenght is checked later 
+            return 14 + arg_array_length + v->authorizers.authorizer_count;
         case SCRIPT_SCO04_CREATE_MACHINE_ACCOUNT:
-            return 9 + _countArgumentItems(&v->arguments, 1) + v->authorizers.authorizer_count;
+            _countArgumentItems(&v->arguments, 1, UINT8_MAX, &arg_array_length); //array lenght is checked later
+            return 9 + arg_array_length + v->authorizers.authorizer_count;
         case SCRIPT_SCO05_REQUEST_UNSTAKING:
             return 11 + v->authorizers.authorizer_count;
         case SCRIPT_SCO06_STAKE_NEW_TOKENS:
