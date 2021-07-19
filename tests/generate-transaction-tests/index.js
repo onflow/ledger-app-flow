@@ -534,6 +534,44 @@ const invalidPayloadCases = [
     }),
     MAINNET,
   ],
+  [
+    "Example Transaction - Invalid Payload - Create Account - Too Many Public Keys",
+    buildPayloadTx(MAINNET, {
+      script: TX_CREATE_ACCOUNT,
+      arguments: [
+        {
+          "type": "Array",
+          "value": [
+            {
+              "type": "String",
+              "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+            },
+            {
+              "type": "String",
+              "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+            },
+            {
+              "type": "String",
+              "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+            },
+            {
+              "type": "String",
+              "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+            },
+            {
+              "type": "String",
+              "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+            },
+            {
+              "type": "String",
+              "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+            }
+          ]
+        }
+      ]
+    }),
+    MAINNET,
+  ],
 ].map(createPayloadTestcase(false));
 
 const validPayloadTransferCases = 
@@ -631,7 +669,7 @@ const validPayloadCases = [
       MAINNET,
     ]
   )),
-  ...(range(1, 5).map((i) => 
+  ...(range(1, 6).map((i) => 
     [
       `Create Account Transaction - Valid Payload - Multiple Account Keys #${i}`,
       buildPayloadTx(MAINNET, {
@@ -828,7 +866,7 @@ const validEnvelopeCases = [
       MAINNET,
     ]
   )),
-  ...(range(1, 5).map((i) => 
+  ...(range(1, 6).map((i) => 
     [
       `Create Account Transaction - Valid Envelope - Multiple Account Keys #${i}`,
       buildEnvelopeTx(MAINNET, {
