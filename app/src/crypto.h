@@ -47,17 +47,18 @@ void sha256(const uint8_t *message, uint16_t messageLen, uint8_t message_digest[
 
 extern uint32_t hdPath[HDPATH_LEN_DEFAULT];
 
-bool isTestnet();
-
 zxerr_t crypto_extractPublicKey(const uint32_t path[HDPATH_LEN_DEFAULT], uint8_t *pubKey, uint16_t pubKeyLen);
 
-zxerr_t crypto_fillAddress(uint8_t *buffer, uint16_t bufferLen, uint16_t *addrLen);
+zxerr_t crypto_fillAddress(const uint32_t path[HDPATH_LEN_DEFAULT], uint8_t *buffer, uint16_t bufferLen, uint16_t *addrLen);
 
-zxerr_t crypto_sign(uint8_t *signature,
-                     uint16_t signatureMaxlen,
-                     const uint8_t *message,
-                     uint16_t messageLen,
-                     uint16_t *sigSize);
+zxerr_t crypto_sign(
+    const uint32_t path[HDPATH_LEN_DEFAULT],
+    const uint8_t *message,
+    uint16_t messageLen,
+    uint8_t *signature,
+    uint16_t signatureMaxlen,
+    uint16_t *sigSize
+);
 
 #ifdef __cplusplus
 }
