@@ -20,6 +20,9 @@
     if (ctx->offset > ctx->bufferLen) return PARSER_UNEXPECTED_BUFFER_END; \
     if (ctx->bufferLen - ctx->offset < size ) return PARSER_UNEXPECTED_BUFFER_END;
 
+#define CHECK_LEN_LEN_MAX(len_len, size) \
+    if (len_len > size) return PARSER_RLP_ERROR_INVALID_VALUE_LEN;
+
 parser_error_t rlp_decode(
         const parser_context_t *input,
         parser_context_t *outputPayload,
@@ -57,6 +60,7 @@ parser_error_t rlp_decode(
         *outputKind = RLP_KIND_STRING;
         const uint8_t len_len = p - 0xb7;
         CHECK_AVAILABLE(input, 1 + len_len)
+        CHECK_LEN_LEN_MAX(len_len, sizeof(outputPayload->bufferLen));
 
         outputPayload->bufferLen = 0;
         for (uint8_t i = 0; i < len_len; i++) {
@@ -82,6 +86,7 @@ parser_error_t rlp_decode(
         *outputKind = RLP_KIND_LIST;
         const uint8_t len_len = p - 0xf7;
         CHECK_AVAILABLE(input, 1 + len_len)
+        CHECK_LEN_LEN_MAX(len_len, sizeof(outputPayload->bufferLen));
 
         outputPayload->bufferLen = 0;
         for (uint8_t i = 0; i < len_len; i++) {
