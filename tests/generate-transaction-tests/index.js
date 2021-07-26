@@ -247,60 +247,81 @@ const createEnvelopeTestcase = (valid) => {
   });
 };
 
-const sampleArguments = (arguments) => {
-  return arguments.map(({ type, sampleValue }) => {
-    return {
-      type: type,
-      value: sampleValue,
-    };
+const sampleArguments = (transactionArguments, sampleValuesCombination) => {
+  return transactionArguments.map(({ type, sampleValues }, i) => {
+    return sampleValues[sampleValuesCombination[i]];
   });
 };
+
+const numberOfRequiredTests = (arguments) => {
+  return Math.max(1, ...arguments.map(({ type, sampleValues }) => sampleValues.length));
+};
+
+// Instead of taking all sampleValues combinations we just take (0, 0, ...), (1, 1, ..), ... .
+// Last sampleValue is used if sampleValuesIdx is too high.
+const selectArgumentCombinations = (transactionArguments) => {
+  const maxSv = numberOfRequiredTests(transactionArguments);
+  return range(0, maxSv).map((sampleValuesIdx) => 
+    range(0, transactionArguments.length).map((i) => 
+      Math.min(sampleValuesIdx, transactionArguments[i].sampleValues.length-1)
+    )
+  );
+}
 
 const testnetTemplates = JSON.parse(fs.readFileSync('manifest.testnet.json')).templates;
 const mainnetTemplates = JSON.parse(fs.readFileSync('manifest.mainnet.json')).templates;
 
-const manifestTestnetPayloadCases = testnetTemplates.map((template) => {
-  return [
-    `${template.id} - ${template.name}`,
+
+const manifestTestnetPayloadCases = testnetTemplates.flatMap((template) => {
+  const combinations = selectArgumentCombinations(template.arguments);
+  return combinations.map((combination, i) => [
+    (combinations.length==1)?`${template.id} - ${template.name}`: 
+                             `${template.id} - ${template.name} - ${i+1}`,
     buildPayloadTx(TESTNET, {
       script: template.source,
-      arguments: sampleArguments(template.arguments || [], TESTNET),
-    }),
-    TESTNET,
-  ]
+      arguments: sampleArguments(template.arguments || [], combination),
+    }), 
+    TESTNET, 
+  ])
 });
 
-const manifestMainnetPayloadCases = mainnetTemplates.map((template) => {
-  return [
-    `${template.id} - ${template.name}`,
+const manifestMainnetPayloadCases = mainnetTemplates.flatMap((template) => {
+  const combinations = selectArgumentCombinations(template.arguments);
+  return combinations.map((combination, i) => [
+    (combinations.length==1)?`${template.id} - ${template.name}`: 
+                             `${template.id} - ${template.name} - ${i+1}`,
     buildPayloadTx(MAINNET, {
       script: template.source,
-      arguments: sampleArguments(template.arguments || [], MAINNET),
+      arguments: sampleArguments(template.arguments || [], combination),
     }),
     MAINNET,
-  ]
+  ])
 });
 
-const manifestTestnetEnvelopeCases = testnetTemplates.map((template) => {
-  return [
-    `${template.id} - ${template.name}`,
+const manifestTestnetEnvelopeCases = testnetTemplates.flatMap((template) => {
+  const combinations = selectArgumentCombinations(template.arguments);
+  return combinations.map((combination, i) => [
+    (combinations.length==1)?`${template.id} - ${template.name}`: 
+                             `${template.id} - ${template.name} - ${i+1}`,
     buildEnvelopeTx(TESTNET, {
       script: template.source,
-      arguments: sampleArguments(template.arguments || [], TESTNET),
+      arguments: sampleArguments(template.arguments || [], combination),
     }),
     TESTNET,
-  ]
+  ])
 });
 
-const manifestMainnetEnvelopeCases = mainnetTemplates.map((template) => {
-  return [
-    `${template.id} - ${template.name}`,
+const manifestMainnetEnvelopeCases = mainnetTemplates.flatMap((template) => {
+  const combinations = selectArgumentCombinations(template.arguments);
+  return combinations.map((combination, i) => [
+    (combinations.length==1)?`${template.id} - ${template.name}`: 
+                             `${template.id} - ${template.name} - ${i+1}`,
     buildEnvelopeTx(MAINNET, {
       script: template.source,
-      arguments: sampleArguments(template.arguments || [], MAINNET),
+      arguments: sampleArguments(template.arguments || [], combination),
     }),
     MAINNET,
-  ]
+  ])
 });
 
 const manifestPayloadCases = [
