@@ -226,6 +226,18 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
             break;
         }
+        case SCRIPT_SCO01_SETUP_STAKING_COLLECTION: {
+            addTo(answer, "{} | Type : Setup Staking Collection", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            break;
+        }
+        case SCRIPT_SCO02_REGISTER_DELEGATOR: {
+            addTo(answer, "{} | Type : Register Delegator", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[0]["value"]);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[1]["value"].asString());
+            break;
+        }
         case SCRIPT_SCO03_REGISTER_NODE: {
             addTo(answer, "{} | Type : Register Node", item++);
             addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
@@ -245,6 +257,76 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             }
             break;
         }
+        case SCRIPT_SCO04_CREATE_MACHINE_ACCOUNT: {
+            addTo(answer, "{} | Type : Create Machine Account", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[0]["value"]);
+            for (uint16_t i = 0; i < (uint16_t) tcd.arguments[1]["value"].size(); i++) {
+                addMultiStringArgumentTo(answer, fmt::format("Pub key {}", i + 1), item++, tcd.arguments[1]["value"][i]["value"]);
+            }
+            break;
+        }
+        case SCRIPT_SCO05_REQUEST_UNSTAKING: {
+            addTo(answer, "{} | Type : Request Unstaking", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[0]["value"]);
+            if (tcd.arguments[1]["value"].isObject())
+                addTo(answer, "{} | Delegator ID : {}", item++, tcd.arguments[1]["value"]["value"].asString());
+            else
+                addTo(answer, "{} | Delegator ID : None", item++);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[2]["value"].asString());
+            break;
+        }
+        case SCRIPT_SCO06_STAKE_NEW_TOKENS: {
+            addTo(answer, "{} | Type : Stake New Tokens", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[0]["value"]);
+            if (tcd.arguments[1]["value"].isObject())
+                addTo(answer, "{} | Delegator ID : {}", item++, tcd.arguments[1]["value"]["value"].asString());
+            else
+                addTo(answer, "{} | Delegator ID : None", item++);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[2]["value"].asString());
+            break;
+        }
+        case SCRIPT_SCO07_STAKE_REWARD_TOKENS: {
+            addTo(answer, "{} | Type : Stake Reward Tokens", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[0]["value"]);
+            if (tcd.arguments[1]["value"].isObject())
+                addTo(answer, "{} | Delegator ID : {}", item++, tcd.arguments[1]["value"]["value"].asString());
+            else
+                addTo(answer, "{} | Delegator ID : None", item++);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[2]["value"].asString());
+            break;
+        }
+        case SCRIPT_SCO08_STAKE_UNSTAKED_TOKENS: {
+            addTo(answer, "{} | Type : Stake Unstaked Tokens", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[0]["value"]);
+            if (tcd.arguments[1]["value"].isObject())
+                addTo(answer, "{} | Delegator ID : {}", item++, tcd.arguments[1]["value"]["value"].asString());
+            else
+                addTo(answer, "{} | Delegator ID : None", item++);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[2]["value"].asString());
+            break;
+        }
+        case SCRIPT_SCO09_UNSTAKE_ALL: {
+            addTo(answer, "{} | Type : Unstake All", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[0]["value"]);
+            break;
+        }
+        case SCRIPT_SCO10_WITHDRAW_REWARD_TOKENS: {
+            addTo(answer, "{} | Type : Withdraw Reward Tokens", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[0]["value"]);
+            if (tcd.arguments[1]["value"].isObject())
+                addTo(answer, "{} | Delegator ID : {}", item++, tcd.arguments[1]["value"]["value"].asString());
+            else
+                addTo(answer, "{} | Delegator ID : None", item++);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[2]["value"].asString());
+            break;
+        }
         case SCRIPT_SCO11_WITHDRAW_UNSTAKED_TOKENS: {
             addTo(answer, "{} | Type : Withdraw Unstaked Tokens", item++);
             addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
@@ -254,6 +336,41 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             else
                 addTo(answer, "{} | Delegator ID : None", item++);
             addTo(answer, "{} | Amount : {}", item++, tcd.arguments[2]["value"].asString());
+            break;
+        }
+        case SCRIPT_SCO12_CLOSE_STAKE: {
+            addTo(answer, "{} | Type : Close Stake", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[0]["value"]);
+            if (tcd.arguments[1]["value"].isObject())
+                addTo(answer, "{} | Delegator ID : {}", item++, tcd.arguments[1]["value"]["value"].asString());
+            else
+                addTo(answer, "{} | Delegator ID : None", item++);
+            break;
+        }
+        case SCRIPT_SCO13_TRANSFER_NODE: {
+            addTo(answer, "{} | Type : Transfer Node", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[0]["value"]);
+            addMultiStringArgumentTo(answer, "Address", item++, tcd.arguments[1]["value"]);
+            break;
+        }
+        case SCRIPT_SCO14_TRANSFER_DELEGATOR: {
+            addTo(answer, "{} | Type : Transfer Delegator", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[0]["value"]);
+            if (tcd.arguments[1]["value"].isObject())
+                addTo(answer, "{} | Delegator ID : {}", item++, tcd.arguments[1]["value"]["value"].asString());
+            else
+                addTo(answer, "{} | Delegator ID : None", item++);
+            addMultiStringArgumentTo(answer, "Address", item++, tcd.arguments[2]["value"]);
+            break;
+        }
+        case SCRIPT_SCO15_WITHDRAW_FROM_MACHINE_ACCOUNT: {
+            addTo(answer, "{} | Type : Withdraw From Machine Account", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[0]["value"]);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[1]["value"].asString());
             break;
         }
         default:
