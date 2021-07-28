@@ -48,8 +48,8 @@ void check_testcase(const testcase_t &testcase) {
     if (tc.valid) {
         ASSERT_EQ(err, PARSER_OK) << parser_getErrorDescription(err);
     } else {
-        ASSERT_NE(err, PARSER_OK) << parser_getErrorDescription(err);
-        return;
+        if (err != PARSER_OK)
+            return;
     }
 
     err = parser_validate(&ctx);

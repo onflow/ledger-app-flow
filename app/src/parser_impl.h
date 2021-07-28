@@ -40,6 +40,8 @@ uint8_t _getNumItems(const parser_context_t *c, const parser_tx_t *v);
 
 uint8_t _countArgumentItems(const flow_argument_list_t *v, uint8_t argumentIndex);
 
+uint8_t _countArgumentOptionalItems(const flow_argument_list_t *v, uint8_t argumentIndex);
+
 parser_error_t json_validateToken(parsed_json_t *parsedJson, uint16_t tokenIdx);
 
 parser_error_t json_extractToken(char *outVal, uint16_t outValLen, parsed_json_t *parsedJson, uint16_t tokenIdx);
