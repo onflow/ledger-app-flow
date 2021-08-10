@@ -1058,20 +1058,13 @@
           ]
         },
         {
-          "type": "UInt32?",
+          "type": "UInt32",
           "name": "delegatorID",
           "label": "Delegator ID",
           "sampleValues": [
             {
-              "type": "Optional",
-              "value": {
-                "type": "UInt32",
-                "value": "42"
-              }
-            },
-            {
-              "type": "Optional",
-              "value": null
+              "type": "UInt32",
+              "value": "42"
             }
           ]
         },
@@ -1120,6 +1113,37 @@
       ],
       "network": "testnet",
       "hash": "39a126038522c6c964d53aaf78dde55bfe80929091510792fe49678bb22cbd96"
+    },
+    {
+      "id": "SCO.16",
+      "name": "Update Networking Address",
+      "source": "import FlowIDTableStaking from 0x9eca2b38b18b5dfe\n\ntransaction(newAddress: String) {\n\n    // Local variable for a reference to the node object\n    let stakerRef: \u0026FlowIDTableStaking.NodeStaker\n\n    prepare(acct: AuthAccount) {\n        // borrow a reference to the node object\n        self.stakerRef = acct.borrow\u003c\u0026FlowIDTableStaking.NodeStaker\u003e(from: FlowIDTableStaking.NodeStakerStoragePath)\n            ?? panic(\"Could not borrow reference to staking admin\")\n    }\n\n    execute {\n\n        self.stakerRef.updateNetworkingAddress(newAddress)\n\n    }\n}",
+      "arguments": [
+        {
+          "type": "String",
+          "name": "nodeID",
+          "label": "Node ID",
+          "sampleValues": [
+            {
+              "type": "String",
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+            }
+          ]
+        },
+        {
+          "type": "String",
+          "name": "address",
+          "label": "Address",
+          "sampleValues": [
+            {
+              "type": "String",
+              "value": "flow-node.test:3569"
+            }
+          ]
+        }
+      ],
+      "network": "testnet",
+      "hash": "6cbe81c71d2b04dc403ea0db89377f0abc5db14d3d2bd014397b2776aa29bc3e"
     }
   ]
 }

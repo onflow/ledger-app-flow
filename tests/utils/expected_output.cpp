@@ -359,10 +359,7 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             addTo(answer, "{} | Type : Transfer Delegator", item++);
             addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
             addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[0]["value"]);
-            if (tcd.arguments[1]["value"].isObject())
-                addTo(answer, "{} | Delegator ID : {}", item++, tcd.arguments[1]["value"]["value"].asString());
-            else
-                addTo(answer, "{} | Delegator ID : None", item++);
+            addTo(answer, "{} | Delegator ID : {}", item++, tcd.arguments[1]["value"].asString());
             addMultiStringArgumentTo(answer, "Address", item++, tcd.arguments[2]["value"]);
             break;
         }
@@ -371,6 +368,13 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
             addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[0]["value"]);
             addTo(answer, "{} | Amount : {}", item++, tcd.arguments[1]["value"].asString());
+            break;
+        }
+        case SCRIPT_SCO16_UPDATE_NETWORKING_ADDRESS: {
+            addTo(answer, "{} | Type : Update Networking Address", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[0]["value"]);
+            addMultiStringArgumentTo(answer, "Address", item++, tcd.arguments[1]["value"]);
             break;
         }
         default:

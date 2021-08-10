@@ -457,6 +457,9 @@ parser_error_t _matchScriptType(uint8_t scriptHash[32], script_type_e *scriptTyp
 
         {SCRIPT_SCO15_WITHDRAW_FROM_MACHINE_ACCOUNT, TEMPLATE_HASH_SCO15_WITHDRAW_FROM_MACHINE_ACCOUNT_TESTNET},
         {SCRIPT_SCO15_WITHDRAW_FROM_MACHINE_ACCOUNT, TEMPLATE_HASH_SCO15_WITHDRAW_FROM_MACHINE_ACCOUNT_MAINNET},
+
+        {SCRIPT_SCO16_UPDATE_NETWORKING_ADDRESS, TEMPLATE_HASH_SCO16_UPDATE_NETWORKING_ADDRESS_TESTNET},
+        {SCRIPT_SCO16_UPDATE_NETWORKING_ADDRESS, TEMPLATE_HASH_SCO16_UPDATE_NETWORKING_ADDRESS_MAINNET},
         // sentinel, do not remove
         {0, NULL}
     };
@@ -859,6 +862,9 @@ parser_error_t _getNumItems(const parser_context_t *c, const parser_tx_t *v, uin
             *numItems = 11 + v->authorizers.authorizer_count;
             return PARSER_OK;
         case SCRIPT_SCO15_WITHDRAW_FROM_MACHINE_ACCOUNT:
+            *numItems = 10 + v->authorizers.authorizer_count;
+            return PARSER_OK;
+        case SCRIPT_SCO16_UPDATE_NETWORKING_ADDRESS:
             *numItems = 10 + v->authorizers.authorizer_count;
             return PARSER_OK;
         case SCRIPT_UNKNOWN:
