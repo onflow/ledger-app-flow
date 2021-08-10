@@ -35,6 +35,15 @@ if (response.returnCode !== FlowApp.ERROR_CODE.NoError) {
 }
 ```
 
+## Tests running on ledger device
+
+This folder's test folder contains tests to run on ledger device. The aim of the testing code is:
+- To verify that the app works on the ledger device. 
+- Testing in the early stages of feature development (this is, in some cases, easier done with ledger than with Zemu).
+To attain this, we provide only some very basic tests (it does not make sense to have two parallel full scale integration tests). In development you should be able to easily modify the tests to suit your needs. 
+
+To use the tests you first need to deploy the app to the ledger (with up to date firmware). As of now, you have to use non-containerized build (container's SDK is not up to date ATM). Then run `yarn test`. 
+
 ## Acknowledgements
 
-Developed by [Zondax GmbH](https://zondax.ch/).
+Developed by [Zondax GmbH](https://zondax.ch/) and [Vacuumlabs](https://vacuumlabs.com/).

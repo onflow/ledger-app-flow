@@ -34,24 +34,28 @@
     "@babel/node": "^7.10.5",
     "@babel/plugin-transform-runtime": "^7.10.5",
     "@babel/preset-env": "^7.10.4",
-    "@ledgerhq/hw-transport-node-hid": "^5.19.1",
+    "@ledgerhq/hw-transport-node-hid": "^6.3.0",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^26.1.0",
     "bip32": "^2.0.5",
     "bip39": "^3.0.2",
+    "chai": "^4.3.4",
     "core-js": "^3.6.5",
     "crypto-js": "4.0.0",
+    "elliptic": "^6.5.4",
     "eslint": "^7.4.0",
     "eslint-config-airbnb-base": "^14.2.0",
     "eslint-plugin-import": "^2.22.0",
     "index.js": "^0.0.3",
-    "jest": "^26.1.0",
+    "jest": "^27.0.6",
     "jest-serial-runner": "^1.1.0",
+    "jssha": "^3.2.0",
     "prettier": "^2.0.5",
     "secp256k1": "^4.0.1"
   },
   "scripts": {
-    "build": "babel src  --copy-files --out-dir dist"
+    "build": "babel src  --copy-files --out-dir dist",
+    "test": "jest"
   },
   "moduleDirectories": [
     "node_modules",
