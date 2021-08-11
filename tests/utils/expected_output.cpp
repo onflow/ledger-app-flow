@@ -226,6 +226,12 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
             break;
         }
+        case SCRIPT_TH25_UPDATE_NETWORKING_ADDRESS: {
+            addTo(answer, "{} | Type : Update Networking Address", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addMultiStringArgumentTo(answer, "Address", item++, tcd.arguments[0]["value"]);
+            break;
+        }
         case SCRIPT_SCO01_SETUP_STAKING_COLLECTION: {
             addTo(answer, "{} | Type : Setup Staking Collection", item++);
             addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
