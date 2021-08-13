@@ -413,6 +413,9 @@ parser_error_t _matchScriptType(uint8_t scriptHash[32], script_type_e *scriptTyp
         {SCRIPT_TH24_WITHDRAW_REWARDED_DELEGATED_TOKENS, TEMPLATE_HASH_TH24_WITHDRAW_REWARDED_DELEGATED_TOKENS_TESTNET},
         {SCRIPT_TH24_WITHDRAW_REWARDED_DELEGATED_TOKENS, TEMPLATE_HASH_TH24_WITHDRAW_REWARDED_DELEGATED_TOKENS_MAINNET},
 
+        {SCRIPT_TH25_UPDATE_NETWORKING_ADDRESS, TEMPLATE_HASH_TH25_UPDATE_NETWORKING_ADDRESS_TESTNET},
+        {SCRIPT_TH25_UPDATE_NETWORKING_ADDRESS, TEMPLATE_HASH_TH25_UPDATE_NETWORKING_ADDRESS_MAINNET},
+
         {SCRIPT_SCO01_SETUP_STAKING_COLLECTION, TEMPLATE_HASH_SCO01_SETUP_STAKING_COLLECTION_TESTNET},
         {SCRIPT_SCO01_SETUP_STAKING_COLLECTION, TEMPLATE_HASH_SCO01_SETUP_STAKING_COLLECTION_MAINNET},
 
@@ -457,6 +460,9 @@ parser_error_t _matchScriptType(uint8_t scriptHash[32], script_type_e *scriptTyp
 
         {SCRIPT_SCO15_WITHDRAW_FROM_MACHINE_ACCOUNT, TEMPLATE_HASH_SCO15_WITHDRAW_FROM_MACHINE_ACCOUNT_TESTNET},
         {SCRIPT_SCO15_WITHDRAW_FROM_MACHINE_ACCOUNT, TEMPLATE_HASH_SCO15_WITHDRAW_FROM_MACHINE_ACCOUNT_MAINNET},
+
+        {SCRIPT_SCO16_UPDATE_NETWORKING_ADDRESS, TEMPLATE_HASH_SCO16_UPDATE_NETWORKING_ADDRESS_TESTNET},
+        {SCRIPT_SCO16_UPDATE_NETWORKING_ADDRESS, TEMPLATE_HASH_SCO16_UPDATE_NETWORKING_ADDRESS_MAINNET},
         // sentinel, do not remove
         {0, NULL}
     };
@@ -812,6 +818,9 @@ parser_error_t _getNumItems(const parser_context_t *c, const parser_tx_t *v, uin
         case SCRIPT_TH24_WITHDRAW_REWARDED_DELEGATED_TOKENS:
             *numItems = 9 + v->authorizers.authorizer_count;
             return PARSER_OK;
+        case SCRIPT_TH25_UPDATE_NETWORKING_ADDRESS:
+            *numItems = 9 + v->authorizers.authorizer_count;
+            return PARSER_OK;
         case SCRIPT_SCO01_SETUP_STAKING_COLLECTION:
             *numItems = 8 + v->authorizers.authorizer_count;
             return PARSER_OK;
@@ -859,6 +868,9 @@ parser_error_t _getNumItems(const parser_context_t *c, const parser_tx_t *v, uin
             *numItems = 11 + v->authorizers.authorizer_count;
             return PARSER_OK;
         case SCRIPT_SCO15_WITHDRAW_FROM_MACHINE_ACCOUNT:
+            *numItems = 10 + v->authorizers.authorizer_count;
+            return PARSER_OK;
+        case SCRIPT_SCO16_UPDATE_NETWORKING_ADDRESS:
             *numItems = 10 + v->authorizers.authorizer_count;
             return PARSER_OK;
         case SCRIPT_UNKNOWN:
