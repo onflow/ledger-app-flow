@@ -463,6 +463,12 @@ parser_error_t _matchScriptType(uint8_t scriptHash[32], script_type_e *scriptTyp
 
         {SCRIPT_SCO16_UPDATE_NETWORKING_ADDRESS, TEMPLATE_HASH_SCO16_UPDATE_NETWORKING_ADDRESS_TESTNET},
         {SCRIPT_SCO16_UPDATE_NETWORKING_ADDRESS, TEMPLATE_HASH_SCO16_UPDATE_NETWORKING_ADDRESS_MAINNET},
+
+        {SCRIPT_FUSD01_SETUP_FUSD_VAULT, TEMPLATE_HASH_FUSD01_SETUP_FUSD_VAULT_TESTNET},
+        {SCRIPT_FUSD01_SETUP_FUSD_VAULT, TEMPLATE_HASH_FUSD01_SETUP_FUSD_VAULT_MAINNET},
+
+        {SCRIPT_FUSD02_TRANSFER_FUSD, TEMPLATE_HASH_FUSD02_TRANSFER_FUSD_TESTNET},
+        {SCRIPT_FUSD02_TRANSFER_FUSD, TEMPLATE_HASH_FUSD02_TRANSFER_FUSD_MAINNET},
         // sentinel, do not remove
         {0, NULL}
     };
@@ -871,6 +877,12 @@ parser_error_t _getNumItems(const parser_context_t *c, const parser_tx_t *v, uin
             *numItems = 10 + v->authorizers.authorizer_count;
             return PARSER_OK;
         case SCRIPT_SCO16_UPDATE_NETWORKING_ADDRESS:
+            *numItems = 10 + v->authorizers.authorizer_count;
+            return PARSER_OK;
+        case SCRIPT_FUSD01_SETUP_FUSD_VAULT:
+            *numItems = 8 + v->authorizers.authorizer_count;
+            return PARSER_OK;
+        case SCRIPT_FUSD02_TRANSFER_FUSD:
             *numItems = 10 + v->authorizers.authorizer_count;
             return PARSER_OK;
         case SCRIPT_UNKNOWN:

@@ -2693,6 +2693,113 @@ parser_error_t parser_getItemUpdateNetworkingAddressSCO(const parser_context_t *
     return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
 }
 
+//FUSD.01
+parser_error_t parser_getItemSetupFUSDVault(const parser_context_t *ctx,
+                                       uint16_t displayIdx,
+                                       char *outKey, uint16_t outKeyLen,
+                                       char *outVal, uint16_t outValLen,
+                                       uint8_t pageIdx, uint8_t *pageCount) {
+    *pageCount = 1;
+    switch (displayIdx) {
+        case 0:
+            snprintf(outKey, outKeyLen, "Type");
+            snprintf(outVal, outValLen, "Setup FUSD Vault");
+            return PARSER_OK;
+        case 1:
+            snprintf(outKey, outKeyLen, "ChainID");
+            return parser_printChainID(&parser_tx_obj.payer,
+                                       outVal, outValLen, pageIdx, pageCount);
+        case 2:
+            snprintf(outKey, outKeyLen, "Ref Block");
+            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
+        case 3:
+            snprintf(outKey, outKeyLen, "Gas Limit");
+            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
+        case 4:
+            snprintf(outKey, outKeyLen, "Prop Key Addr");
+            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
+        case 5:
+            snprintf(outKey, outKeyLen, "Prop Key Id");
+            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
+        case 6:
+            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
+            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
+                                          pageCount);
+        case 7:
+            snprintf(outKey, outKeyLen, "Payer");
+            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
+        default:
+            break;
+    }
+    displayIdx -= 8;
+
+    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
+        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
+        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
+                                      pageCount);
+    }
+
+    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+}
+
+//FUSD.02
+parser_error_t parser_getItemTransferFUSD(const parser_context_t *ctx,
+                                       uint16_t displayIdx,
+                                       char *outKey, uint16_t outKeyLen,
+                                       char *outVal, uint16_t outValLen,
+                                       uint8_t pageIdx, uint8_t *pageCount) {
+    *pageCount = 1;
+    switch (displayIdx) {
+        case 0:
+            snprintf(outKey, outKeyLen, "Type");
+            snprintf(outVal, outValLen, "Transfer FUSD");
+            return PARSER_OK;
+        case 1:
+            snprintf(outKey, outKeyLen, "ChainID");
+            return parser_printChainID(&parser_tx_obj.payer,
+                                       outVal, outValLen, pageIdx, pageCount);
+        case 2:
+            snprintf(outKey, outKeyLen, "Amount");
+            return parser_printArgument(&parser_tx_obj.arguments, 0,
+                                        "UFix64", JSMN_STRING,
+                                        outVal, outValLen, pageIdx, pageCount);
+        case 3:
+            snprintf(outKey, outKeyLen, "Recipient");
+            return parser_printArgumentString(&parser_tx_obj.arguments.argCtx[1],
+                                              outVal, outValLen, pageIdx, pageCount);
+        case 4:
+            snprintf(outKey, outKeyLen, "Ref Block");
+            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
+        case 5:
+            snprintf(outKey, outKeyLen, "Gas Limit");
+            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
+        case 6:
+            snprintf(outKey, outKeyLen, "Prop Key Addr");
+            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
+        case 7:
+            snprintf(outKey, outKeyLen, "Prop Key Id");
+            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
+        case 8:
+            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
+            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
+                                          pageCount);
+        case 9:
+            snprintf(outKey, outKeyLen, "Payer");
+            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
+        default:
+            break;
+    }
+    displayIdx -= 10;
+
+    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
+        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
+        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
+                                      pageCount);
+    }
+
+    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+}
+
 parser_error_t parser_getItem(const parser_context_t *ctx,
                               uint16_t displayIdx,
                               char *outKey, uint16_t outKeyLen,
@@ -2829,6 +2936,12 @@ parser_error_t parser_getItem(const parser_context_t *ctx,
                                                                  outValLen, pageIdx, pageCount);
         case SCRIPT_SCO16_UPDATE_NETWORKING_ADDRESS:
             return parser_getItemUpdateNetworkingAddressSCO(ctx, displayIdx, outKey, outKeyLen, outVal, 
+                                                                 outValLen, pageIdx, pageCount);
+        case SCRIPT_FUSD01_SETUP_FUSD_VAULT:
+            return parser_getItemSetupFUSDVault(ctx, displayIdx, outKey, outKeyLen, outVal, 
+                                                                 outValLen, pageIdx, pageCount);
+        case SCRIPT_FUSD02_TRANSFER_FUSD:
+            return parser_getItemTransferFUSD(ctx, displayIdx, outKey, outKeyLen, outVal, 
                                                                  outValLen, pageIdx, pageCount);
     }
 
