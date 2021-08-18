@@ -46,17 +46,17 @@ void check_testcase(const testcase_t &testcase) {
 
     err = parser_parse(&ctx, tc.blob.data(), tc.blob.size());
     if (tc.valid) {
-        ASSERT_EQ(err, parser_ok) << parser_getErrorDescription(err);
+        ASSERT_EQ(err, PARSER_OK) << parser_getErrorDescription(err);
     } else {
-        ASSERT_NE(err, parser_ok) << parser_getErrorDescription(err);
-        return;
+        if (err != PARSER_OK)
+            return;
     }
 
     err = parser_validate(&ctx);
     if (tc.valid) {
-        EXPECT_EQ(err, parser_ok) << parser_getErrorDescription(err);
+        EXPECT_EQ(err, PARSER_OK) << parser_getErrorDescription(err);
     } else {
-        EXPECT_NE(err, parser_ok) << parser_getErrorDescription(err);
+        EXPECT_NE(err, PARSER_OK) << parser_getErrorDescription(err);
         return;
     }
 
@@ -123,6 +123,19 @@ INSTANTIATE_TEST_SUITE_P(
         VerifyTestVectors,
         ::testing::ValuesIn(GetJsonTestCases("testvectors/invalidEnvelopeCases.json")), VerifyTestVectors::PrintToStringParamName()
 );
+
+INSTANTIATE_TEST_SUITE_P(
+        ManifestEnvelopeCases,
+        VerifyTestVectors,
+        ::testing::ValuesIn(GetJsonTestCases("testvectors/manifestEnvelopeCases.json")), VerifyTestVectors::PrintToStringParamName()
+);
+
+INSTANTIATE_TEST_SUITE_P(
+        ManifestPayloadCases,
+        VerifyTestVectors,
+        ::testing::ValuesIn(GetJsonTestCases("testvectors/manifestPayloadCases.json")), VerifyTestVectors::PrintToStringParamName()
+);
+
 
 TEST_P(VerifyTestVectors, CheckUIOutput_Manual) { check_testcase(GetParam()); }
 

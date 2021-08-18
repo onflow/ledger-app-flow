@@ -79,6 +79,7 @@ jobs:
           command: |
             nvm use 14.4.0
             make zemu_test
+          no_output_timeout: 20m
 
   build_package:
     docker:

@@ -24,9 +24,9 @@ extern "C" {
 #endif
 
 typedef enum {
-    kind_unknown = 0,
-    kind_string,
-    kind_list,
+    RLP_KIND_UNKNOWN = 0,
+    RLP_KIND_STRING,
+    RLP_KIND_LIST,
 } rlp_kind_e;
 
 typedef struct {

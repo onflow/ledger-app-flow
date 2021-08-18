@@ -91,6 +91,74 @@ getAccount(to)
 }
 }`;
 
+const TX_REGISTER_NODE_SCO = 
+`import FlowStakingCollection from 0x8d0e87b65159ae63
+
+/// Registers a delegator in the staking collection resource
+/// for the specified node information and the amount of tokens to commit
+
+transaction(id: String,
+            role: UInt8,
+            networkingAddress: String,
+            networkingKey: String,
+            stakingKey: String,
+            amount: UFix64,
+            publicKeys: [String]?) {
+    
+    let stakingCollectionRef: &FlowStakingCollection.StakingCollection
+
+    prepare(account: AuthAccount) {
+        self.stakingCollectionRef = account.borrow<&FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
+            ?? panic("Could not borrow ref to StakingCollection")
+
+        if let machineAccount = self.stakingCollectionRef.registerNode(
+            id: id,
+            role: role,
+            networkingAddress: networkingAddress,
+            networkingKey: networkingKey,
+            stakingKey: stakingKey,
+            amount: amount,
+            payer: account) 
+        {
+            if publicKeys == nil || publicKeys!.length == 0 {
+                panic("Cannot provide zero keys for the machine account")
+            }
+            for key in publicKeys! {
+                machineAccount.addPublicKey(key.decodeHex())
+            }
+        }
+    }
+}
+`;
+
+const TX_CREATE_MACHINE_ACCOUNT_SCO = 
+`import FlowStakingCollection from 0x8d0e87b65159ae63
+
+/// Creates a machine account for a node that is already in the staking collection
+/// and adds public keys to the new account
+
+transaction(nodeID: String, publicKeys: [String]) {
+    
+    let stakingCollectionRef: &FlowStakingCollection.StakingCollection
+
+    prepare(account: AuthAccount) {
+        self.stakingCollectionRef = account.borrow<&FlowStakingCollection.StakingCollection>(from: FlowStakingCollection.StakingCollectionStoragePath)
+            ?? panic("Could not borrow ref to StakingCollection")
+
+        if let machineAccount = self.stakingCollectionRef.createMachineAccountForExistingNode(nodeID: nodeID, payer: account) {
+            if publicKeys == nil || publicKeys!.length == 0 {
+                panic("Cannot provide zero keys for the machine account")
+            }
+            for key in publicKeys! {
+                machineAccount.addPublicKey(key.decodeHex())
+            }
+        } else {
+            panic("Could not create a machine account for the node")
+        }
+    }
+}
+`;
+
 const TXS_TRANSFER_TOKENS = {
   [EMULATOR]: TX_TRANSFER_TOKENS_EMULATOR,
   [TESTNET]: TX_TRANSFER_TOKENS_TESTNET,
@@ -223,77 +291,116 @@ const baseEnvelopeTx = (network) => {
   };
 };
 
-const sampleArguments = (arguments, network) => {
-  return arguments.map(({ type }) => {
-    return {
-      type: type,
-      value: sampleArgumentValue(type, network),
-    };
+const createPayloadTestcase = (valid) => {
+  return (x) => ({
+    title: x[0],	
+    valid: valid,	
+    chainID: x[2],	
+    payloadMessage: x[1],	
+    envelopeMessage: { ...x[1], payloadSigs: [] },	
+    encodedTransactionPayloadHex: encodeTransactionPayload(x[1]),	
+    encodedTransactionEnvelopeHex: encodeTransactionEnvelope({ ...x[1], payloadSigs: [] }),
   });
 };
 
-const sampleArgumentValue = (type, network) => {
-  switch (type) {
-    case "UFix64":
-      return "10.0";
-    case "UInt8":
-      return "3";
-    case "String":
-      return "f0874204ab2f2ff1c112421c49be9608ccfc48f5e890f89a8fe50e8f5cb36d9d";
-    case "Address":
-      return `0x${ADDRESSES[network]}`;
-  };
-
-  return "";
+const createEnvelopeTestcase = (valid) => {
+  return (x) => ({	
+    title: x[0],	
+    valid: valid,	
+    chainID: x[2],	
+    payloadMessage: x[1],	
+    envelopeMessage: { ...x[1], payloadSigs: [] },	
+    encodedTransactionPayloadHex: encodeTransactionPayload(x[1]),	
+    encodedTransactionEnvelopeHex: encodeTransactionEnvelope({ ...x[1], payloadSigs: [] }),
+  });
 };
 
+const sampleArguments = (transactionArguments, sampleValuesCombination) => {
+  return transactionArguments.map(({ type, sampleValues }, i) => {
+    return sampleValues[sampleValuesCombination[i]];
+  });
+};
+
+const numberOfRequiredTests = (arguments) => {
+  return Math.max(1, ...arguments.map(({ type, sampleValues }) => sampleValues.length));
+};
+
+// Instead of taking all sampleValues combinations we just take (0, 0, ...), (1, 1, ..), ... .
+// Last sampleValue is used if sampleValuesIdx is too high.
+const selectArgumentCombinations = (transactionArguments) => {
+  const maxSv = numberOfRequiredTests(transactionArguments);
+  return range(0, maxSv).map((sampleValuesIdx) => 
+    range(0, transactionArguments.length).map((i) => 
+      Math.min(sampleValuesIdx, transactionArguments[i].sampleValues.length-1)
+    )
+  );
+}
 
 const testnetTemplates = JSON.parse(fs.readFileSync('manifest.testnet.json')).templates;
 const mainnetTemplates = JSON.parse(fs.readFileSync('manifest.mainnet.json')).templates;
 
-const validTestnetPayloadCases = testnetTemplates.map((template) => {
-  return [
-    `${template.id} - ${template.name}`,
+
+const manifestTestnetPayloadCases = testnetTemplates.flatMap((template) => {
+  const combinations = selectArgumentCombinations(template.arguments);
+  return combinations.map((combination, i) => [
+    (combinations.length==1)?`${template.id} - ${template.name}`: 
+                             `${template.id} - ${template.name} - ${i+1}`,
     buildPayloadTx(TESTNET, {
       script: template.source,
-      arguments: sampleArguments(template.arguments || [], TESTNET),
-    }),
-    TESTNET,
-  ]
+      arguments: sampleArguments(template.arguments || [], combination),
+    }), 
+    TESTNET, 
+  ])
 });
 
-const validMainnetPayloadCases = mainnetTemplates.map((template) => {
-  return [
-    `${template.id} - ${template.name}`,
+const manifestMainnetPayloadCases = mainnetTemplates.flatMap((template) => {
+  const combinations = selectArgumentCombinations(template.arguments);
+  return combinations.map((combination, i) => [
+    (combinations.length==1)?`${template.id} - ${template.name}`: 
+                             `${template.id} - ${template.name} - ${i+1}`,
     buildPayloadTx(MAINNET, {
       script: template.source,
-      arguments: sampleArguments(template.arguments || [], MAINNET),
+      arguments: sampleArguments(template.arguments || [], combination),
     }),
     MAINNET,
-  ]
+  ])
 });
 
-const validTestnetEnvelopeCases = testnetTemplates.map((template) => {
-  return [
-    `${template.id} - ${template.name}`,
+const manifestTestnetEnvelopeCases = testnetTemplates.flatMap((template) => {
+  const combinations = selectArgumentCombinations(template.arguments);
+  return combinations.map((combination, i) => [
+    (combinations.length==1)?`${template.id} - ${template.name}`: 
+                             `${template.id} - ${template.name} - ${i+1}`,
     buildEnvelopeTx(TESTNET, {
       script: template.source,
-      arguments: sampleArguments(template.arguments || [], TESTNET),
+      arguments: sampleArguments(template.arguments || [], combination),
     }),
     TESTNET,
-  ]
+  ])
 });
 
-const validMainnetEnvelopeCases = mainnetTemplates.map((template) => {
-  return [
-    `${template.id} - ${template.name}`,
+const manifestMainnetEnvelopeCases = mainnetTemplates.flatMap((template) => {
+  const combinations = selectArgumentCombinations(template.arguments);
+  return combinations.map((combination, i) => [
+    (combinations.length==1)?`${template.id} - ${template.name}`: 
+                             `${template.id} - ${template.name} - ${i+1}`,
     buildEnvelopeTx(MAINNET, {
       script: template.source,
-      arguments: sampleArguments(template.arguments || [], MAINNET),
+      arguments: sampleArguments(template.arguments || [], combination),
     }),
     MAINNET,
-  ]
+  ])
 });
+
+const manifestPayloadCases = [
+  ...manifestTestnetPayloadCases,
+  ...manifestMainnetPayloadCases,
+].map(createPayloadTestcase(true));
+
+const manifestEnvelopeCases = [
+  ...manifestTestnetEnvelopeCases,
+  ...manifestMainnetEnvelopeCases,
+].map(createEnvelopeTestcase(true));
 
 const invalidPayloadCases = [
   [
@@ -336,15 +443,136 @@ const invalidPayloadCases = [
     }),
     MAINNET,
   ],
-].map(x => ({
-    title: x[0],
-    valid: false,
-    chainID: x[2],
-    payloadMessage: x[1],
-    envelopeMessage: { ...x[1], payloadSigs: [] },
-    encodedTransactionPayloadHex: encodeTransactionPayload(x[1]),
-    encodedTransactionEnvelopeHex: encodeTransactionEnvelope({ ...x[1], payloadSigs: [] }),
-}));
+  [
+    "Example Transaction - Invalid Payload - SCO.03 - Too Many Public Keys",
+    buildPayloadTx(MAINNET, {
+      script: TX_REGISTER_NODE_SCO,
+      arguments: [
+        {
+          "type": "String",
+          "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+        },
+        {
+          "type": "UInt8",
+          "value": "1"
+        },
+        {
+          "type": "String",
+          "value": "flow-node.test:3569"
+        },
+        {
+          "type": "String",
+          "value": "1348307bc77c688e80049de9d081aa09755da33e6997605fa059db2144fc85e560cbe6f7da8d74b453f5916618cb8fd392c2db856f3e78221dc68db1b1d914e4"
+        },
+        {
+          "type": "String",
+          "value": "9e9ae0d645fd5fd9050792e0b0daa82cc1686d9133afa0f81a784b375c42ae48567d1545e7a9e1965f2c1a32f73cf8575ebb7a967f6e4d104d2df78eb8be409135d12da0499b8a00771f642c1b9c49397f22b440439f036c3bdee82f5309dab3"
+        },
+        {
+          "type": "UFix64",
+          "value": "92233720368.54775808"
+        },
+        {
+          "type": "Optional",
+          "value": {
+            "type": "Array",
+            "value": [
+              {
+                "type": "String",
+                "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+              },
+              {
+                "type": "String",
+                "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+              },
+              {
+                "type": "String",
+                "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+              },
+              {
+                "type": "String",
+                "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+              }
+            ]
+          }
+        }
+      ]
+    }),
+    MAINNET,
+  ],
+  [
+    "Example Transaction - Invalid Payload - SCO.04 - Too Many Public Keys",
+    buildPayloadTx(MAINNET, {
+      script: TX_CREATE_MACHINE_ACCOUNT_SCO,
+      arguments: [
+        {
+          "type": "String",
+          "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+        },
+        {
+          "type": "Array",
+          "value": [
+            {
+              "type": "String",
+              "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+            },
+            {
+              "type": "String",
+              "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+            },
+            {
+              "type": "String",
+              "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+            },
+            {
+              "type": "String",
+              "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+            }
+          ]
+        }
+      ]
+    }),
+    MAINNET,
+  ],
+  [
+    "Example Transaction - Invalid Payload - Create Account - Too Many Public Keys",
+    buildPayloadTx(MAINNET, {
+      script: TX_CREATE_ACCOUNT,
+      arguments: [
+        {
+          "type": "Array",
+          "value": [
+            {
+              "type": "String",
+              "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+            },
+            {
+              "type": "String",
+              "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+            },
+            {
+              "type": "String",
+              "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+            },
+            {
+              "type": "String",
+              "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+            },
+            {
+              "type": "String",
+              "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+            },
+            {
+              "type": "String",
+              "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+            }
+          ]
+        }
+      ]
+    }),
+    MAINNET,
+  ],
+].map(createPayloadTestcase(false));
 
 const validPayloadTransferCases = 
   Object.entries(TXS_TRANSFER_TOKENS).
@@ -441,7 +669,7 @@ const validPayloadCases = [
       MAINNET,
     ]
   )),
-  ...(range(1, 5).map((i) => 
+  ...(range(1, 6).map((i) => 
     [
       `Create Account Transaction - Valid Payload - Multiple Account Keys #${i}`,
       buildPayloadTx(MAINNET, {
@@ -476,17 +704,7 @@ const validPayloadCases = [
       MAINNET,
     ]
   )),
-  ...validTestnetPayloadCases,
-  ...validMainnetPayloadCases,
-].map(x => ({
-  title: x[0],
-  valid: true,
-  chainID: x[2],
-  payloadMessage: x[1],
-  envelopeMessage: { ...x[1], payloadSigs: [] },
-  encodedTransactionPayloadHex: encodeTransactionPayload(x[1]),
-  encodedTransactionEnvelopeHex: encodeTransactionEnvelope({ ...x[1], payloadSigs: [] }),
-}));
+].map(createPayloadTestcase(true));
 
 const invalidEnvelopeCases = [
   [
@@ -529,15 +747,7 @@ const invalidEnvelopeCases = [
     }),
     MAINNET,
   ],
-].map(x => ({
-    title: x[0],
-    valid: false,
-    chainID: x[2],
-    payloadMessage: x[1],
-    envelopeMessage: { ...x[1], payloadSigs: [] },
-    encodedTransactionPayloadHex: encodeTransactionPayload(x[1]),
-    encodedTransactionEnvelopeHex: encodeTransactionEnvelope({ ...x[1], payloadSigs: [] }),
-}));
+].map(createEnvelopeTestcase(false));
 
 const validEnvelopeTransferCases = 
   Object.entries(TXS_TRANSFER_TOKENS).
@@ -656,7 +866,7 @@ const validEnvelopeCases = [
       MAINNET,
     ]
   )),
-  ...(range(1, 5).map((i) => 
+  ...(range(1, 6).map((i) => 
     [
       `Create Account Transaction - Valid Envelope - Multiple Account Keys #${i}`,
       buildEnvelopeTx(MAINNET, {
@@ -691,15 +901,8 @@ const validEnvelopeCases = [
       MAINNET,
     ]
   )),
-  ...validTestnetEnvelopeCases,
-  ...validMainnetEnvelopeCases,
-].map(x => ({
-  title: x[0],
-  valid: true,
-  chainID: x[2],
-  envelopeMessage: x[1],
-  encodedTransactionEnvelopeHex: encodeTransactionEnvelope(x[1]),
-}));
+].map(createEnvelopeTestcase(true));
+
 
 const args = process.argv.slice(2);
 const outDir = args[0];
@@ -708,3 +911,6 @@ fs.writeFileSync(path.join(outDir, "validPayloadCases.json"), JSON.stringify(val
 fs.writeFileSync(path.join(outDir, "invalidPayloadCases.json"), JSON.stringify(invalidPayloadCases, null, 2));
 fs.writeFileSync(path.join(outDir, "validEnvelopeCases.json"), JSON.stringify(validEnvelopeCases, null, 2));
 fs.writeFileSync(path.join(outDir, "invalidEnvelopeCases.json"), JSON.stringify(invalidEnvelopeCases, null, 2));
+
+fs.writeFileSync(path.join(outDir, "manifestEnvelopeCases.json"), JSON.stringify(manifestEnvelopeCases, null, 2));
+fs.writeFileSync(path.join(outDir, "manifestPayloadCases.json"), JSON.stringify(manifestPayloadCases, null, 2));

@@ -38,13 +38,13 @@ parser_error_t json_parse(parsed_json_t *parsed_json, const char *buffer, uint16
     if (num_tokens < 0) {
         switch (num_tokens) {
             case JSMN_ERROR_NOMEM:
-                return parser_json_too_many_tokens;
+                return PARSER_JSON_TOO_MANY_TOKENS;
             case JSMN_ERROR_INVAL:
-                return parser_unexpected_characters;
+                return PARSER_UNEXPECTED_CHARACTERS;
             case JSMN_ERROR_PART:
-                return parser_json_incomplete_json;
+                return PARSER_JSON_INCOMPLETE_JSON;
             default:
-                return parser_json_unexpected_error;
+                return PARSER_JSON_UNEXPECTED_ERROR;
         }
     }
 
@@ -53,18 +53,18 @@ parser_error_t json_parse(parsed_json_t *parsed_json, const char *buffer, uint16
 
     // Parsing error
     if (num_tokens <= 0) {
-        return parser_json_zero_tokens;
+        return PARSER_JSON_ZERO_TOKENS;
     }
 
     // We cannot support if number of tokens exceeds the limit
     if (num_tokens > MAX_NUMBER_OF_TOKENS) {
-        return parser_json_too_many_tokens;
+        return PARSER_JSON_TOO_MANY_TOKENS;
     }
 
     parsed_json->numberOfTokens = num_tokens;
     parsed_json->isValid = true;
 
-    return parser_ok;
+    return PARSER_OK;
 }
 
 parser_error_t array_get_element_count(const parsed_json_t *json,
@@ -72,7 +72,7 @@ parser_error_t array_get_element_count(const parsed_json_t *json,
                                        uint16_t *number_elements) {
     *number_elements = 0;
     if (array_token_index < 0 || array_token_index > json->numberOfTokens) {
-        return parser_no_data;
+        return PARSER_NO_DATA;
     }
 
     jsmntok_t array_token = json->tokens[array_token_index];
@@ -94,7 +94,7 @@ parser_error_t array_get_element_count(const parsed_json_t *json,
         (*number_elements)++;
     }
 
-    return parser_ok;
+    return PARSER_OK;
 }
 
 parser_error_t array_get_nth_element(const parsed_json_t *json,
@@ -102,7 +102,7 @@ parser_error_t array_get_nth_element(const parsed_json_t *json,
                                      uint16_t element_index,
                                      uint16_t *token_index) {
     if (array_token_index < 0 || array_token_index > json->numberOfTokens) {
-        return parser_no_data;
+        return PARSER_NO_DATA;
     }
 
     jsmntok_t array_token = json->tokens[array_token_index];
@@ -124,12 +124,12 @@ parser_error_t array_get_nth_element(const parsed_json_t *json,
         }
         prev_element_end = current_token.end;
         if (element_count == element_index) {
-            return parser_ok;
+            return PARSER_OK;
         }
         element_count++;
     }
 
-    return parser_no_data;
+    return PARSER_NO_DATA;
 }
 
 parser_error_t object_get_element_count(const parsed_json_t *json,
@@ -137,7 +137,7 @@ parser_error_t object_get_element_count(const parsed_json_t *json,
                                         uint16_t *element_count) {
     *element_count = 0;
     if (object_token_index < 0 || object_token_index > json->numberOfTokens) {
-        return parser_no_data;
+        return PARSER_NO_DATA;
     }
 
     jsmntok_t object_token = json->tokens[object_token_index];
@@ -160,7 +160,7 @@ parser_error_t object_get_element_count(const parsed_json_t *json,
         (*element_count)++;
     }
 
-    return parser_ok;
+    return PARSER_OK;
 }
 
 parser_error_t object_get_nth_key(const parsed_json_t *json,
@@ -169,7 +169,7 @@ parser_error_t object_get_nth_key(const parsed_json_t *json,
                                   uint16_t *token_index) {
     *token_index = object_token_index;
     if (object_token_index < 0 || object_token_index > json->numberOfTokens) {
-        return parser_no_data;
+        return PARSER_NO_DATA;
     }
 
     jsmntok_t object_token = json->tokens[object_token_index];
@@ -191,12 +191,12 @@ parser_error_t object_get_nth_key(const parsed_json_t *json,
         prev_element_end = value_token.end;
         if (element_count == object_element_index) {
             (*token_index)--;
-            return parser_ok;
+            return PARSER_OK;
         }
         element_count++;
     }
 
-    return parser_no_data;
+    return PARSER_NO_DATA;
 }
 
 parser_error_t object_get_nth_value(const parsed_json_t *json,
@@ -204,13 +204,13 @@ parser_error_t object_get_nth_value(const parsed_json_t *json,
                                     uint16_t object_element_index,
                                     uint16_t *key_index) {
     if (object_token_index < 0 || object_token_index > json->numberOfTokens) {
-        return parser_no_data;
+        return PARSER_NO_DATA;
     }
 
     CHECK_PARSER_ERR(object_get_nth_key(json, object_token_index, object_element_index, key_index));
     (*key_index) ++;
 
-    return  parser_ok;
+    return  PARSER_OK;
 }
 
 parser_error_t object_get_value(const parsed_json_t *json,
@@ -218,7 +218,7 @@ parser_error_t object_get_value(const parsed_json_t *json,
                                 const char *key_name,
                                 uint16_t *token_index) {
     if (object_token_index < 0 || object_token_index > json->numberOfTokens) {
-        return parser_no_data;
+        return PARSER_NO_DATA;
     }
 
     const jsmntok_t object_token = json->tokens[object_token_index];
@@ -244,10 +244,10 @@ parser_error_t object_get_value(const parsed_json_t *json,
             if (EQUALS(key_name,
                        json->buffer + key_token.start,
                        key_token.end - key_token.start)) {
-                return parser_ok;
+                return PARSER_OK;
             }
         }
     }
 
-    return parser_no_data;
+    return PARSER_NO_DATA;
 }

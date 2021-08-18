@@ -25,6 +25,7 @@
 extern "C" {
 #endif
 
+
 extern parser_tx_t parser_tx_obj;
 
 parser_error_t parser_init(parser_context_t *ctx, const uint8_t *buffer, uint16_t bufferSize);
@@ -35,9 +36,16 @@ parser_error_t _read(parser_context_t *c, parser_tx_t *v);
 
 parser_error_t _validateTx(const parser_context_t *c, const parser_tx_t *v);
 
-uint8_t _getNumItems(const parser_context_t *c, const parser_tx_t *v);
+parser_error_t _getNumItems(const parser_context_t *c, const parser_tx_t *v, uint8_t *numItems);
 
-uint8_t _countArgumentItems(const flow_argument_list_t *v, uint8_t argumentIndex);
+//Called when argumentIndex-th argument is an array. If the array length is more than max_number_of_items
+//returns parser error, otherwise it sets number_of_items as the array length. 
+parser_error_t _countArgumentItems(const flow_argument_list_t *v, uint8_t argumentIndex, 
+                                   uint8_t max_number_of_items, uint8_t *number_of_items);
+
+//Same as _countArgumentItems, but the array is optional.
+parser_error_t _countArgumentOptionalItems(const flow_argument_list_t *v, uint8_t argumentIndex, 
+                                           uint8_t max_number_of_items, uint8_t *number_of_items);
 
 parser_error_t json_validateToken(parsed_json_t *parsedJson, uint16_t tokenIdx);
 
@@ -45,8 +53,16 @@ parser_error_t json_extractToken(char *outVal, uint16_t outValLen, parsed_json_t
 
 parser_error_t json_matchToken(parsed_json_t *parsedJson, uint16_t tokenIdx, char *expectedValue);
 
+parser_error_t json_matchNull(parsed_json_t *parsedJson, uint16_t tokenIdx);
+
 parser_error_t json_matchKeyValue(parsed_json_t *parsedJson,
                                   uint16_t tokenIdx, char *expectedType, jsmntype_t jsonType, uint16_t *valueTokenIdx);
+
+#define JSON_MATCH_VALUE_IDX_NONE 65535
+parser_error_t json_matchOptionalKeyValue(parsed_json_t *parsedJson,
+                                  uint16_t tokenIdx, char *expectedType, jsmntype_t jsonType, uint16_t *valueTokenIdx);
+
+parser_error_t json_matchOptionalArray(parsed_json_t *parsedJson, uint16_t tokenIdx, uint16_t *valueTokenIdx);
 
 parser_error_t formatStrUInt8AsHex(const char *decStr, char *hexStr);
 

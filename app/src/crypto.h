@@ -27,15 +27,15 @@ extern "C" {
 #include <zxerror.h>
 
 typedef enum {
-    hash_unknown,
-    sha2_256,
-    sha3_256
+    HASH_UNKNOWN,
+    HASH_SHA2_256,
+    HASH_SHA3_256
 } digest_type_e;
 
 typedef enum {
-    curve_unknown,
-    secp256k1,
-    secp256r1
+    CURVE_UNKNOWN,
+    CURVE_SECP256K1,
+    CURVE_SECP256R1
 } curve_e;
 
 #if defined(TARGET_NANOS) || defined(TARGET_NANOX)
@@ -47,17 +47,18 @@ void sha256(const uint8_t *message, uint16_t messageLen, uint8_t message_digest[
 
 extern uint32_t hdPath[HDPATH_LEN_DEFAULT];
 
-bool isTestnet();
-
 zxerr_t crypto_extractPublicKey(const uint32_t path[HDPATH_LEN_DEFAULT], uint8_t *pubKey, uint16_t pubKeyLen);
 
-zxerr_t crypto_fillAddress(uint8_t *buffer, uint16_t bufferLen, uint16_t *addrLen);
+zxerr_t crypto_fillAddress(const uint32_t path[HDPATH_LEN_DEFAULT], uint8_t *buffer, uint16_t bufferLen, uint16_t *addrLen);
 
-zxerr_t crypto_sign(uint8_t *signature,
-                     uint16_t signatureMaxlen,
-                     const uint8_t *message,
-                     uint16_t messageLen,
-                     uint16_t *sigSize);
+zxerr_t crypto_sign(
+    const uint32_t path[HDPATH_LEN_DEFAULT],
+    const uint8_t *message,
+    uint16_t messageLen,
+    uint8_t *signature,
+    uint16_t signatureMaxlen,
+    uint16_t *sigSize
+);
 
 #ifdef __cplusplus
 }
