@@ -128,7 +128,7 @@ parser_error_t json_validateToken(parsed_json_t *parsedJson, uint16_t tokenIdx) 
         return PARSER_JSON_INVALID;
     }
 
-    if (tokenIdx >= parsedJson->numberOfTokens) {
+    if (!(tokenIdx < parsedJson->numberOfTokens)) {
         return PARSER_JSON_INVALID_TOKEN_IDX;
     }
 
@@ -199,7 +199,7 @@ parser_error_t json_matchKeyValue(parsed_json_t *parsedJson,
                                   uint16_t tokenIdx, char *expectedType, jsmntype_t jsonType, uint16_t *valueTokenIdx) {
     CHECK_PARSER_ERR(json_validateToken(parsedJson, tokenIdx))
 
-    if (tokenIdx + 4 >= parsedJson->numberOfTokens) {
+    if (! (tokenIdx + 4 < parsedJson->numberOfTokens)) {
         // we need this token and 4 more
         return PARSER_JSON_INVALID_TOKEN_IDX;
     }
@@ -230,8 +230,8 @@ parser_error_t json_matchOptionalKeyValue(parsed_json_t *parsedJson,
                                   uint16_t tokenIdx, char *expectedType, jsmntype_t jsonType, uint16_t *valueTokenIdx) {
     CHECK_PARSER_ERR(json_validateToken(parsedJson, tokenIdx))
 
-    if (tokenIdx + 4 >= parsedJson->numberOfTokens) {
-        // we need this token and 4 more
+    if (!(tokenIdx + 4 < parsedJson->numberOfTokens)) {
+        // we need this token and 4 more.
         return PARSER_JSON_INVALID_TOKEN_IDX;
     }
 
@@ -265,7 +265,7 @@ parser_error_t json_matchOptionalArray(parsed_json_t *parsedJson,
                                   uint16_t tokenIdx, uint16_t *valueTokenIdx) {
     CHECK_PARSER_ERR(json_validateToken(parsedJson, tokenIdx))
 
-    if (tokenIdx + 4 >= parsedJson->numberOfTokens) {
+    if (!(tokenIdx + 4 < parsedJson->numberOfTokens)) {
         // we need this token and 4 more
         return PARSER_JSON_INVALID_TOKEN_IDX;
     }
@@ -288,6 +288,9 @@ parser_error_t json_matchOptionalArray(parsed_json_t *parsedJson,
         return PARSER_OK; 
     }    
     if (parsedJson->tokens[tokenIdx + 4].type == JSMN_OBJECT) {  //optional not null
+        if (!(tokenIdx + 8 < parsedJson->numberOfTokens)) {
+            return PARSER_JSON_INVALID_TOKEN_IDX;
+        }
         CHECK_PARSER_ERR(json_matchToken(parsedJson, tokenIdx + 5, (char *) "type"))
         CHECK_PARSER_ERR(json_matchToken(parsedJson, tokenIdx + 6, (char *) "Array"))
         CHECK_PARSER_ERR(json_matchToken(parsedJson, tokenIdx + 7, (char *) "value"))
