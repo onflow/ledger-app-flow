@@ -74,6 +74,13 @@ jobs:
           command: |
             nvm use 14.4.0
             make zemu_install
+            cd js
+            yarn link
+            yarn build
+            cd ..
+            cd zemu_build
+            yarn link @onflow/ledger
+            cd ..
       - run:
           name: Run zemu tests
           command: |

@@ -15,18 +15,21 @@
 ********************************************************************************/
 
 #include <stdio.h>
+#include <os.h>
 #include "coin.h"
 #include "zxerror.h"
 #include "zxmacros.h"
 #include "app_mode.h"
 #include "crypto.h"
+#include "account.h"
 
 zxerr_t addr_getNumItems(uint8_t *num_items) {
     zemu_log_stack("addr_getNumItems");
-    *num_items = 1;
-    if (app_mode_expert()) {
-        *num_items = 2;
-    }
+        if (app_mode_expert()) {
+            *num_items = 4;
+            return zxerr_ok;
+        }
+    *num_items = 3;
     return zxerr_ok;
 }
 
@@ -36,11 +39,22 @@ zxerr_t addr_getItem(int8_t displayIdx,
                      uint8_t pageIdx, uint8_t *pageCount) {
     zemu_log_stack("addr_getItem");
     switch (displayIdx) {
-        case 0:
-            snprintf(outKey, outKeyLen, "Pub Key");
-            pageString(outVal, outValLen, (char *) (G_io_apdu_buffer + VIEW_ADDRESS_OFFSET_SECP256K1), pageIdx, pageCount);
+        case 0: {
+            snprintf(outKey, outKeyLen, "Account");
+            array_to_hexstr(outVal, outValLen, G_io_apdu_buffer, sizeof(flow_account_t));
             return zxerr_ok;
+        }
         case 1: {
+            snprintf(outKey, outKeyLen, "Pub Key");
+            pageString(outVal, outValLen, (char *) (G_io_apdu_buffer + sizeof(flow_account_t) + VIEW_ADDRESS_OFFSET_SECP256K1), pageIdx, pageCount);
+            return zxerr_ok;
+        }
+        case 2: {
+            snprintf(outKey, outKeyLen, "Warning");
+            pageString(outVal, outValLen, "Ledger does not verify if acoount and pub key match!!!", pageIdx, pageCount);
+            return zxerr_ok;        
+        }
+        case 3: {
             if (!app_mode_expert()) {
                 return zxerr_no_data;
             }

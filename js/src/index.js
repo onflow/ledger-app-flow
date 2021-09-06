@@ -26,6 +26,7 @@ import {
   P1_VALUES,
   PKLEN,
   processErrorResponse,
+  ADDRLEN,
 } from "./common";
 
 function processGetAddrResponse(response) {
@@ -34,9 +35,9 @@ function processGetAddrResponse(response) {
   const errorCodeData = partialResponse.slice(-2);
   const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
 
-  const publicKey = Buffer.from(partialResponse.slice(0, PKLEN));
-  partialResponse = partialResponse.slice(PKLEN);
-  const address = Buffer.from(partialResponse.slice(0, -2)).toString();
+  const address = Buffer.from(partialResponse.slice(0, ADDRLEN)).toString("hex");
+  partialResponse = partialResponse.slice(ADDRLEN);
+  const publicKey = Buffer.from(partialResponse.slice(0, PKLEN)).toString("hex");
 
   return {
     publicKey,
@@ -154,20 +155,30 @@ export default class FlowApp {
     }, processErrorResponse);
   }
 
-  async getAddressAndPubKey(path) {
-    const serializedPath = serializePathv1(path);
-    console.log(serializedPath);
+  async getAddressAndPubKey(slotIdx) {
+    if (isNaN(slotIdx) || slotIdx < 0 || slotIdx > 63) {
+      return {
+        returnCode: 0,
+        errorMessage: "slotIdx should be a number between 0 and 63 inclusively",
+      };
+    }
+    
 
-    return this.transport
-      .send(CLA, INS.GET_PUBKEY, P1_VALUES.ONLY_RETRIEVE, 0, serializedPath, [0x9000])
+    const payload = Buffer.from([slotIdx]);
+    return this.transport.send(CLA, INS.GET_PUBKEY, P1_VALUES.ONLY_RETRIEVE, 0, payload, [0x9000])
       .then(processGetAddrResponse, processErrorResponse);
   }
 
-  async showAddressAndPubKey(path) {
-    const serializedPath = serializePathv1(path);
+  async showAddressAndPubKey(slotIdx) {
+    if (isNaN(slotIdx) || slotIdx < 0 || slotIdx > 63) {
+      return {
+        returnCode: 0,
+        errorMessage: "slotIdx should be a number between 0 and 63 inclusively",
+      };
+    }
 
-    return this.transport
-      .send(CLA, INS.GET_PUBKEY, P1_VALUES.SHOW_ADDRESS_IN_DEVICE, 0, serializedPath, [0x9000])
+    const payload = Buffer.from([slotIdx]);
+    return this.transport.send(CLA, INS.GET_PUBKEY, P1_VALUES.SHOW_ADDRESS_IN_DEVICE, 0, payload, [0x9000])
       .then(processGetAddrResponse, processErrorResponse);
   }
 
@@ -227,8 +238,6 @@ export default class FlowApp {
 
     const payload = Buffer.from([slotIdx]);
     return this.transport.send(CLA, INS.GET_SLOT, 0, 0, payload).then((response) => {
-      console.log(response);
-
       const errorCodeData = response.slice(-2);
       const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
 
@@ -263,12 +272,7 @@ export default class FlowApp {
       };
     }
 
-    console.log(serializedSlotIdx)
-    console.log(serializedAccount)
-    console.log(serializedPath)
-
     const payload = Buffer.concat([ serializedSlotIdx, serializedAccount, serializedPath]);
-    console.log(payload)
 
     return this.transport.send(CLA, INS.SET_SLOT, 0, 0, payload).then((response) => {
       const errorCodeData = response.slice(-2);

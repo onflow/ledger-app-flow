@@ -16,12 +16,14 @@
 
 import { expect } from "jest";
 import Zemu from "@zondax/zemu";
+
 import FlowApp from "@onflow/ledger";
 
-import { APP_PATH, simOptions, verifyAndAccept } from "./setup";
+
+import { APP_PATH, simOptions, verifyAndAccept, prepareSlot } from "./setup";
 
 describe("Basic checks", function () {
-    test("can start and stop container", async function () {
+   test("can start and stop container", async function () {
         const sim = new Zemu(APP_PATH);
         try {
             await sim.start(simOptions);
@@ -58,6 +60,9 @@ describe("Basic checks", function () {
 
             const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
             const path = `m/44'/539'/${scheme}'/0/0`;
+            const address = "0123456789abcdef"
+
+            await prepareSlot(sim, app, 1, address, path)
 
             let invalidMessage = Buffer.from(
                 "1234567890",
@@ -65,7 +70,7 @@ describe("Basic checks", function () {
             );
             invalidMessage += "1";
 
-            const pkResponse = await app.getAddressAndPubKey(path);
+            const pkResponse = await app.getAddressAndPubKey(1);
             console.log(pkResponse);
             expect(pkResponse.returnCode).toEqual(0x9000);
             expect(pkResponse.errorMessage).toEqual("No errors");
@@ -267,14 +272,18 @@ describe("Basic checks", function () {
 
             const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
             const path = `m/44'/539'/${scheme}'/0/0`;
-            const resp = await app.getAddressAndPubKey(path);
+            const address = "0123456789abcdef"
+
+            await prepareSlot(sim, app, 0, address, path)
+
+            const resp = await app.getAddressAndPubKey(0);
 
             console.log(resp)
 
             expect(resp.returnCode).toEqual(0x9000);
             expect(resp.errorMessage).toEqual("No errors");
 
-            const expected_address_string = "04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be";
+            const expected_address_string = "0123456789abcdef";
             const expected_pk = "04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be";
 
             expect(resp.address).toEqual(expected_address_string);
@@ -285,7 +294,7 @@ describe("Basic checks", function () {
         }
     });
 
-    test("show address - secp256k1", async function () {
+     test("show address - secp256k1", async function () {
         const sim = new Zemu(APP_PATH);
         try {
             await sim.start(simOptions);
@@ -294,22 +303,20 @@ describe("Basic checks", function () {
             // Derivation path. First 3 items are automatically hardened!
             const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
             const path = `m/44'/539'/${scheme}'/0/0`;
+            const address = "0123456789abcdef"
 
-            const respRequest = app.showAddressAndPubKey(path);
-            // Wait until we are not in the main menu
-            await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
+            await prepareSlot(sim, app, 63, address, path)
 
-            // Now navigate the address / path
-            const snapshots = await verifyAndAccept(sim, 4);
+            const respRequest = app.showAddressAndPubKey(63);
+            const snapshots = await verifyAndAccept(sim, 7);
             snapshots.forEach((image) => expect(image).toMatchImageSnapshot());
-            
+                        
             const resp = await respRequest;
-            console.log(resp);
 
             expect(resp.returnCode).toEqual(0x9000);
             expect(resp.errorMessage).toEqual("No errors");
 
-            const expected_address_string = "04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be";
+            const expected_address_string = "0123456789abcdef";
             const expected_pk = "04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be";
 
             expect(resp.address).toEqual(expected_address_string);
@@ -329,14 +336,16 @@ describe("Basic checks", function () {
 
             const scheme = FlowApp.Signature.P256 | FlowApp.Hash.SHA2_256;
             const path = `m/44'/539'/${scheme}'/0/0`;
-            const resp = await app.getAddressAndPubKey(path);
+            const address = "0123456789abcdef"
 
-            console.log(resp)
+            await prepareSlot(sim, app, 0, address, path)
+
+            const resp = await app.getAddressAndPubKey(0);
 
             expect(resp.returnCode).toEqual(0x9000);
             expect(resp.errorMessage).toEqual("No errors");
 
-            const expected_address_string = "04db0a14364e5bf43a7ddda603522ddfee95c5ff12b48c49480f062e7aa9d20e84215eef9b8b76175f32802f75ed54110e29c7dc76054f24c028c312098e7177a3";
+            const expected_address_string = "0123456789abcdef";
             const expected_pk = "04db0a14364e5bf43a7ddda603522ddfee95c5ff12b48c49480f062e7aa9d20e84215eef9b8b76175f32802f75ed54110e29c7dc76054f24c028c312098e7177a3";
 
             expect(resp.address).toEqual(expected_address_string);
@@ -356,22 +365,26 @@ describe("Basic checks", function () {
             // Derivation path. First 3 items are automatically hardened!
             const scheme = FlowApp.Signature.P256 | FlowApp.Hash.SHA2_256;
             const path = `m/44'/539'/${scheme}'/0/0`;
+            const address = "0123456789abcdef"
+            const fakeAddress = "0000000000000000"
 
-            const respRequest = app.showAddressAndPubKey(path);
+            await prepareSlot(sim, app, 1, address, path)
+            await prepareSlot(sim, app, 0, fakeAddress, path)
+
+            const respRequest = app.showAddressAndPubKey(1);
             // Wait until we are not in the main menu
             await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
             // Now navigate the address / path
-            const snapshots = await verifyAndAccept(sim, 4);
+            const snapshots = await verifyAndAccept(sim, 7);
             snapshots.forEach((image) => expect(image).toMatchImageSnapshot());
 
             const resp = await respRequest;
-            console.log(resp);
 
             expect(resp.returnCode).toEqual(0x9000);
             expect(resp.errorMessage).toEqual("No errors");
 
-            const expected_address_string = "04db0a14364e5bf43a7ddda603522ddfee95c5ff12b48c49480f062e7aa9d20e84215eef9b8b76175f32802f75ed54110e29c7dc76054f24c028c312098e7177a3";
+            const expected_address_string = "0123456789abcdef";
             const expected_pk = "04db0a14364e5bf43a7ddda603522ddfee95c5ff12b48c49480f062e7aa9d20e84215eef9b8b76175f32802f75ed54110e29c7dc76054f24c028c312098e7177a3";
 
             expect(resp.address).toEqual(expected_address_string);
@@ -395,26 +408,51 @@ describe("Basic checks", function () {
             // Derivation path. First 3 items are automatically hardened!
             const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
             const path = `m/44'/539'/${scheme}'/0/0`;
+            const address = "0123456789abcdef"
 
-            const respRequest = app.showAddressAndPubKey(path);
+            await prepareSlot(sim, app, 1, address, path)
+
+            const respRequest = app.showAddressAndPubKey(1);
             // Wait until we are not in the main menu
             await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
             // Now navigate the address / path
-            const snapshots = await verifyAndAccept(sim, 5);
+            const snapshots = await verifyAndAccept(sim, 8);
             snapshots.forEach((image) => expect(image).toMatchImageSnapshot());
 
             const resp = await respRequest;
-            console.log(resp);
 
             expect(resp.returnCode).toEqual(0x9000);
             expect(resp.errorMessage).toEqual("No errors");
 
-            const expected_address_string = "04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be";
+            const expected_address_string = "0123456789abcdef";
             const expected_pk = "04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be";
 
             expect(resp.address).toEqual(expected_address_string);
             expect(resp.publicKey.toString('hex')).toEqual(expected_pk);
+        } finally {
+            await sim.close();
+        }
+    });
+
+    test("get address - empty slot", async function () {
+        const sim = new Zemu(APP_PATH);
+        try {
+            await sim.start(simOptions);
+            const app = new FlowApp(sim.getTransport());
+
+            const scheme = FlowApp.Signature.P256 | FlowApp.Hash.SHA2_256;
+            const path = `m/0/0/0/0/0`;
+            const address = "0000000000000000"
+
+            await prepareSlot(sim, app, 0, address, path)
+
+            const resp = await app.getAddressAndPubKey(0);
+
+            console.log(resp);
+
+            expect(resp.returnCode).toEqual(0x6984); 
+            expect(resp.errorMessage).toEqual("Data is invalid");
         } finally {
             await sim.close();
         }

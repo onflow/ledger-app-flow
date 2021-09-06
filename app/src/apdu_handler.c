@@ -31,12 +31,51 @@
 #include "zxmacros.h"
 
 __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
-    extractHDPath(rx, OFFSET_DATA);
+    if (rx != 6) {
+        THROW(APDU_CODE_DATA_INVALID);
+    }
 
     uint8_t requireConfirmation = G_io_apdu_buffer[OFFSET_P1];
+    const uint8_t slotIdx = G_io_apdu_buffer[OFFSET_DATA];
 
+    char buffer[20];
+    snprintf(buffer, sizeof(buffer), "%d", slotIdx);
+    zemu_log_stack(buffer);
+
+    account_slot_t slot;
+    zxerr_t err = slot_getSlot(slotIdx,(uint8_t *) &slot, sizeof(slot));
+    snprintf(buffer, sizeof(buffer), "err: %d", err);
+    zemu_log_stack(buffer);
+
+    if (err == zxerr_no_data) {
+        zemu_log_stack("Empty slot");
+        THROW(APDU_CODE_DATA_INVALID);
+    }
+
+    if (err != zxerr_ok) {
+        THROW(APDU_CODE_EXECUTION_ERROR);
+    }
+
+    //We want to reuse extractHDPath, as it works on G_io_apdu_buffer we have to follow 
+    MEMCPY(G_io_apdu_buffer, &slot.path, sizeof(slot.path));
+    rx = sizeof(slot.path);
+    extractHDPath(rx, 0); //this puts hdPath into hdPath global variable
+    *tx = app_fill_address(); //Computes pubkey, the new pubkey is in G_io_apdu_buffer
+
+    //We shift G_io_apdu_buffer  to make space for account
+    if (*tx + sizeof(slot.account) > IO_APDU_BUFFER_SIZE) {
+        THROW(APDU_CODE_UNKNOWN); //this should not happen
+    }
+    MEMMOVE(G_io_apdu_buffer + sizeof(slot.account), G_io_apdu_buffer, *tx); //buffers overlap, we have to use MEMMOVE
+    *tx += sizeof(slot.account);
+
+    //we fill the account
+    MEMCPY(G_io_apdu_buffer, &slot.account, sizeof(slot.account));
+
+    //Display or return the buffer    
     if (requireConfirmation) {
-        app_fill_address();
+        //we set the returning length for app_reply_address
+        action_addr_len = *tx;
 
         view_review_init(addr_getItem, addr_getNumItems, app_reply_address);
         view_review_show();
@@ -45,7 +84,6 @@ __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx,
         return;
     }
 
-    *tx = app_fill_address();
     THROW(APDU_CODE_OK);
 }
 

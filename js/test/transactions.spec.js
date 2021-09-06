@@ -157,8 +157,10 @@ describe("Show address", () => {
     test("Test", async () => {
         const transport = await TransportNodeHid.create();
         const app = new FlowApp(transport);
-        const res = await app.showAddressAndPubKey("m/44\'/539\'/512\'/0/0")
-        console.log(res)
+        const res1 = await app.setSlot(0, "0123456789ABCDEF", "m/44\'/539\'/512\'/0/0")
+        console.log(res1)
+        const res2 = await app.showAddressAndPubKey(0)
+        console.log(res2)
     })
 })
 

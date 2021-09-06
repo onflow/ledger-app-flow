@@ -65,3 +65,15 @@ export async function verifyAndAccept(sim, pageCount) {
 
     return snapshots;
 }
+
+export async function prepareSlot(sim, app, slot, address = "0000000000000000", path = `m/0/0/0/0/0`) {
+    const respRequest = app.setSlot(slot, address, path);
+    await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
+    await sim.clickRight();
+    await sim.clickRight();
+    await sim.clickRight();
+    await sim.clickBoth();
+    return await respRequest;
+}
+
+
