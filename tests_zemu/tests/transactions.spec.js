@@ -55,10 +55,11 @@ function getArgumentsPageCount(args) {
     return args.reduce((count, arg) => count + getArgumentPageCount(arg), 0);
 }
 
-function getTransactionBasePageCount(tx) {
+function getTransactionPageCount(tx) {
     return (
         CHAIN_ID_PAGE_COUNT +
         REF_BLOCK_PAGE_COUNT +
+        getArgumentsPageCount(tx.arguments) +
         GAS_LIMIT_PAGE_COUNT +
         PROP_KEY_ADDRESS_PAGE_COUNT +
         PROP_KEY_ID_PAGE_COUNT +
@@ -67,10 +68,6 @@ function getTransactionBasePageCount(tx) {
         (AUTHORIZER_PAGE_COUNT * tx.authorizers.length) +
         ACCEPT_PAGE_COUNT
     );
-}
-
-function getTransactionPageCount(tx) {
-    return getTransactionBasePageCount(tx) + getArgumentsPageCount(tx.arguments);
 }
 
 function getKeyPath(sigAlgo, hashAlgo) {
