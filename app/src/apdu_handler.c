@@ -60,17 +60,11 @@ __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx,
     MEMCPY(G_io_apdu_buffer, &slot.path, sizeof(slot.path));
     rx = sizeof(slot.path);
     extractHDPath(rx, 0); //this puts hdPath into hdPath global variable
-    *tx = app_fill_address(); //Computes pubkey, the new pubkey is in G_io_apdu_buffer
 
-    //We shift G_io_apdu_buffer  to make space for account
-    if (*tx + sizeof(slot.account) > IO_APDU_BUFFER_SIZE) {
-        THROW(APDU_CODE_UNKNOWN); //this should not happen
-    }
-    MEMMOVE(G_io_apdu_buffer + sizeof(slot.account), G_io_apdu_buffer, *tx); //buffers overlap, we have to use MEMMOVE
-    *tx += sizeof(slot.account);
-
-    //we fill the account
+    //We fill account and pubkey
     MEMCPY(G_io_apdu_buffer, &slot.account, sizeof(slot.account));
+    *tx = sizeof(slot.account);
+    *tx += app_fill_pubkey(G_io_apdu_buffer + sizeof(slot.account), IO_APDU_BUFFER_SIZE - sizeof(slot.account)); 
 
     //Display or return the buffer    
     if (requireConfirmation) {

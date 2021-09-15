@@ -25,13 +25,26 @@
 
 zxerr_t addr_getNumItems(uint8_t *num_items) {
     zemu_log_stack("addr_getNumItems");
-        if (app_mode_expert()) {
-            *num_items = 4;
-            return zxerr_ok;
-        }
+    if (app_mode_expert()) {
+        *num_items = 4;
+        return zxerr_ok;
+    }
     *num_items = 3;
     return zxerr_ok;
 }
+
+//To add to zxlib after fork
+__Z_INLINE void pageHexStringFromBuf(char *outValue, uint16_t outValueLen,
+                           uint8_t *inValue, uint16_t inValueLen,
+                           uint8_t pageIdx, uint8_t *pageCount) {
+    char buf[2*inValueLen+1];
+    uint_fast32_t len = array_to_hexstr(buf, sizeof(buf), inValue, inValueLen);
+    if (len == 0) {
+        return;
+    }
+    pageString(outValue, outValueLen, buf, pageIdx, pageCount);
+}
+
 
 zxerr_t addr_getItem(int8_t displayIdx,
                      char *outKey, uint16_t outKeyLen,
@@ -46,12 +59,12 @@ zxerr_t addr_getItem(int8_t displayIdx,
         }
         case 1: {
             snprintf(outKey, outKeyLen, "Pub Key");
-            pageString(outVal, outValLen, (char *) (G_io_apdu_buffer + sizeof(flow_account_t) + VIEW_ADDRESS_OFFSET_SECP256K1), pageIdx, pageCount);
+            pageHexStringFromBuf(outVal, outValLen, G_io_apdu_buffer + sizeof(flow_account_t), SECP256K1_PK_LEN, pageIdx, pageCount);
             return zxerr_ok;
         }
         case 2: {
             snprintf(outKey, outKeyLen, "Warning");
-            pageString(outVal, outValLen, "Ledger does not verify if acoount and pub key match!!!", pageIdx, pageCount);
+            pageString(outVal, outValLen, "Ledger does not verify if account and pub key match!!!", pageIdx, pageCount);
             return zxerr_ok;        
         }
         case 3: {

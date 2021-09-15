@@ -21,6 +21,7 @@
 #include "apdu_codes.h"
 #include <os_io_seproxyhal.h>
 #include "coin.h"
+#include "zxformat.h" 
 
 extern uint16_t action_addr_len;
 
@@ -45,18 +46,20 @@ __Z_INLINE void app_reject() {
     io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, 2);
 }
 
-__Z_INLINE uint8_t app_fill_address() {
-    // Put data directly in the apdu buffer
-    MEMZERO(G_io_apdu_buffer, IO_APDU_BUFFER_SIZE);
+__Z_INLINE uint8_t app_fill_pubkey(unsigned char *buffer, uint16_t buffer_len) {
+    if (buffer_len < SECP256K1_PK_LEN) {
+        zemu_log_stack("crypto_fillAddress: zxerr_buffer_too_small");
+        return zxerr_buffer_too_small;
+    }
 
-    action_addr_len = 0;
-    zxerr_t err = crypto_fillAddress(hdPath, G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 2, &action_addr_len);
+    MEMZERO(buffer, SECP256K1_PK_LEN);
+    zxerr_t err = crypto_extractPublicKey(hdPath, buffer, SECP256K1_PK_LEN);
 
-    if (err != zxerr_ok || action_addr_len == 0) {
+    if (err != zxerr_ok) {
         THROW(APDU_CODE_EXECUTION_ERROR);
     }
 
-    return action_addr_len;
+    return SECP256K1_PK_LEN;
 }
 
 __Z_INLINE void app_reply_address() {

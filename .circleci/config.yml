@@ -64,29 +64,22 @@ jobs:
           command: |
             make
       - run:
-          name: Install node + yarn
+          name: Install node + yarn 
           command: |
-            nvm install 14.4.0
-            nvm use 14.4.0
+            nvm install 12.16.2
+            nvm use 12.16.2
             npm install -g yarn
       - run:
           name: Build/Install build js deps
           command: |
-            nvm use 14.4.0
+            nvm use 12.16.2
             make zemu_install
-            cd js
-            yarn link
-            yarn build
-            cd ..
-            cd zemu_build
-            yarn link @onflow/ledger
-            cd ..
       - run:
           name: Run zemu tests
           command: |
-            nvm use 14.4.0
+            nvm use 12.16.2
             make zemu_test
-          no_output_timeout: 20m
+          no_output_timeout: 30m
 
   build_package:
     docker:
