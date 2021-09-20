@@ -469,6 +469,12 @@ parser_error_t _matchScriptType(uint8_t scriptHash[32], script_type_e *scriptTyp
 
         {SCRIPT_FUSD02_TRANSFER_FUSD, TEMPLATE_HASH_FUSD02_TRANSFER_FUSD_TESTNET},
         {SCRIPT_FUSD02_TRANSFER_FUSD, TEMPLATE_HASH_FUSD02_TRANSFER_FUSD_MAINNET},
+
+        {SCRIPT_TS01_SET_UP_TOPSHOT_COLLECTION, TEMPLATE_HASH_TS01_SET_UP_TOPSHOT_COLLECTION_TESTNET},
+        {SCRIPT_TS01_SET_UP_TOPSHOT_COLLECTION, TEMPLATE_HASH_TS01_SET_UP_TOPSHOT_COLLECTION_MAINNET},
+
+        {SCRIPT_TS02_TRANSFER_TOP_SHOT_MOMENT, TEMPLATE_HASH_TS02_TRANSFER_TOP_SHOT_MOMENT_TESTNET},
+        {SCRIPT_TS02_TRANSFER_TOP_SHOT_MOMENT, TEMPLATE_HASH_TS02_TRANSFER_TOP_SHOT_MOMENT_MAINNET},
         // sentinel, do not remove
         {0, NULL}
     };
@@ -883,6 +889,12 @@ parser_error_t _getNumItems(const parser_context_t *c, const parser_tx_t *v, uin
             *numItems = 8 + v->authorizers.authorizer_count;
             return PARSER_OK;
         case SCRIPT_FUSD02_TRANSFER_FUSD:
+            *numItems = 10 + v->authorizers.authorizer_count;
+            return PARSER_OK;
+        case SCRIPT_TS01_SET_UP_TOPSHOT_COLLECTION:
+            *numItems = 8 + v->authorizers.authorizer_count;
+            return PARSER_OK;
+        case SCRIPT_TS02_TRANSFER_TOP_SHOT_MOMENT:
             *numItems = 10 + v->authorizers.authorizer_count;
             return PARSER_OK;
         case SCRIPT_UNKNOWN:
