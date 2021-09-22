@@ -201,3 +201,20 @@ describe("Staking transactions", () => {
             });
         });
 });
+
+describe("Multi-sig transaction", () => {
+    const transactions = JSON.parse(fs.readFileSync("../tests/testvectors/validEnvelopeCases.json"));
+
+    const tx = transactions[0]
+
+    test(`sign transaction (${tx.title}) - ${ECDSA_P256.name} / ${SHA3_256.name}`, async () => {
+        const txExpectedPageCount = getTransactionPageCount(tx.envelopeMessage);
+
+        await transactionTest(
+            tx.encodedTransactionEnvelopeHex, 
+            txExpectedPageCount, 
+            ECDSA_P256, 
+            SHA3_256,
+        );
+    });
+});
