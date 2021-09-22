@@ -100,7 +100,7 @@ zxerr_t crypto_extractPublicKey(const flow_path_t *path, uint8_t *pubKey, uint16
         }
         FINALLY {
             MEMZERO(&cx_privateKey, sizeof(cx_privateKey));
-            MEMZERO(privateKeyData, PUBLIC_KEY_LEN);
+            MEMZERO(privateKeyData, sizeof(privateKeyData));
         }
     }
     END_TRY;

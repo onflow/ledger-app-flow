@@ -88,9 +88,11 @@ async function transactionTest(txHexBlob, txExpectedPageCount, sigAlgo, hashAlgo
 
         const path = getKeyPath(sigAlgo.code, hashAlgo.code);
         
-        const pkResponse = await app.getAddressAndPubKey(path);
-        expect(pkResponse.returnCode).equal(0x9000);
-        expect(pkResponse.errorMessage).equal("No errors");
+        const res1 = await app.setSlot(5, "e467b9dd11fa00df", path)
+        expect(res1.returnCode).equal(0x9000)
+        const res2 = await app.getAddressAndPubKey(5)
+        expect(res2.returnCode).equal(0x9000)
+        expect(res2.errorMessage).equal("No errors");
 
         let resp = await app.sign(path, txBlob);
 
@@ -111,7 +113,7 @@ async function transactionTest(txHexBlob, txExpectedPageCount, sigAlgo, hashAlgo
         // Verify transaction signature against the digest
         const ec = new EC(sigAlgo.name);
         const sig = resp.signatureDER.toString("hex");
-        const pk = pkResponse.publicKey.toString("hex");
+        const pk = res2.publicKey.toString("hex");
 
         const signatureOk = ec.verify(digest, sig, pk, 'hex');
         expect(signatureOk).equal(true);
@@ -157,7 +159,7 @@ describe("Show address", () => {
     test("Test", async () => {
         const transport = await TransportNodeHid.create();
         const app = new FlowApp(transport);
-        const res1 = await app.setSlot(0, "0123456789ABCDEF", "m/44\'/539\'/512\'/0/0")
+        const res1 = await app.setSlot(0, "e467b9dd11fa00df", "m/44\'/539\'/512\'/0/0")
         console.log(res1)
         const res2 = await app.showAddressAndPubKey(0)
         console.log(res2)

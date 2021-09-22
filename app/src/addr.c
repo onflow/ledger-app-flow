@@ -54,7 +54,7 @@ zxerr_t addr_getItem(int8_t displayIdx,
     switch (displayIdx) {
         case 0: {
             snprintf(outKey, outKeyLen, "Account");
-            array_to_hexstr(outVal, outValLen, G_io_apdu_buffer, sizeof(flow_account_t));
+            array_to_hexstr_with_0x(outVal, outValLen, G_io_apdu_buffer, sizeof(flow_account_t));
             return zxerr_ok;
         }
         case 1: {

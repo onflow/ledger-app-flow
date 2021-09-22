@@ -24,7 +24,7 @@ export const APP_PATH = Resolve("../app/bin/app.elf");
 const APP_SEED = "equip will roof matter pink blind book anxiety banner elbow sun young"
 
 export const simOptions = {
-    // logging: true,
+    //logging: true,
     start_delay: 1500,
     custom: `-s "${APP_SEED}"`,
     // X11: true,

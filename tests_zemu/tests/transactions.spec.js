@@ -88,7 +88,7 @@ async function transactionTest(txHexBlob, txExpectedPageCount, sigAlgo, hashAlgo
         const txBlob = Buffer.from(txHexBlob, "hex");
 
         const path = getKeyPath(sigAlgo.code, hashAlgo.code);
-        const address = "0123456789abcdef"
+        const address = "e467b9dd11fa00df"
         await prepareSlot(sim, app, 1, address, path)
 
         const pkResponse = await app.getAddressAndPubKey(1);

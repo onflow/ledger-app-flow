@@ -98,7 +98,7 @@ void extractHDPath(uint32_t rx, uint32_t offset) {
     //HD path is extracted also in account.c:slot_parseSlot. 
     MEMCPY(&hdPath, G_io_apdu_buffer + offset, sizeof(uint32_t) * HDPATH_LEN_DEFAULT);
 
-    if (!path_is_mainnet_or_testnet(hdPath)) {
+    if (!path_is_mainnet(hdPath) && !path_is_testnet(hdPath)) {
         THROW(APDU_CODE_DATA_INVALID);
     }
 }
