@@ -30,7 +30,7 @@ __Z_INLINE void app_sign() {
     const uint16_t messageLength = get_signable_length();
 
     uint16_t replyLen = 0;
-    zxerr_t err = crypto_sign(hdPath, message, messageLength, G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 3, &replyLen);
+    zxerr_t err = crypto_sign(hdPath.data, message, messageLength, G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 3, &replyLen);
 
     if (err != zxerr_ok || replyLen == 0) {
         set_code(G_io_apdu_buffer, 0, APDU_CODE_SIGN_VERIFY_ERROR);
@@ -47,19 +47,13 @@ __Z_INLINE void app_reject() {
 }
 
 __Z_INLINE uint8_t app_fill_pubkey(unsigned char *buffer, uint16_t buffer_len) {
-    if (buffer_len < SECP256K1_PK_LEN) {
-        zemu_log_stack("crypto_fillAddress: zxerr_buffer_too_small");
-        return zxerr_buffer_too_small;
-    }
-
-    MEMZERO(buffer, SECP256K1_PK_LEN);
-    zxerr_t err = crypto_extractPublicKey(hdPath, buffer, SECP256K1_PK_LEN);
+    zxerr_t err = crypto_extractPublicKey(&hdPath, buffer, buffer_len);
 
     if (err != zxerr_ok) {
         THROW(APDU_CODE_EXECUTION_ERROR);
     }
 
-    return SECP256K1_PK_LEN;
+    return PUBLIC_KEY_LEN;
 }
 
 __Z_INLINE void app_reply_address() {

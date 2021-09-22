@@ -14,6 +14,7 @@
 *  limitations under the License.
 ********************************************************************************/
 #include "account.h"
+#include "coin.h"
 #include "zxmacros.h"
 #include "stdbool.h"
 #include "apdu_codes.h"
@@ -204,13 +205,10 @@ zxerr_t slot_parseSlot(uint8_t *buffer, uint16_t bufferLen) {
         return zxerr_out_of_bounds;
     }
 
+    //We copy account and path. Note that path is copied in app_main.c:extractHDPath (for sign transaction call).
     MEMCPY(&tmp_slot, buffer + 1, sizeof(account_slot_t));
 
-    const bool mainnet = tmp_slot.path.data[0] == HDPATH_0_DEFAULT && tmp_slot.path.data[1] == HDPATH_1_DEFAULT;
-    const bool testnet = tmp_slot.path.data[0] == HDPATH_0_TESTNET && tmp_slot.path.data[1] == HDPATH_1_TESTNET;
-    const bool empty = tmp_slot.path.data[0] == 0 && tmp_slot.path.data[1] == 0;
-
-    if (!mainnet && !testnet && !empty) {
+    if (!path_is_mainnet_or_testnet(tmp_slot.path) && !path_is_empty(tmp_slot.path)) {
         array_to_hexstr(bufferUI, sizeof(bufferUI), tmp_slot.account.data, 8);
         zemu_log(bufferUI);
         zemu_log("\n");

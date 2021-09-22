@@ -59,7 +59,7 @@ zxerr_t addr_getItem(int8_t displayIdx,
         }
         case 1: {
             snprintf(outKey, outKeyLen, "Pub Key");
-            pageHexStringFromBuf(outVal, outValLen, G_io_apdu_buffer + sizeof(flow_account_t), SECP256K1_PK_LEN, pageIdx, pageCount);
+            pageHexStringFromBuf(outVal, outValLen, G_io_apdu_buffer + sizeof(flow_account_t), PUBLIC_KEY_LEN, pageIdx, pageCount);
             return zxerr_ok;
         }
         case 2: {
@@ -74,7 +74,7 @@ zxerr_t addr_getItem(int8_t displayIdx,
 
             snprintf(outKey, outKeyLen, "Your Path");
             char buffer[300];
-            bip32_to_str(buffer, sizeof(buffer), hdPath, HDPATH_LEN_DEFAULT);
+            bip32_to_str(buffer, sizeof(buffer), hdPath.data, HDPATH_LEN_DEFAULT);
             pageString(outVal, outValLen, buffer, pageIdx, pageCount);
             return zxerr_ok;
         }

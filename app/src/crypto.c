@@ -18,7 +18,7 @@
 #include "coin.h"
 #include "zxmacros.h"
 
-uint32_t hdPath[HDPATH_LEN_DEFAULT];
+flow_path_t hdPath;
 
 #if defined(TARGET_NANOS) || defined(TARGET_NANOX)
 #include "cx.h"
@@ -62,22 +62,21 @@ __Z_INLINE cx_curve_t get_cx_curve(const uint32_t path[HDPATH_LEN_DEFAULT]) {
     }
 }
 
-zxerr_t crypto_extractPublicKey(const uint32_t path[HDPATH_LEN_DEFAULT], uint8_t *pubKey, uint16_t pubKeyLen) {
+zxerr_t crypto_extractPublicKey(const flow_path_t *path, uint8_t *pubKey, uint16_t pubKeyLen) {
     zemu_log_stack("crypto_extractPublicKey");
     MEMZERO(pubKey, pubKeyLen);
 
-    cx_curve_t curve = get_cx_curve(path);
+    cx_curve_t curve = get_cx_curve(path->data);
     if (curve!=CX_CURVE_SECP256K1 && curve!=CX_CURVE_SECP256R1 ) {
         zemu_log_stack("extractPublicKey: invalid_crypto_settings");
         return zxerr_invalid_crypto_settings;
     }
 
-    const uint32_t domainSize = 32;
-    const uint32_t pkSize = 1 + 2 * domainSize;
-    if (pubKeyLen < pkSize) {
+    if (pubKeyLen < PUBLIC_KEY_LEN) {
         zemu_log_stack("extractPublicKey: zxerr_buffer_too_small");
         return zxerr_buffer_too_small;
     }
+
 
     cx_ecfp_public_key_t cx_publicKey;
     cx_ecfp_private_key_t cx_privateKey;
@@ -88,7 +87,7 @@ zxerr_t crypto_extractPublicKey(const uint32_t path[HDPATH_LEN_DEFAULT], uint8_t
         TRY {
             zemu_log_stack("extractPublicKey: derive_node_bip32");
             os_perso_derive_node_bip32(curve,
-                                       path,
+                                       path->data,
                                        HDPATH_LEN_DEFAULT,
                                        privateKeyData, NULL);
 
@@ -101,12 +100,12 @@ zxerr_t crypto_extractPublicKey(const uint32_t path[HDPATH_LEN_DEFAULT], uint8_t
         }
         FINALLY {
             MEMZERO(&cx_privateKey, sizeof(cx_privateKey));
-            MEMZERO(privateKeyData, domainSize);
+            MEMZERO(privateKeyData, PUBLIC_KEY_LEN);
         }
     }
     END_TRY;
 
-    memcpy(pubKey, cx_publicKey.W, pkSize);
+    memcpy(pubKey, cx_publicKey.W, PUBLIC_KEY_LEN);
     return zxerr_ok;
 }
 

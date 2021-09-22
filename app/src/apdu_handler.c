@@ -35,7 +35,7 @@ __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx,
         THROW(APDU_CODE_DATA_INVALID);
     }
 
-    uint8_t requireConfirmation = G_io_apdu_buffer[OFFSET_P1];
+    uint8_t displayAndConfirm = G_io_apdu_buffer[OFFSET_P1];
     const uint8_t slotIdx = G_io_apdu_buffer[OFFSET_DATA];
 
     char buffer[20];
@@ -47,27 +47,24 @@ __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx,
     snprintf(buffer, sizeof(buffer), "err: %d", err);
     zemu_log_stack(buffer);
 
-    if (err == zxerr_no_data) {
+    if (err == zxerr_no_data) { 
         zemu_log_stack("Empty slot");
         THROW(APDU_CODE_DATA_INVALID);
     }
-
     if (err != zxerr_ok) {
         THROW(APDU_CODE_EXECUTION_ERROR);
     }
 
-    //We want to reuse extractHDPath, as it works on G_io_apdu_buffer we have to follow 
-    MEMCPY(G_io_apdu_buffer, &slot.path, sizeof(slot.path));
-    rx = sizeof(slot.path);
-    extractHDPath(rx, 0); //this puts hdPath into hdPath global variable
+    MEMCPY(&hdPath, slot.path.data, sizeof(hdPath)); 
 
     //We fill account and pubkey
     MEMCPY(G_io_apdu_buffer, &slot.account, sizeof(slot.account));
+
     *tx = sizeof(slot.account);
     *tx += app_fill_pubkey(G_io_apdu_buffer + sizeof(slot.account), IO_APDU_BUFFER_SIZE - sizeof(slot.account)); 
 
     //Display or return the buffer    
-    if (requireConfirmation) {
+    if (displayAndConfirm) {
         //we set the returning length for app_reply_address
         action_addr_len = *tx;
 

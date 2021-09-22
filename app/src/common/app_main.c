@@ -95,15 +95,10 @@ void extractHDPath(uint32_t rx, uint32_t offset) {
         THROW(APDU_CODE_WRONG_LENGTH);
     }
 
-    MEMCPY(hdPath, G_io_apdu_buffer + offset, sizeof(uint32_t) * HDPATH_LEN_DEFAULT);
+    //HD path is extracted also in account.c:slot_parseSlot. 
+    MEMCPY(&hdPath, G_io_apdu_buffer + offset, sizeof(uint32_t) * HDPATH_LEN_DEFAULT);
 
-    const bool mainnet = hdPath[0] == HDPATH_0_DEFAULT &&
-                         hdPath[1] == HDPATH_1_DEFAULT;
-
-    const bool testnet = hdPath[0] == HDPATH_0_TESTNET &&
-                         hdPath[1] == HDPATH_1_TESTNET;
-
-    if (!mainnet && !testnet) {
+    if (!path_is_mainnet_or_testnet(hdPath)) {
         THROW(APDU_CODE_DATA_INVALID);
     }
 }
