@@ -102,11 +102,8 @@ async function transactionTest(txHexBlob, txExpectedPageCount, sigAlgo, hashAlgo
 
         // Click through each approval page and accept transaction
         // Capture a snapshot of each page
-        const snapshots = await verifyAndAccept(sim, txExpectedPageCount);
-
-        // Expect new snapshots to match saved snapshots
-        snapshots.forEach((image) => expect(image).toMatchImageSnapshot());
-
+        await verifyAndAccept(sim, txExpectedPageCount);
+ 
         let resp = await signatureRequest;
         expect(resp.returnCode).toEqual(0x9000);
         expect(resp.errorMessage).toEqual("No errors");
@@ -206,6 +203,8 @@ describe("Multi-sig transaction", () => {
     const transactions = JSON.parse(fs.readFileSync("../tests/testvectors/validEnvelopeCases.json"));
 
     const tx = transactions[0]
+
+    console.log(tx)
 
     test(`sign transaction (${tx.title}) - ${ECDSA_P256.name} / ${SHA3_256.name}`, async () => {
         const txExpectedPageCount = getTransactionPageCount(tx.envelopeMessage);
