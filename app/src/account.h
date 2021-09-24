@@ -58,8 +58,9 @@ zxerr_t slot_parseSlot(uint8_t *buffer, uint16_t bufferLen);
 void app_slot_setSlot();
 
 //To add to zxlib after fork
+//For now just plain display
 __Z_INLINE uint32_t array_to_hexstr_with_0x(char *dst, uint16_t dstLen, const uint8_t *src, uint8_t count) {
-    if (dstLen < 2) {
+/*    if (dstLen < 2) {
         return 0;
     }
     dst[0]='0'; 
@@ -68,7 +69,8 @@ __Z_INLINE uint32_t array_to_hexstr_with_0x(char *dst, uint16_t dstLen, const ui
     if (res == 0) {
         return 0;
     }
-    return res;
+    return res;*/
+    return array_to_hexstr(dst, dstLen, src, count);
 }
 
 #ifdef __cplusplus
