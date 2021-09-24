@@ -311,7 +311,7 @@ const createEnvelopeTestcase = (valid) => {
     payloadMessage: x[1],	
     envelopeMessage: { ...x[1], payloadSigs: [] },	
     encodedTransactionPayloadHex: encodeTransactionPayload(x[1]),	
-    encodedTransactionEnvelopeHex: encodeTransactionEnvelope({ ...x[1], payloadSigs: [] }),
+    encodedTransactionEnvelopeHex: encodeTransactionEnvelope(x[1]),
   });
 };
 
