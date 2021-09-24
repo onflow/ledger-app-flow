@@ -210,7 +210,7 @@ describe("Multi-sig transaction", () => {
         const txExpectedPageCount = getTransactionPageCount(tx.envelopeMessage);
 
         await transactionTest(
-            tx.encodedTransactionEnvelopeHex, 
+            tx.encodedTransactionPayloadHex, 
             txExpectedPageCount, 
             ECDSA_P256, 
             SHA3_256,
