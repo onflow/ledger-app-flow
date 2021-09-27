@@ -23,6 +23,8 @@ extern "C" {
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
+#include "zxmacros.h"
 
 #define HDPATH_LEN_DEFAULT   5
 
@@ -35,14 +37,35 @@ extern "C" {
 #define HDPATH_0_TESTNET     (0x80000000u | 0x2cu)
 #define HDPATH_1_TESTNET     (0x80000000u | 0x1u)
 
-#define SECP256K1_PK_LEN            65u
-#define SECP256R1_PK_LEN            65u
+typedef struct {
+    uint32_t data[HDPATH_LEN_DEFAULT];
+} flow_path_t;
+
+
+__Z_INLINE bool path_is_mainnet(const flow_path_t path) {
+    return (path.data[0] == HDPATH_0_DEFAULT && path.data[1] == HDPATH_1_DEFAULT);
+}
+
+__Z_INLINE bool path_is_testnet(const flow_path_t path) { //or emulatornet
+    return (path.data[0] == HDPATH_0_TESTNET && path.data[1] == HDPATH_1_TESTNET);
+}
+
+__Z_INLINE bool path_is_empty(const flow_path_t path) {
+    return path.data[0] == 0 && path.data[1] == 0;
+}
+
+#define PUBLIC_KEY_LEN       65u
 
 typedef enum {
     ADDR_SECP256K1 = 0,
 } address_kind_e;
 
-#define VIEW_ADDRESS_OFFSET_SECP256K1       (SECP256K1_PK_LEN )
+#define CODEWORD_MAINNET     ((uint64_t) 0x0000000000000000)
+#define CODEWORD_TESTNET     ((uint64_t) 0x6834ba37b3980209)
+#define CODEWORD_EMULATORNET ((uint64_t) 0x1cb159857af02018)
+
+bool validateChainAddress(uint64_t chainCodeWord, uint64_t address);
+
 #define COIN_AMOUNT_DECIMAL_PLACES          0           // FIXME: Adjust this
 #define COIN_SUPPORTED_TX_VERSION           0
 
