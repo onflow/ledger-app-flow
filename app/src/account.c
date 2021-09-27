@@ -224,7 +224,8 @@ zxerr_t slot_parseSlot(uint8_t *buffer, uint16_t bufferLen) {
         return zxerr_out_of_bounds;
     }
 
-    if (!path_is_empty(tmp_slot.path)) {
+    //account validation
+    if (!path_is_empty(tmp_slot.path)) { //no validation required if the new slot should be empty
         uint64_t account = 0;
         //LE <-> BE conversion necessary to validate account
         for(int i=0; i<SLOT_ACCOUNT_SIZE; i++) account = 256*account + tmp_slot.account.data[i];

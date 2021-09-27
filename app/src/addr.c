@@ -64,7 +64,7 @@ zxerr_t addr_getItem(int8_t displayIdx,
         }
         case 2: {
             snprintf(outKey, outKeyLen, "Warning");
-            pageString(outVal, outValLen, "Ledger does not verify if account and pub key match!!!", pageIdx, pageCount);
+            pageString(outVal, outValLen, "Ledger does not check if the on-chain account includes the pub key!", pageIdx, pageCount);
             return zxerr_ok;        
         }
         case 3: {
