@@ -41,12 +41,12 @@ $(info EXAMPLE_VUE_DIR       : $(EXAMPLE_VUE_DIR))
 $(info TESTS_JS_DIR          : $(TESTS_JS_DIR))
 $(info TESTS_JS_PACKAGE      : $(TESTS_JS_PACKAGE))
 
-ifeq ($(USERID),1001)
-# TODO: Use podman inside circleci machines?
-DOCKER_IMAGE=zondax/builder-bolos-1001@sha256:423348672bb9f1e6aca573de29afa6763bcbead1a592cedb62c8fbfd82fb7f65
-else
+#ignore user 1001 inside circleci machine: ifeq ($(USERID),1001)
+#ignore user 1001 inside circleci machine: # TODO: Use podman inside circleci machines?
+#ignore user 1001 inside circleci machine: DOCKER_IMAGE=zondax/builder-bolos-1001@sha256:423348672bb9f1e6aca573de29afa6763bcbead1a592cedb62c8fbfd82fb7f65
+#ignore user 1001 inside circleci machine: else
 DOCKER_IMAGE=zondax-builder-bolos-2021-10-04
-endif
+#ignore user 1001 inside circleci machine: endif
 
 ifdef INTERACTIVE
 INTERACTIVE_SETTING:="-i"
