@@ -13,8 +13,8 @@ jobs:
       - run: GTEST_COLOR=1 ASAN_OPTIONS=detect_leaks=0 ctest -VV
 
   build_ledger:
-    docker:
-      - image: zondax/builder-bolos@sha256:5af9542b68b92c12c5c6ae5bd862ff9dbcce063b38755fe9d8153175f6a53338
+    machine:
+      image: ubuntu-1604:201903-01
     environment:
       - BOLOS_SDK_IGNORE=/home/zondax/project/deps/nanos-secure-sdk
       - BOLOS_ENV_IGNORE=/opt/bolos
