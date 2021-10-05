@@ -34,19 +34,12 @@ SCP_PUBKEY=049bc79d139c70c83a4b19e8922e5ee3e0080bb14a2e8b0752aa42cda90a1463f689b
 SCP_PRIVKEY=ff701d781f43ce106f72dc26a46b6a83e053b5d07bb3d4ceab79c91ca822a66b
 
 INTERACTIVE:=$(shell [ -t 0 ] && echo 1)
-USERID:=$(shell id -u)
-$(info USERID                : $(USERID))
 $(info TESTS_ZEMU_DIR        : $(TESTS_ZEMU_DIR))
 $(info EXAMPLE_VUE_DIR       : $(EXAMPLE_VUE_DIR))
 $(info TESTS_JS_DIR          : $(TESTS_JS_DIR))
 $(info TESTS_JS_PACKAGE      : $(TESTS_JS_PACKAGE))
 
-#ignore user 1001 inside circleci machine: ifeq ($(USERID),1001)
-#ignore user 1001 inside circleci machine: # TODO: Use podman inside circleci machines?
-#ignore user 1001 inside circleci machine: DOCKER_IMAGE=zondax/builder-bolos-1001@sha256:423348672bb9f1e6aca573de29afa6763bcbead1a592cedb62c8fbfd82fb7f65
-#ignore user 1001 inside circleci machine: else
 DOCKER_IMAGE=zondax-builder-bolos-2021-10-04
-#ignore user 1001 inside circleci machine: endif
 
 ifdef INTERACTIVE
 INTERACTIVE_SETTING:="-i"
@@ -62,7 +55,6 @@ define run_docker
 	-e SCP_PRIVKEY=$(SCP_PRIVKEY) \
 	-e BOLOS_SDK=$(1) \
 	-e BOLOS_ENV_IGNORE=/opt/bolos \
-	-u $(USERID) \
 	-v $(shell pwd):/project \
 	$(DOCKER_IMAGE) \
 	"COIN=$(COIN) APP_TESTING=$(APP_TESTING) $(2)"
