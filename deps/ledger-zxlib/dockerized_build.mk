@@ -34,7 +34,7 @@ SCP_PUBKEY=049bc79d139c70c83a4b19e8922e5ee3e0080bb14a2e8b0752aa42cda90a1463f689b
 SCP_PRIVKEY=ff701d781f43ce106f72dc26a46b6a83e053b5d07bb3d4ceab79c91ca822a66b
 
 INTERACTIVE:=$(shell [ -t 0 ] && echo 1)
-USERID:=1000
+USERID:=$(shell id -u)
 $(info USERID                : $(USERID))
 $(info TESTS_ZEMU_DIR        : $(TESTS_ZEMU_DIR))
 $(info EXAMPLE_VUE_DIR       : $(EXAMPLE_VUE_DIR))
@@ -52,15 +52,17 @@ TTY_SETTING:=
 endif
 
 define run_docker
-	@echo "id -u: `id -u`"
+	@echo "docker host: id -u: `id -u`"
+	@echo "docker host: whoami: `whoami`"
 	docker version
 	echo "TODO: this is all cached and fast on a local box, but takes over 4 minutes on CircleCI :-("
+	cat deps/ledger-zxlib/Dockerfile.userid | perl -lane 'sub BEGIN{ $$userid=`id -u`; chomp $$userid; } s~<USERID>~$$userid~g; print;' > deps/ledger-zxlib/Dockerfile
 	docker build --tag zondax-builder-bolos-2021-10-04 deps/ledger-zxlib/
 	docker run $(TTY_SETTING) $(INTERACTIVE_SETTING) --rm \
 	-e SCP_PRIVKEY=$(SCP_PRIVKEY) \
 	-e BOLOS_SDK=$(1) \
 	-e BOLOS_ENV_IGNORE=/opt/bolos \
-	-u $(USERID) \
+	-u $(USERID):$(USERID) \
 	-v $(shell pwd):/project \
 	$(DOCKER_IMAGE) \
 	"COIN=$(COIN) APP_TESTING=$(APP_TESTING) $(2)"

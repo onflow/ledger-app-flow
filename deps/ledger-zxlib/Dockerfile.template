@@ -5,3 +5,4 @@ RUN sudo apt --yes install npm
 RUN sudo npm install --global xpm@latest
 RUN xpm install --global @xpack-dev-tools/arm-none-eabi-gcc@v10.2.1-1.1.2
 RUN echo 'export PATH="/home/zondax/.local/xPacks/@xpack-dev-tools/arm-none-eabi-gcc/10.2.1-1.1.2/.content/bin:$PATH"' >> ~/.cargo/env
+RUN sudo echo "zondax:x:<USERID>:<USERID>:,,,:/home/zondax:/bin/bash" >> /etc/passwd
