@@ -56,7 +56,7 @@ define run_docker
 	@echo "docker host: whoami: `whoami`"
 	docker version
 	echo "TODO: this is all cached and fast on a local box, but takes over 4 minutes on CircleCI :-("
-	cat deps/ledger-zxlib/Dockerfile.userid | perl -lane 'sub BEGIN{ $$userid=`id -u`; chomp $$userid; } s~<USERID>~$$userid~g; print;' > deps/ledger-zxlib/Dockerfile
+	cat deps/ledger-zxlib/Dockerfile.template | perl -lane 'sub BEGIN{ $$userid=`id -u`; chomp $$userid; } s~<USERID>~$$userid~g; print;' > deps/ledger-zxlib/Dockerfile
 	docker build --tag zondax-builder-bolos-2021-10-04 deps/ledger-zxlib/
 	docker run $(TTY_SETTING) $(INTERACTIVE_SETTING) --rm \
 	-e SCP_PRIVKEY=$(SCP_PRIVKEY) \
