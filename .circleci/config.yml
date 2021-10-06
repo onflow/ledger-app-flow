@@ -47,37 +47,37 @@ jobs:
             make -C build
       - run: ./run-fuzz-crashes.py
 
-  test_zemu:
-    machine:
-      image: ubuntu-1604:201903-01
-    working_directory: ~/repo
-    environment:
-      BASH_ENV: "/opt/circleci/.nvm/nvm.sh"
-    steps:
-      - checkout
-      - run: git submodule update --init --recursive
-      - run: sudo apt-get update -y && sudo apt-get install -y libusb-1.0.0 libudev-dev
-      - run:
-          name: Build Ledger app
-          command: |
-            make
-      - run:
-          name: Install node + yarn 
-          command: |
-            nvm install 12.16.2
-            nvm use 12.16.2
-            npm install -g yarn
-      - run:
-          name: Build/Install build js deps
-          command: |
-            nvm use 12.16.2
-            make zemu_install
-      - run:
-          name: Run zemu tests
-          command: |
-            nvm use 12.16.2
-            make zemu_test
-          no_output_timeout: 30m
+#  test_zemu:
+#    machine:
+#      image: ubuntu-1604:201903-01
+#    working_directory: ~/repo
+#    environment:
+#      BASH_ENV: "/opt/circleci/.nvm/nvm.sh"
+#    steps:
+#      - checkout
+#      - run: git submodule update --init --recursive
+#      - run: sudo apt-get update -y && sudo apt-get install -y libusb-1.0.0 libudev-dev
+#      - run:
+#          name: Build Ledger app
+#          command: |
+#            make
+#      - run:
+#          name: Install node + yarn 
+#          command: |
+#            nvm install 12.16.2
+#            nvm use 12.16.2
+#            npm install -g yarn
+#      - run:
+#          name: Build/Install build js deps
+#          command: |
+#            nvm use 12.16.2
+#            make zemu_install
+#      - run:
+#          name: Run zemu tests
+#          command: |
+#            nvm use 12.16.2
+#            make zemu_test
+#          no_output_timeout: 30m
 
   build_package:
     docker:
@@ -103,12 +103,12 @@ workflows:
     jobs:
       - build
       - build_ledger
-      - test_zemu
+#      - test_zemu
       - build_package:
           requires:
             - build
             - build_ledger
-            - test_zemu
+#            - test_zemu
           filters:
             branches:
               only:
