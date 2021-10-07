@@ -283,7 +283,7 @@ speculos_port_5001_test:
 	@-make --no-print-directory speculos_port_5001_test_internal
 	@make --no-print-directory speculos_port_5001_stop
 	@perl -e 'use Time::HiRes; use POSIX; $$ts = sprintf qq[%f], Time::HiRes::time(); ($$f) = $$ts =~ m~(\....)~; printf qq[%s%s %s make: %s\n], POSIX::strftime("%H:%M:%S", gmtime), $$f, q[-] x 96, $$ARGV[0];' "note: for detailed logs: cat ../speculos-port-5001.log"
-	@cat ../speculos-port-5001.log 2>&1 | perl -lane '$$lines .= $$_ . "\n"; sub END{ die qq[ERROR: All tests did NOT complete!\n] if($$lines !~ m~ALL TESTS COMPLETED~s); }'
+	@cat ../speculos-port-5001.log 2>&1 | perl -lane '$$lines .= $$_ . "\n"; sub END{ die sprintf qq[ERROR: All tests did NOT complete! Dumping ../speculos-port-5001.log:\n%s\n], $$lines if($$lines !~ m~ALL TESTS COMPLETED~s); }'
 
 .PHONY: rust_test
 rust_test:
