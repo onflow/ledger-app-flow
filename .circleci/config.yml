@@ -41,11 +41,13 @@ jobs:
       - run:
           name: Docker pull speculos + yarn install
           command: |
+            source /opt/circleci/.nvm/nvm.sh
             make speculos_install
       - run:
           # todo: consider upgrading CircleCI to allow parallel jobs, and splitting this into a separate CircleCI jobs which run in parallel on separate speculos container instances
           name: Run speculos tests
           command: |
+            source /opt/circleci/.nvm/nvm.sh
             make speculos_port_5001_test
 
   test_fuzz_crash_fixes:
