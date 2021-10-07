@@ -29,7 +29,13 @@ jobs:
           command: |
             make
       - run:
-          name: Run speculos + yarn install
+          name: Install node + yarn
+          command: |
+            nvm install 12.16.2
+            nvm use 12.16.2
+            npm install -g yarn
+      - run:
+          name: Docker pull speculos + yarn install
           command: |
             make speculos_install
       - run:
