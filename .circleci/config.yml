@@ -43,6 +43,7 @@ jobs:
           command: |
             source /opt/circleci/.nvm/nvm.sh
             nvm use 16.10.0
+            export MAKE_NVM_SH_PATH=/opt/circleci
             make speculos_install
       - run:
           # todo: consider upgrading CircleCI to allow parallel jobs, and splitting this into a separate CircleCI jobs which run in parallel on separate speculos container instances

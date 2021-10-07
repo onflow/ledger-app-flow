@@ -30,6 +30,10 @@ DOCKER_APP_BIN=$(DOCKER_APP_SRC)/app/bin/app.elf
 DOCKER_BOLOS_SDK=/project/deps/nanos-secure-sdk
 DOCKER_BOLOS_SDKX=/project/deps/nano2-sdk
 
+ifndef MAKE_NVM_SH_PATH
+export MAKE_NVM_SH_PATH=~
+endif
+
 # Note: This is not an SSH key, and being public represents no risk
 SCP_PUBKEY=049bc79d139c70c83a4b19e8922e5ee3e0080bb14a2e8b0752aa42cda90a1463f689b0fa68c1c0246845c2074787b649d0d8a6c0b97d4607065eee3057bdf16b83
 SCP_PRIVKEY=ff701d781f43ce106f72dc26a46b6a83e053b5d07bb3d4ceab79c91ca822a66b
@@ -43,6 +47,7 @@ $(info TESTS_ZEMU_DIR        : $(TESTS_ZEMU_DIR))
 $(info EXAMPLE_VUE_DIR       : $(EXAMPLE_VUE_DIR))
 $(info TESTS_JS_DIR          : $(TESTS_JS_DIR))
 $(info TESTS_JS_PACKAGE      : $(TESTS_JS_PACKAGE))
+$(info MAKE_NVM_SH_PATH      : $(MAKE_NVM_SH_PATH))
 endif
 
 DOCKER_IMAGE=zondax-builder-bolos-2021-10-04
@@ -233,7 +238,7 @@ speculos_install:
 	docker pull ghcr.io/ledgerhq/speculos
 	docker image tag ghcr.io/ledgerhq/speculos speculos
 	# check for nvm, node, npm, and yarn
-	@. ~/.nvm/nvm.sh ; nvm --version 2>&1 | perl -lane '$$nvm=$$_; chomp $$nvm; printf qq[# nvm --version: %s\n], $$nvm; if($$nvm!~m~^\d+\.\d+\.\d+$$~){ die qq[ERROR: nvm not installed? Please install, e.g. MacOS/Ubuntu: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash ; export NVM_DIR="$$HOME/.nvm" ; [ -s "$$NVM_DIR/nvm.sh" ] && \. "$$NVM_DIR/nvm.sh" ; [ -s "$$NVM_DIR/bash_completion" ] && \. "$$NVM_DIR/bash_completion" # see https://github.com/nvm-sh/nvm#installing-and-updating\n]; }'
+	@. $(MAKE_NVM_SH_PATH)/.nvm/nvm.sh ; nvm --version 2>&1 | perl -lane '$$nvm=$$_; chomp $$nvm; printf qq[# nvm --version: %s\n], $$nvm; if($$nvm!~m~^\d+\.\d+\.\d+$$~){ die qq[ERROR: nvm not installed? Please install, e.g. MacOS/Ubuntu: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash ; export NVM_DIR="$$HOME/.nvm" ; [ -s "$$NVM_DIR/nvm.sh" ] && \. "$$NVM_DIR/nvm.sh" ; [ -s "$$NVM_DIR/bash_completion" ] && \. "$$NVM_DIR/bash_completion" # see https://github.com/nvm-sh/nvm#installing-and-updating\n]; }'
 	@node --version 2>&1 | perl -lane '$$node=$$_; chomp $$node; printf qq[# node --version: %s\n], $$node; if($$node!~m~^v16\.10\.0$$~){ die qq[ERROR: desired node version not installed? Please install, e.g. MacOS/Ubuntu: nvm install 16.10.0 ; nvm use 16.10.0]; }'
 	@perl -e '$$yarn=`which yarn`; chomp $$yarn; printf qq[# which yarn: %s\n], $$yarn; if($$yarn=~m~^\s*$$~){ die qq[ERROR: yarn not installed? Please install, e.g. Ubuntu: sudo npm install --global yarn Linux: brew install yarn\n]; }'
 	# run yarn install
