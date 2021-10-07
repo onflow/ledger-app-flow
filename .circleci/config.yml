@@ -16,7 +16,6 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      BASH_ENV: "/opt/circleci/.nvm/nvm.sh"
       - BOLOS_SDK_IGNORE=/home/zondax/project/deps/nanos-secure-sdk
       - BOLOS_ENV_IGNORE=/opt/bolos
     steps:
@@ -32,6 +31,7 @@ jobs:
       - run:
           name: Install node + yarn
           command: |
+            source /opt/circleci/.nvm/nvm.sh
             nvm install 12.16.2
             nvm use 12.16.2
             npm install -g yarn
