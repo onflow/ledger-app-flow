@@ -34,7 +34,10 @@ jobs:
             source /opt/circleci/.nvm/nvm.sh
             nvm install 12.16.2
             nvm use 12.16.2
+            rm -rf ~/.yarn
             npm install -g yarn
+            which yarn
+            yarn -v
       - run:
           name: Docker pull speculos + yarn install
           command: |
