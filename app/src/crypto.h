@@ -45,11 +45,9 @@ typedef enum {
 
 void sha256(const uint8_t *message, uint16_t messageLen, uint8_t message_digest[CX_SHA256_SIZE]);
 
-extern uint32_t hdPath[HDPATH_LEN_DEFAULT];
+extern flow_path_t hdPath;
 
-zxerr_t crypto_extractPublicKey(const uint32_t path[HDPATH_LEN_DEFAULT], uint8_t *pubKey, uint16_t pubKeyLen);
-
-zxerr_t crypto_fillAddress(const uint32_t path[HDPATH_LEN_DEFAULT], uint8_t *buffer, uint16_t bufferLen, uint16_t *addrLen);
+zxerr_t crypto_extractPublicKey(const flow_path_t *path, uint8_t *pubKey, uint16_t pubKeyLen);
 
 zxerr_t crypto_sign(
     const uint32_t path[HDPATH_LEN_DEFAULT],

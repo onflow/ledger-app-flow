@@ -383,6 +383,30 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             addMultiStringArgumentTo(answer, "Address", item++, tcd.arguments[1]["value"]);
             break;
         }
+        case SCRIPT_FUSD01_SETUP_FUSD_VAULT: {
+            addTo(answer, "{} | Type : Setup FUSD Vault", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            break;
+        }
+        case SCRIPT_FUSD02_TRANSFER_FUSD: {
+            addTo(answer, "{} | Type : Transfer FUSD", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
+            addMultiStringArgumentTo(answer, "Recipient", item++, tcd.arguments[1]["value"]);
+            break;
+        }
+        case SCRIPT_TS01_SET_UP_TOPSHOT_COLLECTION: {
+            addTo(answer, "{} | Type : Set Up Top Shot Collection", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            break;
+        }
+        case SCRIPT_TS02_TRANSFER_TOP_SHOT_MOMENT: {
+            addTo(answer, "{} | Type : Transfer Top Shot Moment", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Moment ID : {}", item++, tcd.arguments[0]["value"].asString());
+            addMultiStringArgumentTo(answer, "Address", item++, tcd.arguments[1]["value"]);
+            break;
+        }
         default:
             addTo(answer, "{} | Type : ERROR", item++);
             break;

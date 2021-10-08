@@ -143,7 +143,7 @@ To run a single specific test:
 
 > At the moment, the recommendation is to run from the IDE. Remember to run `make` if you change the app.
 
-## Using a real device
+## Using a real device for integration tests
 
 ### How to prepare your DEVELOPMENT! device:
 
@@ -189,6 +189,12 @@ Many of our integration tests expect the device to be configured with a known te
 - Enter your pin if necessary
 
 - Run `make dev_ca`. The device will receive a development certificate to avoid constant manual confirmations.
+
+## Using a real device for a single test
+
+- Use `make clean`, `make`, and `make load` to load the app to the ledger device.
+- Make adjustments in `js/test/transactions.spec.js` if needed
+- Run `yarn test` in the `js` folder. 
 
 ### Loading the app
 

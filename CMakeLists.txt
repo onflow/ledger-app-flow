@@ -89,6 +89,7 @@ file(GLOB_RECURSE LIB_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/app/src/uint256.c
         ${CMAKE_CURRENT_SOURCE_DIR}/app/src/parser.c
         ${CMAKE_CURRENT_SOURCE_DIR}/app/src/parser_impl.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/app/src/coin.c
         ${CMAKE_CURRENT_SOURCE_DIR}/app/src/json/json_parser.c
         app/src/base32.c
         app/src/crypto.c

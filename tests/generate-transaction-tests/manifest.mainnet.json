@@ -1164,6 +1164,84 @@
       ],
       "network": "mainnet",
       "hash": "ff067b40ac67020ef864cd14842f62023254da34dd2ded56affa1364305bf1c5"
+    },
+    {
+      "id": "FUSD.01",
+      "name": "Setup FUSD Vault",
+      "source": "// This transaction configures the signer's account with an empty FUSD vault.\n//\n// It also links the following capabilities:\n//\n// - FungibleToken.Receiver: this capability allows this account to accept FUSD deposits.\n// - FungibleToken.Balance: this capability allows anybody to inspect the FUSD balance of this account.\n\nimport FungibleToken from 0xf233dcee88fe0abe\nimport FUSD from 0x3c5959b568896393\n\ntransaction {\n\n    prepare(signer: AuthAccount) {\n\n        // It's OK if the account already has a Vault, but we don't want to replace it\n        if(signer.borrow\u003c\u0026FUSD.Vault\u003e(from: /storage/fusdVault) != nil) {\n            return\n        }\n        \n        // Create a new FUSD Vault and put it in storage\n        signer.save(\u003c-FUSD.createEmptyVault(), to: /storage/fusdVault)\n\n        // Create a public capability to the Vault that only exposes\n        // the deposit function through the Receiver interface\n        signer.link\u003c\u0026FUSD.Vault{FungibleToken.Receiver}\u003e(\n            /public/fusdReceiver,\n            target: /storage/fusdVault\n        )\n\n        // Create a public capability to the Vault that only exposes\n        // the balance field through the Balance interface\n        signer.link\u003c\u0026FUSD.Vault{FungibleToken.Balance}\u003e(\n            /public/fusdBalance,\n            target: /storage/fusdVault\n        )\n    }\n}\n",
+      "arguments": [],
+      "network": "mainnet",
+      "hash": "aa7fecdf159e71bd0b029e40b22643fb443161e67796f42bac68e9bab4630e29"
+    },
+    {
+      "id": "FUSD.02",
+      "name": "Transfer FUSD",
+      "source": "// This transaction withdraws FUSD from the signer's account and deposits it into a recipient account. \n// This transaction will fail if the recipient does not have an FUSD receiver. \n// No funds are transferred or lost if the transaction fails.\n//\n// Parameters:\n// - amount: The amount of FUSD to transfer (e.g. 10.0)\n// - to: The recipient account address.\n//\n// This transaction will fail if either the sender or recipient does not have\n// an FUSD vault stored in their account. To check if an account has a vault\n// or initialize a new vault, use check_fusd_vault_setup.cdc and setup_fusd_vault.cdc\n// respectively.\n\nimport FungibleToken from 0xf233dcee88fe0abe\nimport FUSD from 0x3c5959b568896393\n\ntransaction(amount: UFix64, to: Address) {\n\n    // The Vault resource that holds the tokens that are being transferred\n    let sentVault: @FungibleToken.Vault\n\n    prepare(signer: AuthAccount) {\n        // Get a reference to the signer's stored vault\n        let vaultRef = signer.borrow\u003c\u0026FUSD.Vault\u003e(from: /storage/fusdVault)\n            ?? panic(\"Could not borrow reference to the owner's Vault!\")\n\n        // Withdraw tokens from the signer's stored vault\n        self.sentVault \u003c- vaultRef.withdraw(amount: amount)\n    }\n\n    execute {\n        // Get the recipient's public account object\n        let recipient = getAccount(to)\n\n        // Get a reference to the recipient's Receiver\n        let receiverRef = recipient.getCapability(/public/fusdReceiver)!.borrow\u003c\u0026{FungibleToken.Receiver}\u003e()\n            ?? panic(\"Could not borrow receiver reference to the recipient's Vault\")\n\n        // Deposit the withdrawn tokens in the recipient's receiver\n        receiverRef.deposit(from: \u003c-self.sentVault)\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount",
+          "sampleValues": [
+            {
+              "type": "UFix64",
+              "value": "92233720368.54775808"
+            }
+          ]
+        },
+        {
+          "type": "Address",
+          "name": "recipient",
+          "label": "Recipient",
+          "sampleValues": [
+            {
+              "type": "String",
+              "value": "0xe467b9dd11fa00df"
+            }
+          ]
+        }
+      ],
+      "network": "mainnet",
+      "hash": "180cef7053a5f0ae66e19e3a96cc3b9eb7da29767fb5d6938239bf1f8e1dc284"
+    },
+    {
+      "id": "TS.01",
+      "name": "Set up Top Shot Collection",
+      "source": "import TopShot from 0x0b2a3299cc857e29\n\n// This transaction sets up an account to use Top Shot\n// by storing an empty moment collection and creating\n// a public capability for it\n\ntransaction {\n\n    prepare(acct: AuthAccount) {\n\n        // First, check to see if a moment collection already exists\n        if acct.borrow\u003c\u0026TopShot.Collection\u003e(from: /storage/MomentCollection) == nil {\n\n            // create a new TopShot Collection\n            let collection \u003c- TopShot.createEmptyCollection() as! @TopShot.Collection\n\n            // Put the new Collection in storage\n            acct.save(\u003c-collection, to: /storage/MomentCollection)\n\n            // create a public capability for the collection\n            acct.link\u003c\u0026{TopShot.MomentCollectionPublic}\u003e(/public/MomentCollection, target: /storage/MomentCollection)\n        }\n    }\n}",
+      "arguments": [],
+      "network": "mainnet",
+      "hash": "7511848f1c27a173d966f4b868fd7efead7eeb1bbf04fc3f3e60dabc6c7f7593"
+    },
+    {
+      "id": "TS.02",
+      "name": "Transfer Top Shot Moment",
+      "source": "import NonFungibleToken from 0x1d7e57aa55817448\nimport TopShot from 0x0b2a3299cc857e29\n\n// This transaction transfers a moment to a recipient\n\n// This transaction is how a topshot user would transfer a moment\n// from their account to another account\n// The recipient must have a TopShot Collection object stored\n// and a public MomentCollectionPublic capability stored at\n// `/public/MomentCollection`\n\n// Parameters:\n//\n// recipient: The Flow address of the account to receive the moment.\n// withdrawID: The id of the moment to be transferred\n\ntransaction(recipient: Address, withdrawID: UInt64) {\n\n    // local variable for storing the transferred token\n    let transferToken: @NonFungibleToken.NFT\n    \n    prepare(acct: AuthAccount) {\n\n        // borrow a reference to the owner's collection\n        let collectionRef = acct.borrow\u003c\u0026TopShot.Collection\u003e(from: /storage/MomentCollection)\n            ?? panic(\"Could not borrow a reference to the stored Moment collection\")\n        \n        // withdraw the NFT\n        self.transferToken \u003c- collectionRef.withdraw(withdrawID: withdrawID)\n    }\n\n    execute {\n        \n        // get the recipient's public account object\n        let recipient = getAccount(recipient)\n\n        // get the Collection reference for the receiver\n        let receiverRef = recipient.getCapability(/public/MomentCollection).borrow\u003c\u0026{TopShot.MomentCollectionPublic}\u003e()!\n\n        // deposit the NFT in the receivers collection\n        receiverRef.deposit(token: \u003c-self.transferToken)\n    }\n}",
+      "arguments": [
+        {
+          "type": "UInt64",
+          "name": "withdrawID",
+          "label": "Moment ID",
+          "sampleValues": [
+            {
+              "type": "UInt64",
+              "value": "42"
+            }
+          ]
+        },
+        {
+          "type": "Address",
+          "name": "recipient",
+          "label": "Recipient",
+          "sampleValues": [
+            {
+              "type": "Address",
+              "value": "0xe467b9dd11fa00df"
+            }
+          ]
+        }
+      ],
+      "network": "mainnet",
+      "hash": "09d5ad21bf70dfe4f8d800db9e61a77f2f64837ae0e818c3cd67e9cea837a1cf"
     }
   ]
 }
