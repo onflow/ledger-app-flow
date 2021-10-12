@@ -92,3 +92,4 @@ node_modules/.yarn-integrity
 /tests_zemu/snapshots-tmp/
 /tests_speculos/node_modules/
 /tests_speculos/yarn.lock
+*.new.png

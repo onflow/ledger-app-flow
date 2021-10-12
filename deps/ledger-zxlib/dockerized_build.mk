@@ -30,6 +30,8 @@ DOCKER_APP_BIN=$(DOCKER_APP_SRC)/app/bin/app.elf
 DOCKER_BOLOS_SDK=/project/deps/nanos-secure-sdk
 DOCKER_BOLOS_SDKX=/project/deps/nano2-sdk
 
+# todo: figure out if we are running on MacOS or Linux and how to set this env var dynamically: MAKE_LINUX_DOCKER_OPTIONS=--network host
+
 ifndef MAKE_NVM_SH_PATH
 export MAKE_NVM_SH_PATH=~
 endif
@@ -67,7 +69,7 @@ define run_docker
 	echo "TODO: this is all cached and fast on a local box, but takes over 4 minutes on CircleCI :-("
 	cat deps/ledger-zxlib/Dockerfile.template | perl -lane 'sub BEGIN{ $$userid=`id -u`; chomp $$userid; } s~<USERID>~$$userid~g; print;' > deps/ledger-zxlib/Dockerfile
 	docker build --tag zondax-builder-bolos-2021-10-04 deps/ledger-zxlib/
-	docker run $(TTY_SETTING) $(INTERACTIVE_SETTING) --rm \
+	docker run $(TTY_SETTING) $(INTERACTIVE_SETTING) $(MAKE_LINUX_DOCKER_OPTIONS) --rm \
 	-e SCP_PRIVKEY=$(SCP_PRIVKEY) \
 	-e BOLOS_SDK=$(1) \
 	-e BOLOS_ENV_IGNORE=/opt/bolos \
@@ -232,8 +234,29 @@ zemu_install: zemu_install_js_link
 	# and now install everything
 	cd $(TESTS_ZEMU_DIR) && yarn install
 
+.PHONY: speculos_install_js_link
+ifeq ($(TESTS_JS_DIR),)
+speculos_install_js_link:
+	@echo "No local package defined"
+else
+speculos_install_js_link:
+	$(call run_announce,$@)
+	# First unlink everything
+	cd $(TESTS_JS_DIR) && yarn unlink || true
+	cd $(TESTS_SPECULOS_DIR) && yarn unlink $(TESTS_JS_PACKAGE) || true
+	# Now build and link
+	cd $(TESTS_JS_DIR) && yarn install && yarn build && yarn link || true
+	cd $(TESTS_SPECULOS_DIR) && yarn link $(TESTS_JS_PACKAGE) && yarn install || true
+	@echo
+	# List linked packages
+	@echo
+	@cd $(TESTS_SPECULOS_DIR) && ( ls -l node_modules ; ls -l node_modules/@* ) | grep ^l || true
+	@echo
+endif
+
 .PHONY: speculos_install
-speculos_install:
+speculos_install: speculos_install_js_link
+	$(call run_announce,$@)
 	# pull speculos container
 	docker pull ghcr.io/ledgerhq/speculos
 	docker image tag ghcr.io/ledgerhq/speculos speculos
@@ -241,22 +264,30 @@ speculos_install:
 	@. $(MAKE_NVM_SH_PATH)/.nvm/nvm.sh ; nvm --version 2>&1 | perl -lane '$$nvm=$$_; chomp $$nvm; printf qq[# nvm --version: %s\n], $$nvm; if($$nvm!~m~^\d+\.\d+\.\d+$$~){ die qq[ERROR: nvm not installed? Please install, e.g. MacOS/Ubuntu: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash ; export NVM_DIR="$$HOME/.nvm" ; [ -s "$$NVM_DIR/nvm.sh" ] && \. "$$NVM_DIR/nvm.sh" ; [ -s "$$NVM_DIR/bash_completion" ] && \. "$$NVM_DIR/bash_completion" # see https://github.com/nvm-sh/nvm#installing-and-updating\n]; }'
 	@node --version 2>&1 | perl -lane '$$node=$$_; chomp $$node; printf qq[# node --version: %s\n], $$node; if($$node!~m~^v16\.10\.0$$~){ die qq[ERROR: desired node version not installed? Please install, e.g. MacOS/Ubuntu: nvm install 16.10.0 ; nvm use 16.10.0]; }'
 	@perl -e '$$yarn=`which yarn`; chomp $$yarn; printf qq[# which yarn: %s\n], $$yarn; if($$yarn=~m~^\s*$$~){ die qq[ERROR: yarn not installed? Please install, e.g. Ubuntu: sudo npm install --global yarn Linux: brew install yarn\n]; }'
+	# delete node_modules
+	cd $(TESTS_SPECULOS_DIR) && rm -rf node_modules
 	# run yarn install
 	@cd $(TESTS_SPECULOS_DIR) && yarn install
 
 .PHONY: speculos_port_5001_start
 speculos_port_5001_start:
-	@perl -e 'use Time::HiRes; use POSIX; $$ts = sprintf qq[%f], Time::HiRes::time(); ($$f) = $$ts =~ m~(\....)~; printf qq[%s%s %s make: %s\n], POSIX::strftime("%H:%M:%S", gmtime), $$f, q[-] x 96, $$ARGV[0];' "$@"
-	# make: todo: figure out how to use '--net host' because this starts the docker container faster: https://github.com/moby/moby/issues/38077
-	#       but using '--net host' causes the speculos container NOT to listen on any ports... how to fix this? see https://github.com/LedgerHQ/speculos/issues/249
-	docker run --detach --name speculos-port-5001 --rm -it -v $(CURDIR)/app:/speculos/app --publish 5001:5001 --publish 41001:41001 speculos --model nanos --sdk 2.0 --seed "secret" --display headless --apdu-port 40001 --vnc-port 41001 --api-port 5001 ./app/bin/app.elf ; rm -f ../speculos-port-5001.log ; docker logs --follow speculos-port-5001 2>&1 | tee -a ../speculos-port-5001.log > /dev/null 2>&1 &
-	@perl -e 'use Time::HiRes; $$t1=Time::HiRes::time(); while(1){ $$o=`cat ../speculos-port-5001.log`; if($$o =~ m~Running on .*\:5001~s){ printf qq[# via log detected speculos listening in %f seconds\n], Time::HiRes::time() - $$t1; exit; } Time::HiRes::sleep(0.01); };'
+	$(call run_announce,$@)
+	$(call start_speculos_container,5001,40001,41001)
+
+.PHONY: speculos_port_5002_start
+speculos_port_5002_start:
+	$(call run_announce,$@)
+	$(call start_speculos_container,5002,40002,41002)
 
 .PHONY: speculos_port_5001_stop
 speculos_port_5001_stop:
-	@perl -e 'use Time::HiRes; use POSIX; $$ts = sprintf qq[%f], Time::HiRes::time(); ($$f) = $$ts =~ m~(\....)~; printf qq[%s%s %s make: %s\n], POSIX::strftime("%H:%M:%S", gmtime), $$f, q[-] x 96, $$ARGV[0];' "$@"
-	# make: todo: using --time 0 because this stops the docker container faster; but it still takes ~ 2.4 seconds... how to stop faster?
-	docker stop --time 0 speculos-port-5001
+	$(call run_announce,$@)
+	$(call stop_speculos_container,5001)
+
+.PHONY: speculos_port_5002_stop
+speculos_port_5002_stop:
+	$(call run_announce,$@)
+	$(call stop_speculos_container,5002)
 
 .PHONY: zemu
 zemu:
@@ -280,20 +311,55 @@ generate_test_vectors:
 zemu_test:
 	cd $(TESTS_ZEMU_DIR) && yarn test$(COIN)
 
+define start_speculos_container
+	docker run --detach --name speculos-port-$(1) --rm -it -v $(CURDIR)/app:/speculos/app --publish $(1):$(1) --publish $(3):$(3) speculos --model nanos --sdk 2.0 --seed "secret" --display headless --apdu-port $(2) --vnc-port $(3) --api-port $(1) ./app/bin/app.elf ; rm -f ../speculos-port-$(1).log ; docker logs --follow speculos-port-$(1) 2>&1 | tee -a ../speculos-port-$(1).log > /dev/null 2>&1 &
+	@perl -e 'use Time::HiRes; $$t1=Time::HiRes::time(); while(1){ $$o=`cat ../speculos-port-$(1).log`; if($$o =~ m~Running on .*\:$(1)~s){ printf qq[# detected -- via log -- speculos listening after %f seconds\n], Time::HiRes::time() - $$t1; exit; } Time::HiRes::sleep(0.01); };'
+endef
+
+define stop_speculos_container
+	# make: todo: using --time 0 because this stops the docker container faster; but it still takes ~ 2.4 seconds... how to stop faster?
+	docker stop --time 0 speculos-port-$(1)
+endef
+
+define run_announce
+	@perl -e 'use Time::HiRes; use POSIX; $$ts = sprintf qq[%f], Time::HiRes::time(); ($$f) = $$ts =~ m~(\....)~; printf qq[%s%s %s make: %s\n], POSIX::strftime("%H:%M:%S", gmtime), $$f, q[-] x 128, $$ARGV[0];' "$(1)"
+endef
+
+define run_nodejs_test
+	@cd $(TESTS_SPECULOS_DIR) && TEST_SPECULOS_API_PORT=$(1) node $(2) 2>&1 | tee -a ../../speculos-port-$(1).log 2>&1 | perl -lane '$$lines .= $$_ . "\n"; printf qq[%s\n], $$_ if(m~test(Start|End)~); sub END{ die qq[ERROR: testEnd not detected; test failed?\n] if($$lines !~ m~testEnd~s); }'
+endef
+
 .PHONY: speculos_port_5001_test_internal
 speculos_port_5001_test_internal:
-	@perl -e 'use Time::HiRes; use POSIX; $$ts = sprintf qq[%f], Time::HiRes::time(); ($$f) = $$ts =~ m~(\....)~; printf qq[%s%s %s make: %s\n], POSIX::strftime("%H:%M:%S", gmtime), $$f, q[-] x 96, $$ARGV[0];' "$@"
-	cd $(TESTS_SPECULOS_DIR) && TEST_SPECULOS_API_PORT=5001 TEST_DEBUG=1 node test-basic-slot-status-set.js 2>&1 | tee -a ../../speculos-port-5001.log 2>&1 | perl -lane '$$lines .= $$_ . "\n"; printf qq[%s\n], $$_ if(m~test_(start|end)~); sub END{ die qq[ERROR: test_end not detected; test failed?\n] if($$lines !~ m~test_end~s); }'
+	$(call run_announce,$@)
+	$(call run_nodejs_test,5001,test-basic-app-version.js)
+	$(call run_nodejs_test,5001,test-basic-sign-basic-invalid.js)
+	$(call run_nodejs_test,5001,test-basic-slot-status-set-mainnet.js)
 	@echo "# ALL TESTS COMPLETED!" | tee -a ../speculos-port-5001.log
+
+.PHONY: speculos_port_5002_test_internal
+speculos_port_5002_test_internal:
+	$(call run_announce,$@)
+	$(call run_nodejs_test,5002,test-basic-slot-status-set-testnet.js)
+	@echo "# ALL TESTS COMPLETED!" | tee -a ../speculos-port-5002.log
 
 .PHONY: speculos_port_5001_test
 speculos_port_5001_test:
-	@perl -e 'use Time::HiRes; use POSIX; $$ts = sprintf qq[%f], Time::HiRes::time(); ($$f) = $$ts =~ m~(\....)~; printf qq[%s%s %s make: %s\n], POSIX::strftime("%H:%M:%S", gmtime), $$f, q[-] x 96, $$ARGV[0];' "$@"
+	$(call run_announce,$@)
 	@make --no-print-directory speculos_port_5001_start
 	@-make --no-print-directory speculos_port_5001_test_internal
 	@make --no-print-directory speculos_port_5001_stop
-	@perl -e 'use Time::HiRes; use POSIX; $$ts = sprintf qq[%f], Time::HiRes::time(); ($$f) = $$ts =~ m~(\....)~; printf qq[%s%s %s make: %s\n], POSIX::strftime("%H:%M:%S", gmtime), $$f, q[-] x 96, $$ARGV[0];' "note: for detailed logs: cat ../speculos-port-5001.log"
-	@cat ../speculos-port-5001.log 2>&1 | perl -lane '$$lines .= $$_ . "\n"; sub END{ die sprintf qq[ERROR: All tests did NOT complete! Dumping ../speculos-port-5001.log:\n%s\n], $$lines if($$lines !~ m~ALL TESTS COMPLETED~s); }'
+	$(call run_announce,note: logs: cat ../speculos-port-5001.log)
+	@cat ../speculos-port-5001.log
+
+.PHONY: speculos_port_5002_test
+speculos_port_5002_test:
+	$(call run_announce,$@)
+	@make --no-print-directory speculos_port_5002_start
+	@-make --no-print-directory speculos_port_5002_test_internal
+	@make --no-print-directory speculos_port_5002_stop
+	$(call run_announce,note: logs: cat ../speculos-port-5002.log)
+	@cat ../speculos-port-5002.log
 
 .PHONY: rust_test
 rust_test:

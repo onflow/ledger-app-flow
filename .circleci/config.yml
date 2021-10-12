@@ -1,3 +1,4 @@
+# todo: add jobs to build and test on macOS (in addition to the existing Linux build and test); see https://circleci.com/docs/2.0/hello-world-macos/
 version: 2
 jobs:
   build:
@@ -44,14 +45,23 @@ jobs:
             source /opt/circleci/.nvm/nvm.sh
             nvm use 16.10.0
             export MAKE_NVM_SH_PATH=/opt/circleci
+            # Linux docker instances start and stop quicker with `--network host`; see https://github.com/LedgerHQ/speculos/issues/249
+            export MAKE_LINUX_DOCKER_OPTIONS=--network host
             make speculos_install
       - run:
           # todo: consider upgrading CircleCI to allow parallel jobs, and splitting this into a separate CircleCI jobs which run in parallel on separate speculos container instances
-          name: Run speculos tests
+          name: Run speculos port 5001 tests
           command: |
             source /opt/circleci/.nvm/nvm.sh
             nvm use 16.10.0
-            make speculos_port_5001_test
+            TEST_DEBUG=1 make speculos_port_5001_test
+      - run:
+          # todo: consider upgrading CircleCI to allow parallel jobs, and splitting this into a separate CircleCI jobs which run in parallel on separate speculos container instances
+          name: Run speculos port 5002 tests
+          command: |
+            source /opt/circleci/.nvm/nvm.sh
+            nvm use 16.10.0
+            TEST_DEBUG=1 make speculos_port_5002_test
 
   test_fuzz_crash_fixes:
     docker:
