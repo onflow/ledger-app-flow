@@ -11,6 +11,11 @@ common.testStart(scriptName);
 const FlowApp = OnflowLedgerMod.default;
 const app = new FlowApp(common.mockTransport);
 
+//
+//
+//
+console.log(common.humanTime() + " v".repeat(64) + " test: sign basic - invalid");
+
 console.log(common.humanTime() + " // using FlowApp below with common.mockTransport() to grab apdu command without sending it");
 const address = "e467b9dd11fa00df"
 const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;

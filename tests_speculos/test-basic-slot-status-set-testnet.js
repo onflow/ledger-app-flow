@@ -11,6 +11,11 @@ common.testStart(scriptName);
 const FlowApp = OnflowLedgerMod.default;
 const app = new FlowApp(common.mockTransport);
 
+//
+//
+//
+console.log(common.humanTime() + " v".repeat(64) + " test: slot status - set - testnet");
+
 console.log(common.humanTime() + " // using FlowApp below with common.mockTransport() to grab apdu command without sending it");
 const expectedSlot = 10;
 const expectedAccount = "8c5303eaa26202d6";
@@ -41,7 +46,7 @@ console.log(common.humanTime() + " // navigate the address / path; Path 44'/..")
 common.curlButton('right');
 
 common.curlScreenShot(scriptName);
-console.log(common.humanTime() + " // confirm accept");
+console.log(common.humanTime() + " // confirm; Approve");
 common.curlButton('both');
 
 console.log(common.humanTime() + " // main screen");

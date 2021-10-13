@@ -81,6 +81,14 @@ endef
 
 all: build
 
+.PHONY: check_todo
+check_todo:
+	git ls-files 2>&1 | xargs egrep -i "todo:" 2> /dev/null || true
+
+.PHONY: check_fixme
+check_fixme:
+	git ls-files 2>&1 | xargs egrep -i "fixme:" 2> /dev/null
+
 .PHONY: check_python
 check_python:
 	@python -c 'import sys; sys.exit(3-sys.version_info.major)' || (echo "The python command does not point to Python 3"; exit 1)
@@ -333,14 +341,15 @@ endef
 speculos_port_5001_test_internal:
 	$(call run_announce,$@)
 	$(call run_nodejs_test,5001,test-basic-app-version.js)
+	$(call run_nodejs_test,5001,test-basic-slot-status-bad-net.js)
 	$(call run_nodejs_test,5001,test-basic-sign-basic-invalid.js)
 	$(call run_nodejs_test,5001,test-basic-slot-status-set-mainnet.js)
+	$(call run_nodejs_test,5001,test-basic-slot-status-set-testnet.js)
 	@echo "# ALL TESTS COMPLETED!" | tee -a ../speculos-port-5001.log
 
 .PHONY: speculos_port_5002_test_internal
 speculos_port_5002_test_internal:
 	$(call run_announce,$@)
-	$(call run_nodejs_test,5002,test-basic-slot-status-set-testnet.js)
 	@echo "# ALL TESTS COMPLETED!" | tee -a ../speculos-port-5002.log
 
 .PHONY: speculos_port_5001_test

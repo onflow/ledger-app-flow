@@ -103,7 +103,7 @@ function curlButton(which) { // e.g. which: 'left', 'right', or 'both'
 	var output = syncBackTicks('curl --silent --show-error --data \'{"action":"press-and-release"}\' http://127.0.0.1:' + test_speculos_api_port + '/button/' + which + ' 2>&1');
 	if (output != '{}') {
 		console.log(humanTime() + " ERROR: unexpected curl stdout: " + output);
-		//todo: assert!
+		throw new Error();
 	}
 }
 
