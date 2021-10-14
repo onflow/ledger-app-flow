@@ -30,24 +30,12 @@ await app.setSlot(expectedSlot, expectedAccount, expectedPath);
 var hexOutgoing = common.hexApduCommandViaMockTransportArray.shift();
 var hexExpected = "331200001d0ae467b9dd11fa00df2c0000801b020080010200800000000000000000";
 common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, payload:9999});
-
 common.asyncCurlApduSend(hexOutgoing);
-
-common.curlScreenShot(scriptName);
-common.curlButton('right', "; navigate the address / path; Set Account 10");
-
-common.curlScreenShot(scriptName);
-common.curlButton('right', "; navigate the address / path; Account e467..");
-
-common.curlScreenShot(scriptName);
-common.curlButton('right', "; navigate the address / path; Path 44'/..");
-
-common.curlScreenShot(scriptName);
-common.curlButton('both', "; confirm; Approve");
-
-console.log(common.humanTime() + " // main screen");
-common.curlScreenShot(scriptName);
-
+common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Set Account 10");
+common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Account e467..");
+common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Path 44'/..");
+common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve");
+common.curlScreenShot(scriptName); console.log(common.humanTime() + " // back to main screen");
 var hexResponse = await common.curlApduResponseWait();
 var hexExpected = "9000";
 common.compare(hexResponse, hexExpected, "apdu response", {returnCode:4, unexpected:9999});
@@ -75,30 +63,14 @@ await app.setSlot(10, expectedAccount, expectedPathUpdate);
 var hexOutgoing = common.hexApduCommandViaMockTransportArray.shift();
 var hexExpected = "331200001d0ae467b9dd11fa00df2c0000801b020080010200800000000001000000";
 common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, payload:9999});
-
 common.asyncCurlApduSend(hexOutgoing);
-
-common.curlScreenShot(scriptName);
-common.curlButton('right', "; navigate the address / path; Update Account 10");
-
-common.curlScreenShot(scriptName);
-common.curlButton('right', "; navigate the address / path; Old Account e467..");
-
-common.curlScreenShot(scriptName);
-common.curlButton('right', "; navigate the address / path; Old Path 44'/..");
-
-common.curlScreenShot(scriptName);
-common.curlButton('right', "; navigate the address / path; New Account e467..");
-
-common.curlScreenShot(scriptName);
-common.curlButton('right', "; navigate the address / path; New Path 44'/..");
-
-common.curlScreenShot(scriptName);
-common.curlButton('both', "; confirm; Approve");
-
-console.log(common.humanTime() + " // main screen");
-common.curlScreenShot(scriptName);
-
+common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Update Account 10");
+common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Old Account e467..");
+common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Old Path 44'/..");
+common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; New Account e467..");
+common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; New Path 44'/..");
+common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve");
+common.curlScreenShot(scriptName); console.log(common.humanTime() + " // back to main screen");
 var hexResponse = await common.curlApduResponseWait();
 var hexExpected = "9000";
 common.compare(hexResponse, hexExpected, "apdu response", {returnCode:4, unexpected:9999});
@@ -116,24 +88,12 @@ await app.setSlot(10, expectedAccountDelete, expectedPathDelete);
 var hexOutgoing = common.hexApduCommandViaMockTransportArray.shift();
 var hexExpected = "331200001d0a00000000000000000000000000000000000000000000000000000000";
 common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, payload:9999});
-
 common.asyncCurlApduSend(hexOutgoing);
-
-common.curlScreenShot(scriptName);
-common.curlButton('right', "; navigate the address / path; Delete Account 10");
-
-common.curlScreenShot(scriptName);
-common.curlButton('right', "; navigate the address / path; Old Account e467..");
-
-common.curlScreenShot(scriptName);
-common.curlButton('right', "; navigate the address / path; Old Path 44'/..");
-
-common.curlScreenShot(scriptName);
-common.curlButton('both', "; confirm; Approve");
-
-console.log(common.humanTime() + " // main screen");
-common.curlScreenShot(scriptName);
-
+common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Delete Account 10");
+common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Old Account e467..");
+common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Old Path 44'/..");
+common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve");
+common.curlScreenShot(scriptName); console.log(common.humanTime() + " // back to main screen");
 var hexResponse = await common.curlApduResponseWait();
 var hexExpected = "9000";
 common.compare(hexResponse, hexExpected, "apdu response", {returnCode:4, unexpected:9999});

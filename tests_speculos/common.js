@@ -110,19 +110,21 @@ function curlButton(which, hint) { // e.g. which: 'left', 'right', or 'both'
 var pngNum = 1;
 var pngSha256Previous = "";
 
-function curlScreenShot(scriptName) {
+async function curlScreenShot(scriptName) {
 	var png = scriptName + "." + pngNum.toString(10).padStart(2, '0') + ".png"
 	console.log(humanTime() + " curlScreenShot() // " + png + ".new.png");
+	var sleep_command = '';
 	var cp_command = '';
 	if (process.env.TEST_PNG_RE_GEN_FOR && (scriptName.substring(0, process.env.TEST_PNG_RE_GEN_FOR.length) == process.env.TEST_PNG_RE_GEN_FOR)) {
-		console.log(humanTime() + " curlScreenShot() // TEST_PNG_RE_GEN_FOR detected; re-generating this PNG for this test");
+		console.log(humanTime() + " curlScreenShot() // TEST_PNG_RE_GEN_FOR detected; waiting to avoid partial screen capture, and re-generating this PNG for this test");
+		sleep_command = 'sleep 1 ; ';
 		cp_command = ' ; cp $PNG.new.png $PNG';
 	}
 	var loop;
 	var loops = 0;
 	do {
 		loop = 0;
-		var output = syncBackTicks('export PNG=' + png + ' ; curl --silent --show-error --output $PNG.new.png http://127.0.0.1:' + test_speculos_api_port + '/screenshot 2>&1' + cp_command + ' ; echo sha256:`sha256sum $PNG` ; echo sha256:`sha256sum $PNG.new.png`');
+		var output = syncBackTicks(sleep_command + 'export PNG=' + png + ' ; curl --silent --show-error --output $PNG.new.png http://127.0.0.1:' + test_speculos_api_port + '/screenshot 2>&1' + cp_command + ' ; echo sha256:`sha256sum $PNG` ; echo sha256:`sha256sum $PNG.new.png`');
 		const errorArray = output.match(/Empty reply from server/gi);
 		if (null != errorArray) {
 			console.log(humanTime() + " curl: screen shot: warning: curl failed to grab screen shot");
