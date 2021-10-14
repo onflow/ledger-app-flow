@@ -346,6 +346,8 @@ speculos_port_5001_test_internal:
 	$(call run_nodejs_test,5001,test-basic-sign-basic-invalid.js)
 	$(call run_nodejs_test,5001,test-basic-slot-status-set-mainnet.js)
 	$(call run_nodejs_test,5001,test-basic-slot-status-set-testnet.js)
+	$(call run_nodejs_test,5001,test-basic-get-address-secp256k1.js)
+	$(call run_nodejs_test,5001,test-basic-show-address-secp256k1.js)
 	@echo "# ALL TESTS COMPLETED!" | tee -a ../speculos-port-5001.log
 
 .PHONY: speculos_port_5002_test_internal

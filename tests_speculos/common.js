@@ -117,7 +117,7 @@ async function curlScreenShot(scriptName) {
 	var cp_command = '';
 	if (process.env.TEST_PNG_RE_GEN_FOR && (scriptName.substring(0, process.env.TEST_PNG_RE_GEN_FOR.length) == process.env.TEST_PNG_RE_GEN_FOR)) {
 		console.log(humanTime() + " curlScreenShot() // TEST_PNG_RE_GEN_FOR detected; waiting to avoid partial screen capture, and re-generating this PNG for this test");
-		sleep_command = 'sleep 1 ; ';
+		sleep_command = 'sleep 2 ; '; // todo: implement better biz logic than 'sleep n' to avoid partial screen capture?
 		cp_command = ' ; cp $PNG.new.png $PNG';
 	}
 	var loop;
