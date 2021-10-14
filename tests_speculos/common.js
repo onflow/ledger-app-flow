@@ -58,7 +58,7 @@ function asyncBackTicks(command) {
 }
 
 function testStart(scriptName) { // e.g. test-basic-slot-status-set.js
-	console.log(humanTime() + " testStart() // " + scriptName + " // re-run with TEST_PNG_RE_GEN_FOR=" + scriptName + " to regenerate PNGs, TEST_IGNORE_SHA256_SUMS=1 to ignore all PNGs, TEST_DEBUG=1 for extra debug output");
+	console.log(humanTime() + " testStart() // " + scriptName + "; re-run with TEST_PNG_RE_GEN_FOR=" + scriptName + " to regenerate PNGs, TEST_IGNORE_SHA256_SUMS=1 to ignore all PNGs, TEST_DEBUG=1 for extra debug output");
 	syncBackTicks('rm ' + scriptName + '.*.png.new.png');
 	if (process.env.TEST_PNG_RE_GEN_FOR && (scriptName.substring(0, process.env.TEST_PNG_RE_GEN_FOR.length) == process.env.TEST_PNG_RE_GEN_FOR)) {
 		console.log(humanTime() + " curlScreenShot() // TEST_PNG_RE_GEN_FOR detected; deleting PNGs for this test");
@@ -66,8 +66,8 @@ function testStart(scriptName) { // e.g. test-basic-slot-status-set.js
 	}
 }
 
-function testEnd() {
-	console.log(humanTime() + " testEnd() // <-- and passed if you read this!");
+function testEnd(scriptName) { // e.g. test-basic-slot-status-set.js
+	console.log(humanTime() + " testEnd()   // " + scriptName + "; <-- and passed if you read this!");
 }
 
 var curl_apdu_response_data = "";

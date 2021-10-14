@@ -54,7 +54,7 @@ common.compare(hexResponse, hexExpected, "apdu response", {returnCode:4, unexpec
 
 //screen shot should not change so do not: common.curlScreenShot(scriptName);
 
-common.testEnd();
+common.testEnd(scriptName);
 
 // Above is the speculos-only / zemu-free test.
 // Below is the original zemu test for comparison:
