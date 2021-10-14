@@ -58,10 +58,10 @@ function asyncBackTicks(command) {
 }
 
 function testStart(scriptName) { // e.g. test-basic-slot-status-set.js
-	console.log(humanTime() + " testStart() // " + scriptName + " // re-run with TEST_REGEN_PNGS=1 to regenerate PNGs, TEST_IGNORE_SHA256_SUMS=1 to ignore all PNGs, TEST_DEBUG=1 to debug");
+	console.log(humanTime() + " testStart() // " + scriptName + " // re-run with TEST_PNG_RE_GEN_FOR=" + scriptName + " to regenerate PNGs, TEST_IGNORE_SHA256_SUMS=1 to ignore all PNGs, TEST_DEBUG=1 for extra debug output");
 	syncBackTicks('rm ' + scriptName + '.*.png.new.png');
-	if (process.env.TEST_REGEN_PNGS >= 1) {
-		console.log(humanTime() + " testStart() // deleting PNGs due to TEST_REGEN_PNGS");
+	if (process.env.TEST_PNG_RE_GEN_FOR && (scriptName.substring(0, process.env.TEST_PNG_RE_GEN_FOR.length) == process.env.TEST_PNG_RE_GEN_FOR)) {
+		console.log(humanTime() + " curlScreenShot() // TEST_PNG_RE_GEN_FOR detected; deleting PNGs for this test");
 		syncBackTicks('rm ' + scriptName + '.*.png');
 	}
 }
@@ -98,8 +98,8 @@ async function curlApduResponseWait() {
 	return response.data;
 }
 
-function curlButton(which) { // e.g. which: 'left', 'right', or 'both'
-	console.log(humanTime() + " curlButton() // " + which);
+function curlButton(which, hint) { // e.g. which: 'left', 'right', or 'both'
+	console.log(humanTime() + " curlButton() // " + which + hint);
 	var output = syncBackTicks('curl --silent --show-error --data \'{"action":"press-and-release"}\' http://127.0.0.1:' + test_speculos_api_port + '/button/' + which + ' 2>&1');
 	if (output != '{}') {
 		console.log(humanTime() + " ERROR: unexpected curl stdout: " + output);
@@ -114,7 +114,8 @@ function curlScreenShot(scriptName) {
 	var png = scriptName + "." + pngNum.toString(10).padStart(2, '0') + ".png"
 	console.log(humanTime() + " curlScreenShot() // " + png + ".new.png");
 	var cp_command = '';
-	if (process.env.TEST_REGEN_PNGS >= 1) {
+	if (process.env.TEST_PNG_RE_GEN_FOR && (scriptName.substring(0, process.env.TEST_PNG_RE_GEN_FOR.length) == process.env.TEST_PNG_RE_GEN_FOR)) {
+		console.log(humanTime() + " curlScreenShot() // TEST_PNG_RE_GEN_FOR detected; re-generating this PNG for this test");
 		cp_command = ' ; cp $PNG.new.png $PNG';
 	}
 	var loop;
@@ -203,6 +204,7 @@ async function sleep(ms, what) {
 }
 
 var hexApduCommandViaMockTransportArray = [];
+var fakeApduResponseViaMockTransport = 0;
 
 var mockTransport = {
 	//this.transport.send(_common.CLA, _common.INS.SET_SLOT, 0, 0, payload).then(...)
@@ -218,14 +220,23 @@ var mockTransport = {
 		hexApduCommandViaMockTransportArray.push(hexApduCommandViaMockTransport);
 		console.log(humanTime() + " .send() // " + hexApduCommandViaMockTransport + " <-- this is the mockTransport.send() (read: fake send) function");
 		return {
-			then: function(functionHandleResponse) {
-				console.log(humanTime() + " .send().then() // dishing up fake apdu response");
-				var buf = Buffer.from([0x90, 0x00]);
-				functionHandleResponse(buf);
+			then: function(functionHandleResponseAsSuccess, functionHandleRepsonseAsError) {
+				if (0 == fakeApduResponseViaMockTransport) {
+					console.log(humanTime() + " .send().then() // dishing up fake apdu response; success");
+					functionHandleResponseAsSuccess(Buffer.from([0x90, 0x00]));
+				} else {
+					fakeApduResponseViaMockTransport = 0; // auto set next fake response to success
+					console.log(humanTime() + " .send().then() // dishing up fake apdu response; error");
+					functionHandleResponseAsError(Buffer.from([0x69, 0x82]));
+				}
 				return;
 			}
 		};
 	},
 };
 
-export {testStart, testEnd, compare, asyncCurlApduSend, curlApduResponseWait, curlButton, curlScreenShot, humanTime, sleep, mockTransport, hexApduCommandViaMockTransportArray, path};
+function mockTransportSetNextFakeResponseToError() {
+	fakeApduResponseViaMockTransport = 1
+}
+
+export {testStart, testEnd, compare, asyncCurlApduSend, curlApduResponseWait, curlButton, curlScreenShot, humanTime, sleep, mockTransport, mockTransportSetNextFakeResponseToError, hexApduCommandViaMockTransportArray, path};

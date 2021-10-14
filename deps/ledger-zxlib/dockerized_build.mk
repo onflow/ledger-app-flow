@@ -342,6 +342,7 @@ speculos_port_5001_test_internal:
 	$(call run_announce,$@)
 	$(call run_nodejs_test,5001,test-basic-app-version.js)
 	$(call run_nodejs_test,5001,test-basic-slot-status-bad-net.js)
+	$(call run_nodejs_test,5001,test-basic-slot-status-full.js)
 	$(call run_nodejs_test,5001,test-basic-sign-basic-invalid.js)
 	$(call run_nodejs_test,5001,test-basic-slot-status-set-mainnet.js)
 	$(call run_nodejs_test,5001,test-basic-slot-status-set-testnet.js)

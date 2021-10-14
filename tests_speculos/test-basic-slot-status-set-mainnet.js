@@ -34,20 +34,16 @@ common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2
 common.asyncCurlApduSend(hexOutgoing);
 
 common.curlScreenShot(scriptName);
-console.log(common.humanTime() + " // navigate the address / path; Set Account 10");
-common.curlButton('right');
+common.curlButton('right', "; navigate the address / path; Set Account 10");
 
 common.curlScreenShot(scriptName);
-console.log(common.humanTime() + " // navigate the address / path; Account e467..");
-common.curlButton('right');
+common.curlButton('right', "; navigate the address / path; Account e467..");
 
 common.curlScreenShot(scriptName);
-console.log(common.humanTime() + " // navigate the address / path; Path 44'/..");
-common.curlButton('right');
+common.curlButton('right', "; navigate the address / path; Path 44'/..");
 
 common.curlScreenShot(scriptName);
-console.log(common.humanTime() + " // confirm; Approve");
-common.curlButton('both');
+common.curlButton('both', "; confirm; Approve");
 
 console.log(common.humanTime() + " // main screen");
 common.curlScreenShot(scriptName);
@@ -83,28 +79,22 @@ common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2
 common.asyncCurlApduSend(hexOutgoing);
 
 common.curlScreenShot(scriptName);
-console.log(common.humanTime() + " // navigate the address / path; Update Account 10");
-common.curlButton('right');
+common.curlButton('right', "; navigate the address / path; Update Account 10");
 
 common.curlScreenShot(scriptName);
-console.log(common.humanTime() + " // navigate the address / path; Old Account e467..");
-common.curlButton('right');
+common.curlButton('right', "; navigate the address / path; Old Account e467..");
 
 common.curlScreenShot(scriptName);
-console.log(common.humanTime() + " // navigate the address / path; Old Path 44'/..");
-common.curlButton('right');
+common.curlButton('right', "; navigate the address / path; Old Path 44'/..");
 
 common.curlScreenShot(scriptName);
-console.log(common.humanTime() + " // navigate the address / path; New Account e467..");
-common.curlButton('right');
+common.curlButton('right', "; navigate the address / path; New Account e467..");
 
 common.curlScreenShot(scriptName);
-console.log(common.humanTime() + " // navigate the address / path; New Path 44'/..");
-common.curlButton('right');
+common.curlButton('right', "; navigate the address / path; New Path 44'/..");
 
 common.curlScreenShot(scriptName);
-console.log(common.humanTime() + " // confirm; Approve");
-common.curlButton('both');
+common.curlButton('both', "; confirm; Approve");
 
 console.log(common.humanTime() + " // main screen");
 common.curlScreenShot(scriptName);
@@ -130,20 +120,16 @@ common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2
 common.asyncCurlApduSend(hexOutgoing);
 
 common.curlScreenShot(scriptName);
-console.log(common.humanTime() + " // navigate the address / path; Delete Account 10");
-common.curlButton('right');
+common.curlButton('right', "; navigate the address / path; Delete Account 10");
 
 common.curlScreenShot(scriptName);
-console.log(common.humanTime() + " // navigate the address / path; Old Account e467..");
-common.curlButton('right');
+common.curlButton('right', "; navigate the address / path; Old Account e467..");
 
 common.curlScreenShot(scriptName);
-console.log(common.humanTime() + " // navigate the address / path; Old Path 44'/..");
-common.curlButton('right');
+common.curlButton('right', "; navigate the address / path; Old Path 44'/..");
 
 common.curlScreenShot(scriptName);
-console.log(common.humanTime() + " // confirm; Approve");
-common.curlButton('both');
+common.curlButton('both', "; confirm; Approve");
 
 console.log(common.humanTime() + " // main screen");
 common.curlScreenShot(scriptName);

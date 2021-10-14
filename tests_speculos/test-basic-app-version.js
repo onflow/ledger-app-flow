@@ -21,7 +21,7 @@ console.log(common.humanTime() + " // using FlowApp below with common.mockTransp
 console.log(common.humanTime() + " // screen shot before sending first apdu command");
 common.curlScreenShot(scriptName);
 
-console.log(common.humanTime() + " -".repeat(64) + " // await app.getVersion()");
+console.log(common.humanTime() + " -".repeat(64) + " await app.getVersion()");
 await app.getVersion();
 var hexOutgoing = common.hexApduCommandViaMockTransportArray.shift();
 var hexExpected = "3300000000";

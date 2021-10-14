@@ -32,10 +32,10 @@ common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2
 
 common.asyncCurlApduSend(hexOutgoing);
 common.curlScreenShot(scriptName); // wait until screen shot changes
-common.curlButton('right');
-common.curlButton('right');
-common.curlButton('right');
-common.curlButton('both');
+common.curlButton('right', "");
+common.curlButton('right', "");
+common.curlButton('right', "");
+common.curlButton('both', "");
 var hexResponse = await common.curlApduResponseWait();
 var hexExpected = "9000";
 common.compare(hexResponse, hexExpected, "apdu response", {returnCode:4, unexpected:9999});
