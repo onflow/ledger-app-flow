@@ -48,10 +48,7 @@ common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2
 
 common.asyncCurlApduSend(hexExpected);
 var hexResponse = await common.curlApduResponseWait();
-var hexEXpected = "e467b9dd11fa00df04404cfecea795df2d9919ed1c3d9ad183663c1a0675551d1ecc362d9c45219eea54f414c9d0afcb6011f6b704149de1bbf8006a174436fb15782c54f899b35b649000";
-//                                 04404cfecea795df2d9919ed1c3d9ad183663c1a0675551d1ecc362d9c45219eea54f414c9d0afcb6011f6b704149de1bbf8006a174436fb15782c54f899b35b64     <- publicKey; why?
-//                                 04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be     <- publicKey from old SDK/zemu test
-//                 e467b9dd11fa00df04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be9000 <- response  from old SDK/zemu test
+var hexEXpected = "e467b9dd11fa00df04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be9000";
 common.compare(hexResponse, hexEXpected, "apdu response", {address:8, publicKey:65, returnCode:4, unexpected:9999});
 console.log(common.humanTime() + " // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ todo: why does publicKey not match the one from old SDK/zemu test?");
 

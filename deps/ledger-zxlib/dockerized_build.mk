@@ -320,7 +320,7 @@ zemu_test:
 	cd $(TESTS_ZEMU_DIR) && yarn test$(COIN)
 
 define start_speculos_container
-	docker run --detach --name speculos-port-$(1) --rm -it -v $(CURDIR)/app:/speculos/app --publish $(1):$(1) --publish $(3):$(3) speculos --model nanos --sdk 2.0 --seed "secret" --display headless --apdu-port $(2) --vnc-port $(3) --api-port $(1) ./app/bin/app.elf ; rm -f ../speculos-port-$(1).log ; docker logs --follow speculos-port-$(1) 2>&1 | tee -a ../speculos-port-$(1).log > /dev/null 2>&1 &
+	docker run --detach --name speculos-port-$(1) --rm -it -v $(CURDIR)/app:/speculos/app --publish $(1):$(1) --publish $(3):$(3) speculos --model nanos --sdk 2.0 --seed "equip will roof matter pink blind book anxiety banner elbow sun young" --display headless --apdu-port $(2) --vnc-port $(3) --api-port $(1) ./app/bin/app.elf ; rm -f ../speculos-port-$(1).log ; docker logs --follow speculos-port-$(1) 2>&1 | tee -a ../speculos-port-$(1).log > /dev/null 2>&1 &
 	@perl -e 'use Time::HiRes; $$t1=Time::HiRes::time(); while(1){ $$o=`cat ../speculos-port-$(1).log`; if($$o =~ m~Running on .*\:$(1)~s){ printf qq[# detected -- via log -- speculos listening after %f seconds\n], Time::HiRes::time() - $$t1; exit; } Time::HiRes::sleep(0.01); };'
 endef
 
