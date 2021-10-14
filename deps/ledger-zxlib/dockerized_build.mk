@@ -250,6 +250,7 @@ else
 speculos_install_js_link:
 	$(call run_announce,$@)
 	# First unlink everything
+	@# todo: workaround to avoid this log output? 'error No registered package found called "@onflow/ledger"'
 	cd $(TESTS_JS_DIR) && yarn unlink || true
 	cd $(TESTS_SPECULOS_DIR) && yarn unlink $(TESTS_JS_PACKAGE) || true
 	# Now build and link
@@ -319,8 +320,10 @@ generate_test_vectors:
 zemu_test:
 	cd $(TESTS_ZEMU_DIR) && yarn test$(COIN)
 
+# Note: This error did occur once: docker: Error response from daemon: driver failed programming external connectivity on endpoint speculos-port-5002 (082ea92d039f260880bc264a2f6086e14c42d698f24ff5acbba422baa9c60b29): Error starting userland proxy: listen tcp 0.0.0.0:41002: bind: address already in use.
+# Note: Since we do not need to use the VNC for the tests, then remove this option and hope the error never shows up again: --vnc-port $(3)
 define start_speculos_container
-	docker run --detach --name speculos-port-$(1) --rm -it -v $(CURDIR)/app:/speculos/app --publish $(1):$(1) --publish $(3):$(3) speculos --model nanos --sdk 2.0 --seed "equip will roof matter pink blind book anxiety banner elbow sun young" --display headless --apdu-port $(2) --vnc-port $(3) --api-port $(1) ./app/bin/app.elf ; rm -f ../speculos-port-$(1).log ; docker logs --follow speculos-port-$(1) 2>&1 | tee -a ../speculos-port-$(1).log > /dev/null 2>&1 &
+	docker run --detach --name speculos-port-$(1) --rm -it -v $(CURDIR)/app:/speculos/app --publish $(1):$(1) --publish $(3):$(3) speculos --model nanos --sdk 2.0 --seed "equip will roof matter pink blind book anxiety banner elbow sun young" --display headless --apdu-port $(2) --api-port $(1) ./app/bin/app.elf ; rm -f ../speculos-port-$(1).log ; docker logs --follow speculos-port-$(1) 2>&1 | tee -a ../speculos-port-$(1).log > /dev/null 2>&1 &
 	@perl -e 'use Time::HiRes; $$t1=Time::HiRes::time(); while(1){ $$o=`cat ../speculos-port-$(1).log`; if($$o =~ m~Running on .*\:$(1)~s){ printf qq[# detected -- via log -- speculos listening after %f seconds\n], Time::HiRes::time() - $$t1; exit; } Time::HiRes::sleep(0.01); };'
 endef
 
