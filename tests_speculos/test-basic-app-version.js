@@ -18,15 +18,13 @@ console.log(common.humanTime() + " v".repeat(64) + " test: app version");
 
 console.log(common.humanTime() + " // using FlowApp below with common.mockTransport() to grab apdu command without sending it");
 
-console.log(common.humanTime() + " // screen shot before sending first apdu command");
-common.curlScreenShot(scriptName);
+common.curlScreenShot(scriptName); console.log(common.humanTime() + " // screen shot before sending first apdu command");
 
 console.log(common.humanTime() + " -".repeat(64) + " await app.getVersion()");
 await app.getVersion();
 var hexOutgoing = common.hexApduCommandViaMockTransportArray.shift();
 var hexExpected = "3300000000";
 common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, payload:9999});
-
 common.asyncCurlApduSend(hexOutgoing);
 var hexResponse = await common.curlApduResponseWait();
 var hexExpected = "0000090b00311000049000";

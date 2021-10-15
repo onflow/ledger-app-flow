@@ -22,8 +22,7 @@ const expectedAccount = "e467b9dd11fa00df";
 const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
 const expectedPath = `m/44'/539'/${scheme}'/0/0`;
 
-console.log(common.humanTime() + " // screen shot before sending first apdu command");
-common.curlScreenShot(scriptName);
+common.curlScreenShot(scriptName); console.log(common.humanTime() + " // screen shot before sending first apdu command");
 
 console.log(common.humanTime() + " -".repeat(64) + " await app.setSlot() // expectedSlot=" + expectedSlot + " expectedAccount=" + expectedAccount + " expectedPath=" + expectedPath);
 await app.setSlot(expectedSlot, expectedAccount, expectedPath);
@@ -46,7 +45,6 @@ await app.setSlot(expectedSlot, invalidAddress, expectedPath);
 var hexOutgoing = common.hexApduCommandViaMockTransportArray.shift();
 var hexExpected = "331200001d0afd00fa11ddb967e42c0000801b020080010200800000000000000000";
 common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, payload:9999});
-
 common.asyncCurlApduSend(hexOutgoing);
 var hexResponse = await common.curlApduResponseWait();
 var hexExpected = "6984";
