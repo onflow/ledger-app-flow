@@ -24,8 +24,6 @@ jobs:
       - BOLOS_ENV_IGNORE=/opt/bolos
     steps:
       - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
       # Docker entrypoint is not considered
       - run: git submodule update --init --recursive
       - run:
