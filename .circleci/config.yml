@@ -2,6 +2,7 @@
 version: 2
 jobs:
   build:
+    # todo: refactor this to be a machine build, more similar to building from MacOS or Linux
     docker:
       - image: zondax/circleci@sha256:37f78ab294b35a055768c2305b3f13813e55fb9db4e65f72745ede61dd842c08
     steps:
@@ -23,6 +24,8 @@ jobs:
       - BOLOS_ENV_IGNORE=/opt/bolos
     steps:
       - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
       # Docker entrypoint is not considered
       - run: git submodule update --init --recursive
       - run:
