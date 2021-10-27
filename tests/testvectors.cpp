@@ -34,12 +34,12 @@ void check_testcase(const testcase_t &testcase) {
     parser_error_t err;
 
     // Define mainnet or testnet through derivation path
-    hdPath.data[0] = HDPATH_0_DEFAULT;
-    hdPath.data[1] = HDPATH_1_DEFAULT;
+    hdPath[0] = HDPATH_0_DEFAULT;
+    hdPath[1] = HDPATH_1_DEFAULT;
 
     if (tc.chainID == "Testnet" || tc.chainID == "Emulator") {
-        hdPath.data[0] = HDPATH_0_TESTNET;
-        hdPath.data[1] = HDPATH_1_TESTNET;
+        hdPath[0] = HDPATH_0_TESTNET;
+        hdPath[1] = HDPATH_1_TESTNET;
     }
 
     app_mode_set_expert(tc.expert);

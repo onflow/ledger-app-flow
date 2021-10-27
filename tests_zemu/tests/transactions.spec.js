@@ -20,7 +20,7 @@ import jsSHA from "jssha";
 import {ec as EC} from "elliptic";
 import fs from "fs";
 
-import { APP_PATH, simOptions, verifyAndAccept, prepareSlot } from "./setup";
+import { APP_PATH, simOptions, verifyAndAccept } from "./setup";
 
 const CHAIN_ID_PAGE_COUNT = 1;
 const REF_BLOCK_PAGE_COUNT = 2;
@@ -88,10 +88,8 @@ async function transactionTest(txHexBlob, txExpectedPageCount, sigAlgo, hashAlgo
         const txBlob = Buffer.from(txHexBlob, "hex");
 
         const path = getKeyPath(sigAlgo.code, hashAlgo.code);
-        const address = "e467b9dd11fa00df"
-        await prepareSlot(sim, app, 1, address, path)
 
-        const pkResponse = await app.getAddressAndPubKey(1);
+        const pkResponse = await app.getAddressAndPubKey(path);
         expect(pkResponse.returnCode).toEqual(0x9000);
         expect(pkResponse.errorMessage).toEqual("No errors");
 

@@ -14,7 +14,6 @@
 *  limitations under the License.
 ********************************************************************************/
 #include "account.h"
-#include "coin.h"
 #include "zxmacros.h"
 #include "stdbool.h"
 #include "apdu_codes.h"
@@ -32,9 +31,6 @@ slotop_t tmp_slotop;
 slot_store_t NV_CONST
 N_slot_store_impl __attribute__ ((aligned(64)));
 #define N_slot_store (*(NV_VOLATILE slot_store_t *)PIC(&N_slot_store_impl))
-
-
-
 
 uint8_t slot_is_empty(const account_slot_t *tmp) {
     return tmp->path.data[0] == 0;
@@ -76,7 +72,7 @@ zxerr_t slot_getItem(int8_t displayIdx,
                 }
                 case 1: {
                     snprintf(outKey, outKeyLen, "Account");
-                    array_to_hexstr_with_0x(outVal, outValLen, tmp_slot.account.data, 8);
+                    array_to_hexstr(outVal, outValLen, tmp_slot.account.data, 8);
                     return zxerr_ok;
                 }
                 case 2: {
@@ -100,7 +96,7 @@ zxerr_t slot_getItem(int8_t displayIdx,
                 }
                 case 1: {
                     snprintf(outKey, outKeyLen, "Old Account");
-                    array_to_hexstr_with_0x(outVal, outValLen, oldSlot->account.data, 8);
+                    array_to_hexstr(outVal, outValLen, oldSlot->account.data, 8);
                     return zxerr_ok;
                 }
                 case 2: {
@@ -112,7 +108,7 @@ zxerr_t slot_getItem(int8_t displayIdx,
                 }
                 case 3: {
                     snprintf(outKey, outKeyLen, "New Account");
-                    array_to_hexstr_with_0x(outVal, outValLen, tmp_slot.account.data, 8);
+                    array_to_hexstr(outVal, outValLen, tmp_slot.account.data, 8);
                     return zxerr_ok;
                 }
                 case 4: {
@@ -137,7 +133,7 @@ zxerr_t slot_getItem(int8_t displayIdx,
                 }
                 case 1: {
                     snprintf(outKey, outKeyLen, "Old Account");
-                    array_to_hexstr_with_0x(outVal, outValLen, oldSlot->account.data, 8);
+                    array_to_hexstr(outVal, outValLen, oldSlot->account.data, 8);
                     return zxerr_ok;
                 }
                 case 2: {
@@ -208,10 +204,13 @@ zxerr_t slot_parseSlot(uint8_t *buffer, uint16_t bufferLen) {
         return zxerr_out_of_bounds;
     }
 
-    //We copy account and path. Note that path is copied in app_main.c:extractHDPath (for sign transaction call).
     MEMCPY(&tmp_slot, buffer + 1, sizeof(account_slot_t));
 
-    if (!path_is_mainnet(tmp_slot.path) && !path_is_testnet(tmp_slot.path) && !path_is_empty(tmp_slot.path)) {
+    const bool mainnet = tmp_slot.path.data[0] == HDPATH_0_DEFAULT && tmp_slot.path.data[1] == HDPATH_1_DEFAULT;
+    const bool testnet = tmp_slot.path.data[0] == HDPATH_0_TESTNET && tmp_slot.path.data[1] == HDPATH_1_TESTNET;
+    const bool empty = tmp_slot.path.data[0] == 0 && tmp_slot.path.data[1] == 0;
+
+    if (!mainnet && !testnet && !empty) {
         array_to_hexstr(bufferUI, sizeof(bufferUI), tmp_slot.account.data, 8);
         zemu_log(bufferUI);
         zemu_log("\n");
@@ -222,27 +221,6 @@ zxerr_t slot_parseSlot(uint8_t *buffer, uint16_t bufferLen) {
 
         zemu_log_stack("invalid path");
         return zxerr_out_of_bounds;
-    }
-
-    //account validation
-    if (!path_is_empty(tmp_slot.path)) { //no validation required if the new slot should be empty
-        uint64_t account = 0;
-        //LE <-> BE conversion necessary to validate account
-        for(int i=0; i<SLOT_ACCOUNT_SIZE; i++) account = 256*account + tmp_slot.account.data[i];
-
-        if (path_is_mainnet(tmp_slot.path)) {
-            if (!validateChainAddress(CODEWORD_MAINNET, account)) {
-                zemu_log_stack("invalid account");
-                return zxerr_out_of_bounds;
-            }
-        }
-        if (path_is_testnet(tmp_slot.path)) {
-            if (!validateChainAddress(CODEWORD_TESTNET, account) && 
-                    !validateChainAddress(CODEWORD_EMULATORNET, account)) {
-                zemu_log_stack("invalid account");
-                return zxerr_out_of_bounds;
-            }
-        }
     }
 
     tmp_slotop = SLOT_OP_UPDATE;
