@@ -58,7 +58,8 @@ function asyncBackTicks(command) {
 }
 
 function testStart(scriptName) { // e.g. test-basic-slot-status-set.js
-	console.log(humanTime() + " testStart() // " + scriptName + "; re-run with TEST_PNG_RE_GEN_FOR=" + scriptName + " to regenerate PNGs, TEST_IGNORE_SHA256_SUMS=1 to ignore all PNGs, TEST_DEBUG=1 for extra debug output");
+	console.log(humanTime() + " " + "vv".repeat(63) + " testStart() // " + scriptName);
+	console.log(humanTime() + " // re-run with TEST_PNG_RE_GEN_FOR=" + scriptName + " to regenerate PNGs, TEST_IGNORE_SHA256_SUMS=1 to ignore all PNGs, TEST_DEBUG=1 for extra debug output");
 	syncBackTicks('rm ' + scriptName + '.*.png.new.png');
 	if (process.env.TEST_PNG_RE_GEN_FOR && (scriptName.substring(0, process.env.TEST_PNG_RE_GEN_FOR.length) == process.env.TEST_PNG_RE_GEN_FOR)) {
 		console.log(humanTime() + " curlScreenShot() // TEST_PNG_RE_GEN_FOR detected; deleting PNGs for this test");
@@ -66,8 +67,16 @@ function testStart(scriptName) { // e.g. test-basic-slot-status-set.js
 	}
 }
 
+function testCombo(scriptNameCombo) {
+	console.log(humanTime() + " " + "v ".repeat(63) + " testCombo() // " + scriptNameCombo);
+}
+
+function testStep(asciiGraphic, scriptNameStep) {
+	console.log(humanTime() + asciiGraphic.repeat(21) + "  testStep()  // " + scriptNameStep);
+}
+
 function testEnd(scriptName) { // e.g. test-basic-slot-status-set.js
-	console.log(humanTime() + " testEnd()   // " + scriptName + "; <-- and passed if you read this!");
+	console.log(humanTime() + " " + "^^".repeat(63) + " testEnd()   // " + scriptName);
 }
 
 var curl_apdu_response_data = "";
@@ -75,7 +84,7 @@ var curl_apdu_response_exit = "";
 
 function asyncCurlApduSend(apduCommand) {
 	console.log(humanTime() + " asyncCurlApduSend() // " + apduCommand);
-	var curl_apdu_object = asyncBackTicks('curl --silent --show-error --data \'{"data":"' + apduCommand + '"}\' http://127.0.0.1:' + test_speculos_api_port + '/apdu 2>&1');
+	var curl_apdu_object = asyncBackTicks('curl --silent --show-error --max-time 300 --data \'{"data":"' + apduCommand + '"}\' http://127.0.0.1:' + test_speculos_api_port + '/apdu 2>&1');
 	curl_apdu_object.stdout.on('data', function (data) { curl_apdu_response_data = data.toString().trim(); console.log(humanTime() + " asyncCurlApduSend() // async data "           + curl_apdu_response_data); });
 	curl_apdu_object.on       ('exit', function (code) { curl_apdu_response_exit = code.toString().trim(); console.log(humanTime() + " asyncCurlApduSend() // async exit with code " + curl_apdu_response_exit); });
 }
@@ -83,7 +92,7 @@ function asyncCurlApduSend(apduCommand) {
 async function curlApduResponseWait() {
 	var loops = 0;
 	while (curl_apdu_response_exit === "") {
-		await sleep(50, "waiting for async apdu response");
+		await sleep(100, "waiting for async apdu response");
 		loops += 1;
 		if (loops >= 20) {
 			console.log(humanTime() + " curlApduResponseWait() // ERRROR: looped too many times waiting for apdu response");
@@ -100,7 +109,7 @@ async function curlApduResponseWait() {
 
 function curlButton(which, hint) { // e.g. which: 'left', 'right', or 'both'
 	console.log(humanTime() + " curlButton() // " + which + hint);
-	var output = syncBackTicks('curl --silent --show-error --data \'{"action":"press-and-release"}\' http://127.0.0.1:' + test_speculos_api_port + '/button/' + which + ' 2>&1');
+	var output = syncBackTicks('curl --silent --show-error --max-time 60 --data \'{"action":"press-and-release"}\' http://127.0.0.1:' + test_speculos_api_port + '/button/' + which + ' 2>&1');
 	if (output != '{}') {
 		console.log(humanTime() + " ERROR: unexpected curl stdout: " + output);
 		throw new Error();
@@ -109,15 +118,26 @@ function curlButton(which, hint) { // e.g. which: 'left', 'right', or 'both'
 
 var pngNum = 1;
 var pngSha256Previous = "";
+var pngScriptNamePrevious = "";
 
 async function curlScreenShot(scriptName) {
-	var png = scriptName + "." + pngNum.toString(10).padStart(2, '0') + ".png"
+	if (pngScriptNamePrevious != scriptName) {
+		pngScriptNamePrevious  = scriptName;
+		pngSha256Previous      = "";
+		pngNum                 = 1;
+	}
+	var test_device = "nanos"; // default device unless env var TEST_DEVICE says different
+	if (process.env.TEST_DEVICE) {
+		test_device = process.env.TEST_DEVICE; // todo: change makefile to build and test on nanox device too
+	}
+	var png = scriptName + "/" + test_device + "." + pngNum.toString(10).padStart(2, '0') + ".png"
+	png = png.replace(".js", ""); // e.g. test-transactions.staking-sign-ts.02-transfer-top-shot-moment-p256-sha3-256/nanos.01.png
 	console.log(humanTime() + " curlScreenShot() // " + png + ".new.png");
 	var sleep_command = '';
 	var cp_command = '';
 	if (process.env.TEST_PNG_RE_GEN_FOR && (scriptName.substring(0, process.env.TEST_PNG_RE_GEN_FOR.length) == process.env.TEST_PNG_RE_GEN_FOR)) {
 		console.log(humanTime() + " curlScreenShot() // TEST_PNG_RE_GEN_FOR detected; waiting to avoid partial screen capture, and re-generating this PNG for this test");
-		sleep_command = 'sleep 2 ; '; // todo: implement better biz logic than 'sleep n' to avoid partial screen capture?
+		sleep_command = 'sleep 3 ; '; // todo: implement better biz logic than 'sleep 3' (chosen due to slowest transaction signing operation) to avoid partial screen capture?
 		cp_command = ' ; cp $PNG.new.png $PNG';
 	}
 	var loop;
@@ -138,7 +158,9 @@ async function curlScreenShot(scriptName) {
 				console.log(humanTime() + " curlScreenShot() // matches previous screen shot SHA256 (" + pngSha256Previous + "); so requesting another screen shot");
 				loop = 1;
 			} else {
-				console.log(humanTime() + " curlScreenShot() // matches previous screen shot SHA256 (" + pngSha256Previous + "); ERROR: giving up because too many tries");
+				console.log(humanTime() + " curlScreenShot() // matches previous screen shot SHA256 (" + pngSha256Previous + "); ERROR: giving up because too many tries; curl one-liner output:");
+				console.log(output);
+				console.log(humanTime() + " curlScreenShot() // NOTE: re-run with TEST_PNG_RE_GEN_FOR=" + scriptName + " to regenerate PNGs");
 				throw new Error();
 			}
 			continue;
@@ -179,9 +201,23 @@ function compare(givenHex, expected, whatGiven, parts) {
 	var expectedExploded = "";
 	var signatureCompact = "";
 	var p = 0;
+	var foundHexMismatch = "";
+	var foundLenMismatch = "";
 	for (let [key, value] of Object.entries(parts)) {
-		givenHexExploded = givenHexExploded + key + ':' + givenHex.substring(p, p + (value * 2)) + ' ';
-		expectedExploded = expectedExploded + key + ':' + expected.substring(p, p + (value * 2)) + ' ';
+		var givenHexSubstring = givenHex.substring(p, p + (value * 2));
+		var expectedSubstring = expected.substring(p, p + (value * 2));
+		var expectedSubstringLength = (value * 2);
+		if (key == "unexpected") {
+			expectedSubstringLength = 0;
+		}
+		if ((key.substring(0, 15) != "do_not_compare_") && (givenHexSubstring != expectedSubstring)) {
+			foundHexMismatch = key;
+		}
+		if (expectedSubstring.length != expectedSubstringLength) {
+			foundLenMismatch = key;
+		}
+		givenHexExploded = givenHexExploded + key + ':' + givenHexSubstring + ' ';
+		expectedExploded = expectedExploded + key + ':' + expectedSubstring + ' ';
 		if (key === 'signatureCompact') {
 			var hex = givenHex.substring(p, p + (value * 2));
 			signatureCompact = "; signatureCompact.ascii:" + hex2ascii(hex);
@@ -190,8 +226,12 @@ function compare(givenHex, expected, whatGiven, parts) {
 	}
 	console.log(humanTime() + " compare() // givenHexExploded:" + givenHexExploded + " <- " + whatGiven + signatureCompact);
 	console.log(humanTime() + " compare() // expectedExploded:" + expectedExploded);
-	if (givenHex != expected) {
-		console.log(humanTime() + " compare() // givenHex NOT expected");
+	if (foundHexMismatch != "") {
+		console.log(humanTime() + " compare() // expected named part '" + foundHexMismatch + "' has WRONG hex digits");
+		throw new Error();
+	}
+	if (foundLenMismatch != "") {
+		console.log(humanTime() + " compare() // expected named part '" + foundLenMismatch + "' has WRONG length");
 		throw new Error();
 	}
 }
@@ -241,4 +281,4 @@ function mockTransportSetNextFakeResponseToError() {
 	fakeApduResponseViaMockTransport = 1
 }
 
-export {testStart, testEnd, compare, asyncCurlApduSend, curlApduResponseWait, curlButton, curlScreenShot, humanTime, sleep, mockTransport, mockTransportSetNextFakeResponseToError, hexApduCommandViaMockTransportArray, path};
+export {testStart, testCombo, testStep, testEnd, compare, asyncCurlApduSend, curlApduResponseWait, curlButton, curlScreenShot, humanTime, sleep, mockTransport, mockTransportSetNextFakeResponseToError, hexApduCommandViaMockTransportArray, path};

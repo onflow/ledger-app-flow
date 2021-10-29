@@ -11,24 +11,21 @@ common.testStart(scriptName);
 const FlowApp = OnflowLedgerMod.default;
 const app = new FlowApp(common.mockTransport);
 
-//
-//
-//
-console.log(common.humanTime() + " v".repeat(64) + " test: app version");
-
 console.log(common.humanTime() + " // using FlowApp below with common.mockTransport() to grab apdu command without sending it");
 
 common.curlScreenShot(scriptName); console.log(common.humanTime() + " // screen shot before sending first apdu command");
 
-console.log(common.humanTime() + " -".repeat(64) + " await app.getVersion()");
+common.testStep(" - - -", "await app.getVersion()");
 await app.getVersion();
 var hexOutgoing = common.hexApduCommandViaMockTransportArray.shift();
 var hexExpected = "3300000000";
-common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, payload:9999});
+common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, unexpected:9999});
+common.testStep(" >    ", "APDU out");
 common.asyncCurlApduSend(hexOutgoing);
+common.testStep("     <", "APDU in");
 var hexResponse = await common.curlApduResponseWait();
 var hexExpected = "0000090b00311000049000";
-common.compare(hexResponse, hexExpected, "apdu response", {testMode:1, major:1, minor:1, patch:1, deviceLocked:1, targetId:4, returnCode:4, unexpected:9999});
+common.compare(hexResponse, hexExpected, "apdu response", {testMode:1, major:1, minor:1, patch:1, deviceLocked:1, targetId:4, returnCode:2, unexpected:9999});
 
 //screen shot should not change so do not: common.curlScreenShot(scriptName);
 

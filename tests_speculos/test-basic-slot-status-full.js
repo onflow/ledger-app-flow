@@ -11,93 +11,102 @@ common.testStart(scriptName);
 const FlowApp = OnflowLedgerMod.default;
 const app = new FlowApp(common.mockTransport);
 
-//
-//
-//
-console.log(common.humanTime() + " v".repeat(64) + " test: slot status - full");
-
 console.log(common.humanTime() + " // using FlowApp below with common.mockTransport() to grab apdu command without sending it");
 
 common.curlScreenShot(scriptName); console.log(common.humanTime() + " // screen shot before sending first apdu command");
 
-console.log(common.humanTime() + " -".repeat(64) + " await app.slotStatus() // Check initial status");
+common.testStep(" - - -", "await app.slotStatus() // Check initial status");
 await app.slotStatus();
 var hexOutgoing = common.hexApduCommandViaMockTransportArray.shift();
 var hexExpected = "3310000000";
-common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, payload:9999});
+common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, unexpected:9999});
+common.testStep(" >    ", "APDU out");
 common.asyncCurlApduSend(hexOutgoing);
+common.testStep("     <", "APDU in");
 var hexResponse = await common.curlApduResponseWait();
 var hexExpected = "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009000";
-common.compare(hexResponse, hexExpected, "apdu response", {slotStatus:64, returnCode:4, unexpected:9999});
+common.compare(hexResponse, hexExpected, "apdu response", {slotStatus:64, returnCode:2, unexpected:9999});
 
 const emptySlot = 3;
-console.log(common.humanTime() + " -".repeat(64) + " await app.getSlot() // emptySlot=" + emptySlot + "; Get empty slot should error");
+common.testStep(" - - -", "await app.getSlot() // emptySlot=" + emptySlot + "; Get empty slot should error");
 common.mockTransportSetNextFakeResponseToError();
 await app.getSlot(emptySlot);
 var hexOutgoing = common.hexApduCommandViaMockTransportArray.shift();
 var hexExpected = "331100000103";
-common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, payload:9999});
+common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, unexpected:9999});
+common.testStep(" >    ", "APDU out");
 common.asyncCurlApduSend(hexOutgoing);
+common.testStep("     <", "APDU in");
 var hexResponse = await common.curlApduResponseWait();
 var hexExpected = "6982";
-common.compare(hexResponse, hexExpected, "apdu response", {returnCode:4, unexpected:9999});
+common.compare(hexResponse, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 
 const expectedSlot = 10;
 const expectedAccount = "e467b9dd11fa00df";
 const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
 const expectedPath = `m/44'/539'/${scheme}'/0/0`;
-console.log(common.humanTime() + " -".repeat(64) + " await app.setSlot() // expectedSlot=" + expectedSlot + " expectedAccount=" + expectedAccount + " expectedPath=" + expectedPath + "; Set slot 10");
+common.testStep(" - - -", "await app.setSlot() // expectedSlot=" + expectedSlot + " expectedAccount=" + expectedAccount + " expectedPath=" + expectedPath + "; Set slot 10");
 await app.setSlot(expectedSlot, expectedAccount, expectedPath);
 var hexOutgoing = common.hexApduCommandViaMockTransportArray.shift();
 var hexExpected = "331200001d0ae467b9dd11fa00df2c0000801b020080010200800000000000000000";
-common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, payload:9999});
+common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:28, unexpected:9999});
+common.testStep(" >    ", "APDU out");
 common.asyncCurlApduSend(hexOutgoing);
+common.testStep("   +  ", "buttons");
 common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Set Account 10");
 common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Account e467..");
 common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Path 44'/..");
 common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve");
 common.curlScreenShot(scriptName); console.log(common.humanTime() + " // back to main screen");
+common.testStep("     <", "APDU in");
 var hexResponse = await common.curlApduResponseWait();
 var hexExpected = "9000";
-common.compare(hexResponse, hexExpected, "apdu response", {returnCode:4, unexpected:9999});
+common.compare(hexResponse, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 
-console.log(common.humanTime() + " -".repeat(64) + " await app.slotStatus() // Get slot status");
+common.testStep(" - - -", "await app.slotStatus() // Get slot status");
 await app.slotStatus();
 var hexOutgoing = common.hexApduCommandViaMockTransportArray.shift();
 var hexExpected = "3310000000";
-common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, payload:9999});
+common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, unexpected:9999});
+common.testStep(" >    ", "APDU out");
 common.asyncCurlApduSend(hexOutgoing);
+common.testStep("     <", "APDU in");
 var hexResponse = await common.curlApduResponseWait();
 var hexExpected = "000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009000";
-common.compare(hexResponse, hexExpected, "apdu response", {slotStatus:64, returnCode:4, unexpected:9999});
+common.compare(hexResponse, hexExpected, "apdu response", {slotStatus:64, returnCode:2, unexpected:9999});
 
-console.log(common.humanTime() + " -".repeat(64) + " await app.getSlot() // expectedSlot=" + expectedSlot + "; Get slot 10 back");
+common.testStep(" - - -", "await app.getSlot() // expectedSlot=" + expectedSlot + "; Get slot 10 back");
 common.mockTransportSetNextFakeResponseToError();
 await app.getSlot(expectedSlot);
 var hexOutgoing = common.hexApduCommandViaMockTransportArray.shift();
 var hexExpected = "33110000010a";
-common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, payload:9999});
+common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, unexpected:9999});
+common.testStep(" >    ", "APDU out");
 common.asyncCurlApduSend(hexOutgoing);
+common.testStep("     <", "APDU in");
 var hexResponse = await common.curlApduResponseWait();
 var hexExpected = "e467b9dd11fa00df2c0000801b0200800102008000000000000000009000";
-common.compare(hexResponse, hexExpected, "apdu response", {account:8, path:20, returnCode:4, unexpected:9999});
+common.compare(hexResponse, hexExpected, "apdu response", {account:8, path:20, returnCode:2, unexpected:9999});
 
 const expectedAccountDelete = "0000000000000000";
 const expectedPathDelete = `m/0/0/0/0/0`;
-console.log(common.humanTime() + " -".repeat(64) + " await app.setSlot() // expectedSlot=" + expectedSlot + " expectedAccountDelete=" + expectedAccountDelete + " expectedPathDelete=" + expectedPathDelete + "; Delete slot 10");
+common.testStep(" - - -", "await app.setSlot() // expectedSlot=" + expectedSlot + " expectedAccountDelete=" + expectedAccountDelete + " expectedPathDelete=" + expectedPathDelete + "; Delete slot 10");
 await app.setSlot(10, expectedAccountDelete, expectedPathDelete);
 var hexOutgoing = common.hexApduCommandViaMockTransportArray.shift();
 var hexExpected = "331200001d0a00000000000000000000000000000000000000000000000000000000";
-common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, payload:9999});
+common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:28, unexpected:9999});
+common.testStep(" >    ", "APDU out");
 common.asyncCurlApduSend(hexOutgoing);
+common.testStep("   +  ", "buttons");
 common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Delete Account 10");
 common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Old Account e467..");
 common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Old Path 44'/..");
 common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve");
 common.curlScreenShot(scriptName); console.log(common.humanTime() + " // back to main screen");
+common.testStep("     <", "APDU in");
 var hexResponse = await common.curlApduResponseWait();
 var hexExpected = "9000";
-common.compare(hexResponse, hexExpected, "apdu response", {returnCode:4, unexpected:9999});
+common.compare(hexResponse, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 
 //screen shot should not change so do not: common.curlScreenShot(scriptName);
 

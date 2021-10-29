@@ -83,11 +83,11 @@ all: build
 
 .PHONY: check_todo
 check_todo:
-	git ls-files 2>&1 | xargs egrep -i "todo:" 2> /dev/null || true
+	git ls-files 2>&1 | xargs egrep -i "\b[t]odo:" 2> /dev/null || true
 
 .PHONY: check_fixme
 check_fixme:
-	git ls-files 2>&1 | xargs egrep -i "fixme:" 2> /dev/null
+	git ls-files 2>&1 | xargs egrep -i "\b[f]ixme:" 2> /dev/null
 
 .PHONY: check_python
 check_python:
@@ -324,7 +324,7 @@ zemu_test:
 # Note: Since we do not need to use the VNC for the tests, then remove this option and hope the error never shows up again: --vnc-port $(3)
 define start_speculos_container
 	docker run --detach --name speculos-port-$(1) --rm -it -v $(CURDIR)/app:/speculos/app --publish $(1):$(1) --publish $(3):$(3) speculos --model nanos --sdk 2.0 --seed "equip will roof matter pink blind book anxiety banner elbow sun young" --display headless --apdu-port $(2) --api-port $(1) ./app/bin/app.elf ; rm -f ../speculos-port-$(1).log ; docker logs --follow speculos-port-$(1) 2>&1 | tee -a ../speculos-port-$(1).log > /dev/null 2>&1 &
-	@perl -e 'use Time::HiRes; $$t1=Time::HiRes::time(); while(1){ $$o=`cat ../speculos-port-$(1).log`; if($$o =~ m~Running on .*\:$(1)~s){ printf qq[# detected -- via log -- speculos listening after %f seconds\n], Time::HiRes::time() - $$t1; exit; } Time::HiRes::sleep(0.01); };'
+	@perl -e 'use Time::HiRes; $$t1=Time::HiRes::time(); while(1){ $$o=`cat ../speculos-port-$(1).log`; if($$o =~ m~Running on .*\:$(1)~s){ printf qq[# detected -- via log -- speculos listening after %f seconds; spy on emulated device via http://localhost:$(1)/\n], Time::HiRes::time() - $$t1; exit; } Time::HiRes::sleep(0.01); };'
 endef
 
 define stop_speculos_container
@@ -333,11 +333,11 @@ define stop_speculos_container
 endef
 
 define run_announce
-	@perl -e 'use Time::HiRes; use POSIX; $$ts = sprintf qq[%f], Time::HiRes::time(); ($$f) = $$ts =~ m~(\....)~; printf qq[%s%s %s make: %s\n], POSIX::strftime("%H:%M:%S", gmtime), $$f, q[-] x 128, $$ARGV[0];' "$(1)"
+	@perl -e 'use Time::HiRes; use POSIX; $$ts = sprintf qq[%f], Time::HiRes::time(); ($$f) = $$ts =~ m~(\....)~; printf qq[%s%s %s make: %s\n], POSIX::strftime("%H:%M:%S", gmtime), $$f, q[-] x 126, $$ARGV[0];' "$(1)"
 endef
 
 define run_nodejs_test
-	@cd $(TESTS_SPECULOS_DIR) && TEST_SPECULOS_API_PORT=$(1) node $(2) 2>&1 | tee -a ../../speculos-port-$(1).log 2>&1 | perl -lane '$$lines .= $$_ . "\n"; printf qq[%s\n], $$_ if(m~test(Start|End)~); sub END{ die qq[ERROR: testEnd not detected; test failed?\n] if($$lines !~ m~testEnd~s); }'
+	@cd $(TESTS_SPECULOS_DIR) && TEST_SPECULOS_API_PORT=$(1) node $(2) 2>&1 | tee -a ../../speculos-port-$(1).log 2>&1 | perl -lane '$$lines .= $$_ . "\n"; printf qq[%s\n], $$_ if(m~test(Start|Combo|Step|End)~); sub END{ die qq[ERROR: testEnd not detected; test failed?\n] if($$lines !~ m~testEnd~s); }'
 endef
 
 .PHONY: speculos_port_5001_test_internal
@@ -360,6 +360,7 @@ speculos_port_5001_test_internal:
 .PHONY: speculos_port_5002_test_internal
 speculos_port_5002_test_internal:
 	$(call run_announce,$@)
+	$(call run_nodejs_test,5002,test-transactions.js)
 	@echo "# ALL TESTS COMPLETED!" | tee -a ../speculos-port-5002.log
 
 .PHONY: speculos_port_5001_test

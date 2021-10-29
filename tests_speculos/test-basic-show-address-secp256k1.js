@@ -11,11 +11,6 @@ common.testStart(scriptName);
 const FlowApp = OnflowLedgerMod.default;
 const app = new FlowApp(common.mockTransport);
 
-//
-//
-//
-console.log(common.humanTime() + " v".repeat(64) + " test: show address - secp256k1");
-
 console.log(common.humanTime() + " // using FlowApp below with common.mockTransport() to grab apdu command without sending it");
 console.log(common.humanTime() + " // Derivation path. First 3 items are automatically hardened!");
 const slot = 63;
@@ -26,29 +21,32 @@ const path = `m/44'/539'/${scheme}'/0/0`;
 console.log(common.humanTime() + " // screen shot before sending first apdu command");
 common.curlScreenShot(scriptName);
 
-console.log(common.humanTime() + " -".repeat(64) + " await app.setSlot() // slot=" + slot  + " address=" + address + " path=" + path);
+common.testStep(" - - -", "await app.setSlot() // slot=" + slot  + " address=" + address + " path=" + path);
 await app.setSlot(slot , address, path);
 var hexOutgoing = common.hexApduCommandViaMockTransportArray.shift();
 var hexExpected = "331200001d3fe467b9dd11fa00df2c0000801b020080010200800000000000000000";
-common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, payload:9999});
-
+common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:28, unexpected:9999});
+common.testStep(" >    ", "APDU out");
 common.asyncCurlApduSend(hexOutgoing);
+common.testStep("   +  ", "buttons");
 common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Set Account 1");
 common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Account e467..");
 common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Path 44'/..");
 common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve");
 common.curlScreenShot(scriptName); console.log(common.humanTime() + " // back to main screen");
+common.testStep("     <", "APDU in");
 var hexResponse = await common.curlApduResponseWait();
 var hexExpected = "9000";
-common.compare(hexResponse, hexExpected, "apdu response", {returnCode:4, unexpected:9999});
+common.compare(hexResponse, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 
-console.log(common.humanTime() + " -".repeat(64) + " await app.showAddressAndPubKey() // slot=" + slot);
+common.testStep(" - - -", "await app.showAddressAndPubKey() // slot=" + slot);
 await app.showAddressAndPubKey(slot);
 var hexOutgoing = common.hexApduCommandViaMockTransportArray.shift();
 var hexExpected = "33010100013f";
-common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, payload:9999});
-
+common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, unexpected:9999});
+common.testStep(" >    ", "APDU out");
 common.asyncCurlApduSend(hexExpected);
+common.testStep("   +  ", "buttons");
 common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Account e467..");
 common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Pub Key [1/4] 04d7..");
 common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Pub Key [2/4] ..");
@@ -57,9 +55,10 @@ common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the ad
 common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Warning[1/2] Ledger does not check if the on-ch"); // todo: reformat this message so words not broken?
 common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Warning[2/2] ain account includes the pub key!"); // todo: reformat this message so words not broken?
 common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve"); // todo: should showAddressAndPubKey() need an 'Approve' dialog?
+common.testStep("     <", "APDU in");
 var hexResponse = await common.curlApduResponseWait();
 var hexEXpected = "e467b9dd11fa00df04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be9000";
-common.compare(hexResponse, hexEXpected, "apdu response", {address:8, publicKey:65, returnCode:4, unexpected:9999});
+common.compare(hexResponse, hexEXpected, "apdu response", {address:8, publicKey:65, returnCode:2, unexpected:9999});
 
 common.testEnd(scriptName);
 
