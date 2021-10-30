@@ -379,6 +379,8 @@ speculos_port_5002_test:
 	@-make --no-print-directory speculos_port_5002_test_internal
 	@make --no-print-directory speculos_port_5002_stop
 	$(call run_announce,note: logs: cat ../speculos-port-5002.log)
+	@# todo: only output the last part of the log for the test that failed if it failed
+	@# todo: figure out how to run both (or more) tests in parallel, e.g. via something like tmux?
 	@cat ../speculos-port-5002.log
 
 .PHONY: rust_test

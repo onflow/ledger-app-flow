@@ -31,6 +31,8 @@ common.compare(hexResponse, hexExpected, "apdu response", {testMode:1, major:1, 
 
 common.testEnd(scriptName);
 
+// todo: remove all commented zemu source code from speculos tests once zemu to speculos port PR has been accepted
+// todo: remove tests_zemu/ folder once zemu to speculos port PR has been accepted
 // Above is the speculos-only / zemu-free test.
 // Below is the original zemu test for comparison:
 /*
