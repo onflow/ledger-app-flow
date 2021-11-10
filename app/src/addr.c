@@ -38,7 +38,8 @@ zxerr_t addr_getItem(int8_t displayIdx,
     switch (displayIdx) {
         case 0:
             snprintf(outKey, outKeyLen, "Pub Key");
-            pageString(outVal, outValLen, (char *) (G_io_apdu_buffer + VIEW_ADDRESS_OFFSET_SECP256K1), pageIdx, pageCount);
+            // +2 is to skip 0x04 prefix that indicates uncompresed key 
+            pageString(outVal, outValLen, (char *) (G_io_apdu_buffer + VIEW_ADDRESS_OFFSET_SECP256K1 + 2), pageIdx, pageCount);
             return zxerr_ok;
         case 1: {
             if (!app_mode_expert()) {
