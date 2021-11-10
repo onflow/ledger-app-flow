@@ -2765,9 +2765,9 @@ parser_error_t parser_getItemTransferFUSD(const parser_context_t *ctx,
                                         outVal, outValLen, pageIdx, pageCount);
         case 3:
             snprintf(outKey, outKeyLen, "Recipient");
-            return parser_printArgumentString(&parser_tx_obj.arguments.argCtx[1],
-                                              outVal, outValLen, pageIdx, pageCount);
-        case 4:
+            return parser_printArgument(&parser_tx_obj.arguments, 1,
+                                        "Address", JSMN_STRING,
+                                        outVal, outValLen, pageIdx, pageCount);        case 4:
             snprintf(outKey, outKeyLen, "Ref Block");
             return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
         case 5:

@@ -1195,7 +1195,7 @@
           "label": "Recipient",
           "sampleValues": [
             {
-              "type": "String",
+              "type": "Address",
               "value": "0xe467b9dd11fa00df"
             }
           ]
