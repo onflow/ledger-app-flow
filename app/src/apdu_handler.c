@@ -31,42 +31,12 @@
 #include "zxmacros.h"
 
 __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
-    if (rx != 6) {
-        THROW(APDU_CODE_DATA_INVALID);
-    }
+    extractHDPath(rx, OFFSET_DATA);
 
-    uint8_t displayAndConfirm = G_io_apdu_buffer[OFFSET_P1];
-    const uint8_t slotIdx = G_io_apdu_buffer[OFFSET_DATA];
+    uint8_t requireConfirmation = G_io_apdu_buffer[OFFSET_P1];
 
-    char buffer[20];
-    snprintf(buffer, sizeof(buffer), "%d", slotIdx);
-    zemu_log_stack(buffer);
-
-    account_slot_t slot;
-    zxerr_t err = slot_getSlot(slotIdx,(uint8_t *) &slot, sizeof(slot));
-    snprintf(buffer, sizeof(buffer), "err: %d", err);
-    zemu_log_stack(buffer);
-
-    if (err == zxerr_no_data) { 
-        zemu_log_stack("Empty slot");
-        THROW(APDU_CODE_DATA_INVALID);
-    }
-    if (err != zxerr_ok) {
-        THROW(APDU_CODE_EXECUTION_ERROR);
-    }
-
-    MEMCPY(&hdPath, slot.path.data, sizeof(hdPath)); 
-
-    //We fill account and pubkey
-    MEMCPY(G_io_apdu_buffer, &slot.account, sizeof(slot.account));
-
-    *tx = sizeof(slot.account);
-    *tx += app_fill_pubkey(G_io_apdu_buffer + sizeof(slot.account), IO_APDU_BUFFER_SIZE - sizeof(slot.account)); 
-
-    //Display or return the buffer    
-    if (displayAndConfirm) {
-        //we set the returning length for app_reply_address
-        action_addr_len = *tx;
+    if (requireConfirmation) {
+        app_fill_address();
 
         view_review_init(addr_getItem, addr_getNumItems, app_reply_address);
         view_review_show();
@@ -75,6 +45,7 @@ __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx,
         return;
     }
 
+    *tx = app_fill_address();
     THROW(APDU_CODE_OK);
 }
 

@@ -27,7 +27,6 @@ export const ERROR_CODE = {
 };
 
 export const PKLEN = 65;
-export const ADDRLEN = 8;
 
 const ERROR_DESCRIPTION = {
   1: "U2F: Unknown",

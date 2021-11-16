@@ -18,7 +18,7 @@
 #include "coin.h"
 #include "zxmacros.h"
 
-flow_path_t hdPath;
+uint32_t hdPath[HDPATH_LEN_DEFAULT];
 
 #if defined(TARGET_NANOS) || defined(TARGET_NANOX)
 #include "cx.h"
@@ -62,21 +62,22 @@ __Z_INLINE cx_curve_t get_cx_curve(const uint32_t path[HDPATH_LEN_DEFAULT]) {
     }
 }
 
-zxerr_t crypto_extractPublicKey(const flow_path_t *path, uint8_t *pubKey, uint16_t pubKeyLen) {
+zxerr_t crypto_extractPublicKey(const uint32_t path[HDPATH_LEN_DEFAULT], uint8_t *pubKey, uint16_t pubKeyLen) {
     zemu_log_stack("crypto_extractPublicKey");
     MEMZERO(pubKey, pubKeyLen);
 
-    cx_curve_t curve = get_cx_curve(path->data);
+    cx_curve_t curve = get_cx_curve(path);
     if (curve!=CX_CURVE_SECP256K1 && curve!=CX_CURVE_SECP256R1 ) {
         zemu_log_stack("extractPublicKey: invalid_crypto_settings");
         return zxerr_invalid_crypto_settings;
     }
 
-    if (pubKeyLen < PUBLIC_KEY_LEN) {
+    const uint32_t domainSize = 32;
+    const uint32_t pkSize = 1 + 2 * domainSize;
+    if (pubKeyLen < pkSize) {
         zemu_log_stack("extractPublicKey: zxerr_buffer_too_small");
         return zxerr_buffer_too_small;
     }
-
 
     cx_ecfp_public_key_t cx_publicKey;
     cx_ecfp_private_key_t cx_privateKey;
@@ -87,7 +88,7 @@ zxerr_t crypto_extractPublicKey(const flow_path_t *path, uint8_t *pubKey, uint16
         TRY {
             zemu_log_stack("extractPublicKey: derive_node_bip32");
             os_perso_derive_node_bip32(curve,
-                                       path->data,
+                                       path,
                                        HDPATH_LEN_DEFAULT,
                                        privateKeyData, NULL);
 
@@ -100,12 +101,12 @@ zxerr_t crypto_extractPublicKey(const flow_path_t *path, uint8_t *pubKey, uint16
         }
         FINALLY {
             MEMZERO(&cx_privateKey, sizeof(cx_privateKey));
-            MEMZERO(privateKeyData, sizeof(privateKeyData));
+            MEMZERO(privateKeyData, domainSize);
         }
     }
     END_TRY;
 
-    memcpy(pubKey, cx_publicKey.W, PUBLIC_KEY_LEN);
+    memcpy(pubKey, cx_publicKey.W, pkSize);
     return zxerr_ok;
 }
 
@@ -223,6 +224,30 @@ zxerr_t crypto_sign(const uint32_t path[HDPATH_LEN_DEFAULT], const uint8_t *mess
 
     // return actual size using value from signatureLength
     *sigSize = sizeof_field(signature_t, r) + sizeof_field(signature_t, s) + sizeof_field(signature_t, v) + signatureLength;
+    return zxerr_ok;
+}
+
+typedef struct {
+    uint8_t publicKey[SECP256K1_PK_LEN];
+    char addrStr[SECP256K1_PK_LEN*2];
+    uint8_t padding[4];
+} __attribute__((packed)) answer_t;
+
+zxerr_t crypto_fillAddress(const uint32_t path[HDPATH_LEN_DEFAULT], uint8_t *buffer, uint16_t buffer_len, uint16_t *addrLen) {
+    MEMZERO(buffer, buffer_len);
+
+    if (buffer_len < sizeof(answer_t)) {
+        zemu_log_stack("crypto_fillAddress: zxerr_buffer_too_small");
+        return zxerr_buffer_too_small;
+    }
+
+    answer_t *const answer = (answer_t *) buffer;
+
+    CHECK_ZXERR(crypto_extractPublicKey(path, answer->publicKey, sizeof_field(answer_t, publicKey)));
+
+    array_to_hexstr(answer->addrStr, sizeof_field(answer_t, addrStr) + 2, answer->publicKey, sizeof_field(answer_t, publicKey) );
+
+    *addrLen = sizeof(answer_t) - sizeof_field(answer_t, padding);
     return zxerr_ok;
 }
 
