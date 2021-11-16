@@ -8,6 +8,9 @@ var scriptName = common.path.basename(fileURLToPath(import.meta.url));
 
 common.testStart(scriptName);
 
+//No need to modify this test as it is going to be removed soon
+
+/*
 const FlowApp = OnflowLedgerMod.default;
 const app = new FlowApp(common.mockTransport);
 
@@ -48,6 +51,7 @@ common.testStep("     <", "APDU in");
 var hexResponse = await common.curlApduResponseWait();
 var hexEXpected = "6984";
 common.compare(hexResponse, hexEXpected, "apdu response", {returnCode:2, unexpected:9999});
+*/
 
 common.testEnd(scriptName);
 

@@ -3,6 +3,7 @@
 import * as common from './common.js';
 import { default as OnflowLedgerMod } from "@onflow/ledger";
 import { fileURLToPath } from 'url';
+import assert from 'assert/strict';
 
 var scriptName = common.path.basename(fileURLToPath(import.meta.url));
 
@@ -20,16 +21,19 @@ const expectedPath = `m/44'/2'/${scheme}'/0/0`;
 common.curlScreenShot(scriptName); console.log(common.humanTime() + " // screen shot before sending first apdu command");
 
 common.testStep(" - - -", "await app.setSlot() // expectedSlot=" + expectedSlot + " expectedAccount=" + expectedAccount + " expectedPath=" + expectedPath);
-await app.setSlot(expectedSlot, expectedAccount, expectedPath);
-var hexOutgoing = common.hexApduCommandViaMockTransportArray.shift();
+const setSlotResponse = await app.setSlot(expectedSlot, expectedAccount, expectedPath);
+assert.equal(setSlotResponse.returnCode, 0x6984);
+
+assert.equal(common.mockTransport.hexApduCommandOut.length, 1)
+assert.equal(common.mockTransport.hexApduCommandIn.length, 1)
+
+var hexOutgoing = common.mockTransport.hexApduCommandOut.shift();
 var hexExpected = "331200001d0a8c5303eaa26202d62c00008002000080010200800000000000000000";
 common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:28, unexpected:9999});
-common.testStep(" >    ", "APDU out");
-common.asyncCurlApduSend(hexOutgoing);
-common.testStep("     <", "APDU in");
-var hexResponse = await common.curlApduResponseWait();
+
+var hexIncomming = common.mockTransport.hexApduCommandIn.shift();
 var hexExpected = "6984";
-common.compare(hexResponse, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
+common.compare(hexIncomming, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 
 //screen shot should not change so do not: common.curlScreenShot(scriptName);
 

@@ -5,9 +5,11 @@ import { default as OnflowLedgerMod } from "@onflow/ledger";
 import { fileURLToPath } from 'url';
 import jsSHA from "jssha";
 import fs from "fs";
+import assert from 'assert/strict';
 
 //import {ec as EC} from "elliptic"; // SyntaxError: Named export 'ec' not found. The requested module 'elliptic' is a CommonJS module, which may not support all module.exports as named exports.
 import pkg from 'elliptic';
+
 const {ec: EC} = pkg;
 
 var scriptName = common.path.basename(fileURLToPath(import.meta.url));
@@ -72,9 +74,11 @@ function getKeyPath(sigAlgo, hashAlgo) {
 }
 
 async function transactionTest(testTitle, transactionTitle, txHexBlob, txExpectedPageCount, sigAlgo, hashAlgo) {
+
 	common.testCombo(scriptName + "; " + testTitle);
 
-	var scriptNameCombo = (scriptName + "." + testTitle).replace(new RegExp("([:/ \-]+)","gm"),"-").toLowerCase(); // e.g. test-transactions.js.basic-sign-transfer-flow-secp256k1-sha-256
+	// e.g. test-transactions.js.basic-sign-transfer-flow-secp256k1-sha-256
+	var scriptNameCombo = (scriptName + "." + testTitle).replace(new RegExp("([:/ \-]+)","gm"),"-").toLowerCase(); 
 
 	const txBlob = Buffer.from(txHexBlob, "hex");
 
@@ -88,23 +92,31 @@ async function transactionTest(testTitle, transactionTitle, txHexBlob, txExpecte
 	await prepareSlot(sim, app, 1, address, path)
 	*/
 	const slot = 1
-	common.testStep(" - - -", "await app.setSlot() // slot=" + slot  + " address=" + address + " path=" + path);
-	await app.setSlot(slot, address, path);
-	var hexOutgoing = common.hexApduCommandViaMockTransportArray.shift();
-	var hexExpected = "331200001d01e467b9dd11fa00df2c0000801b020080010200800000000000000000";
-	common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, do_not_compare_slotBytes:28, unexpected:9999});
-	common.testStep(" >    ", "APDU out");
-	common.asyncCurlApduSend(hexOutgoing);
+	common.testStep(" - - -", "app.setSlot() // slot=" + slot  + " address=" + address + " path=" + path);
+	const setSlotPromise = app.setSlot(slot, address, path);
+
 	common.testStep("   +  ", "buttons");
 	common.curlScreenShot(scriptNameCombo); common.curlButton('right', "; navigate the address / path; Set Account 1");
 	common.curlScreenShot(scriptNameCombo); common.curlButton('right', "; navigate the address / path; Account e467..");
 	common.curlScreenShot(scriptNameCombo); common.curlButton('right', "; navigate the address / path; Path 44'/..");
 	common.curlScreenShot(scriptNameCombo); common.curlButton('both', "; confirm; Approve");
 	common.curlScreenShot(scriptNameCombo); console.log(common.humanTime() + " // back to main screen");
-	common.testStep("     <", "APDU in");
-	var hexResponse = await common.curlApduResponseWait();
+	
+	common.testStep(" - - -", "await setSlotPromise")
+	const setSlotResponse = await setSlotPromise;
+	assert.equal(setSlotResponse.returnCode, 0x9000);
+	assert.equal(setSlotResponse.errorMessage, "No errors");
+
+    //I really want to remove this check as this is not SUT
+	assert.equal(common.mockTransport.hexApduCommandOut.length, 1)
+	var hexOutgoing = common.mockTransport.hexApduCommandOut.shift();
+	var hexExpected = "331200001d01e467b9dd11fa00df2c0000801b020080010200800000000000000000";
+	common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, do_not_compare_slotBytes:28, unexpected:9999});
+
+	assert.equal(common.mockTransport.hexApduCommandIn.length, 1)
+	var hexIncomming = common.mockTransport.hexApduCommandIn.shift();
 	var hexExpected = "9000";
-	common.compare(hexResponse, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
+	common.compare(hexIncomming, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 
 	/*
 	const pkResponse = await app.getAddressAndPubKey(1);
@@ -113,70 +125,30 @@ async function transactionTest(testTitle, transactionTitle, txHexBlob, txExpecte
 	*/
 
 	common.testStep(" - - -", "await app.getAddressAndPubKey() // slot=" + slot);
-	await app.getAddressAndPubKey(slot);
-	var hexOutgoing = common.hexApduCommandViaMockTransportArray.shift();
+	const getPubkeyResponse = await app.getAddressAndPubKey(slot);
+	assert.equal(getPubkeyResponse.returnCode, 0x9000);
+	assert.equal(getPubkeyResponse.errorMessage, "No errors");
+	const pubkeyHex = getPubkeyResponse.publicKey.toString("hex")
+	console.log(common.humanTime() + " publicKeyHex=" + pubkeyHex);
+	
+	//I really want to remove this check as this is not SUT
+	assert.equal(common.mockTransport.hexApduCommandOut.length, 1)
+	var hexOutgoing = common.mockTransport.hexApduCommandOut.shift();
 	var hexExpected = "330100000101";
 	common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, unexpected:9999});
-	common.testStep(" >    ", "APDU out");
-	common.asyncCurlApduSend(hexExpected);
-	common.testStep("     <", "APDU in");
-	var hexResponse = await common.curlApduResponseWait();
-	var hexEXpected = "e467b9dd11fa00df04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be9000";
-	common.compare(hexResponse, hexEXpected, "apdu response", {address:8, do_not_compare_publicKey:65, returnCode:2, unexpected:9999});
 
-	const publicKeyHex = hexResponse.substring((8*2), (8*2)+(65*2));
-	console.log(common.humanTime() + " extracted: publicKeyHex=" + publicKeyHex);
-
+	assert.equal(common.mockTransport.hexApduCommandIn.length, 1)
+	var hexIncomming = common.mockTransport.hexApduCommandIn.shift();
+	var hexExpected = "e467b9dd11fa00df04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be9000";
+	common.compare(hexIncomming, hexExpected, "apdu response", {address:8, do_not_compare_publicKey:65, returnCode:2, unexpected:9999});
+	
 	/*
 	// WARNING: do not block for this request until transaction
 	// has been accepted in the Zemu emulator
 	const signatureRequest = app.sign(path, txBlob);
 	*/
-
-	common.testStep(" - - -", "await app.sign() // path=" + path + " txBlob=" + txBlob.length + ":" + txHexBlob.substring(0, 16) + ".. AKA " + transactionTitle);
-	await app.sign(path, txBlob);
-
-	var hexOutgoing = common.hexApduCommandViaMockTransportArray.shift();
-	var hexExpected = "33020000142c0000801b020080010200800000000000000000";
-	common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, do_not_compare_path:20, unexpected:9999});
-	common.testStep(" >    ", "APDU out");
-	common.asyncCurlApduSend(hexOutgoing);
-	common.testStep("     <", "APDU in");
-	var hexResponse = await common.curlApduResponseWait();
-	var hexEXpected = "9000";
-	common.compare(hexResponse, hexEXpected, "apdu response", {returnCode:2, unexpected:9999});
-
-	// split message to sign into 250 byte chunks and send them, and don't wait for the response for the last chunk
-	const maxHexMessagePartChars = 500;
-	var p = 0;
-	while (p < txHexBlob.length) {
-		var lenHex = txHexBlob.length - p;
-		var p1;
-		if (lenHex > maxHexMessagePartChars) {
-			lenHex = maxHexMessagePartChars;
-			p1 = "01";
-		} else {
-			p1 = "02";
-		}
-		var lenBytes = (lenHex / 2);
-		var lenBytesAsPaddedHex = ('0' + (lenBytes & 0xFF).toString(16)).slice(-2); // convert 0 to 255 value to padded hex e.g. 0x00 to 0xff
-
-		common.testStep("   *  ", "APDU (chunk) sanity");
-		var hexOutgoing = common.hexApduCommandViaMockTransportArray.shift();
-		var hexExpected = "3302" + p1 + "00" + lenBytesAsPaddedHex + txHexBlob.substring(p, p + lenHex);
-		common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, messagePart:lenBytes, unexpected:9999});
-		common.testStep(" >    ", "APDU (chunk) out");
-		common.asyncCurlApduSend(hexOutgoing);
-
-		if (p1 == "01") {
-			common.testStep("     <", "APDU (chunk) in");
-			var hexResponse = await common.curlApduResponseWait();
-			var hexEXpected = "9000";
-			common.compare(hexResponse, hexEXpected, "apdu response", {returnCode:2, unexpected:9999});
-		}
-
-		p += lenHex;
-	}
+	common.testStep(" - - -", "app.sign() // path=" + path + " txBlob=" + txBlob.length + ":" + txHexBlob.substring(0, 16) + ".. AKA " + transactionTitle);
+	const signPromise =  app.sign(path, txBlob);
 
 	/*
 	// Click through each approval page and accept transaction
@@ -185,45 +157,70 @@ async function transactionTest(testTitle, transactionTitle, txHexBlob, txExpecte
 
 	// Expect new snapshots to match saved snapshots
 	snapshots.forEach((image) => expect(image).toMatchImageSnapshot());
-	*/
 
-	// Click through each approval page and accept transaction
-	// Capture a snapshot of each page
-	common.testStep("   +  ", "buttons");
-	for (var right=0; right < txExpectedPageCount; ++right ) {
-		// e.g.  1 "Type Token Transfer >"
-		// e.g.  2 "Chain ID Emulator >"
-		// e.g.  3 "Amount 184467440737.9.. >"
-		// e.g.  4 "Destination 0xf8de.. >"
-		// e.g.  5 "Ref Block [1/2] f0e4.. >"
-		// e.g.  6 "Ref Block [2/2] 14d4.. >"
-		// e.g.  7 "Gas Limit 42 >"
-		// e.g.  8 "Prop Key Addr f8d6.. >"
-		// e.g.  9 "Prop Key Id 4 >"
-		// e.g. 10 "Prop Key Seq Num 10 >"
-		// e.g. 11 "Payer f8d6.. >"
-		// e.g. 12 "Authorizer 1 f8d6.. >"
-		common.curlScreenShot(scriptNameCombo); common.curlButton('right', "");
-	}
-	common.curlScreenShot(scriptNameCombo); common.curlButton('both', "; confirm; Approve");
-
-	/*
 	let resp = await signatureRequest;
 	expect(resp.returnCode).toEqual(0x9000);
 	expect(resp.errorMessage).toEqual("No errors");
 	*/
 
-	common.testStep("     <", "APDU (chunk) in (last)");
-	var hexResponse = await common.curlApduResponseWait();
-	var returnCodeLen = 2;
-	var signatureCompactLen = 65;
-	var signatureDERLen = (hexResponse.length/2) - signatureCompactLen - returnCodeLen; // make this part variable length; just like the javascript does
-	var hexEXpected = "01".repeat(signatureCompactLen) + "02".repeat(signatureDERLen) + "9000";
-	common.compare(hexResponse, hexEXpected, "apdu response", {do_not_compare_signatureCompact:signatureCompactLen, do_not_compare_signatureDER:signatureDERLen, returnCode:returnCodeLen, unexpected:9999});
+	common.testStep("   +  ", "buttons");
+	//sign is multiAPDU operation. This is outside of what common.curlScreenShot can synchronize. We help by synchronizing with last APDU
+	await common.mockTransport.waitForAPDU(0x33, 0x02, 0x02);	
+	for (var right=0; right < txExpectedPageCount; ++right ) {
+		common.curlScreenShot(scriptNameCombo); common.curlButton('right', "");
+	}
+	common.curlScreenShot(scriptNameCombo); common.curlButton('both', "; confirm; Approve");
+	common.curlScreenShot(scriptNameCombo); console.log(common.humanTime() + " // back to main screen");
+	
+	//TODO add final screenshot
+	common.testStep(" - - -", "await signPromise")
+	const signResponse = await signPromise;
+	assert.equal(signResponse.returnCode, 0x9000);
+	assert.equal(signResponse.errorMessage, "No errors");
+	const signatureDERHex = signResponse.signatureDER.toString("hex");
+	console.log(common.humanTime() + " signatureDERHex=" + signatureDERHex);
 
-	// todo: consider getting common.compare() returning a hash of keys instead of using .substring below
-	var signatureDERHex = hexResponse.substring((signatureCompactLen*2), (signatureCompactLen*2)+(signatureDERLen*2));
-	console.log(common.humanTime() + " extracted: signatureDERHex=" + signatureDERHex);
+	//Compare the first APDU 
+    assert.ok(common.mockTransport.hexApduCommandOut.length >= 2)
+    assert.ok(common.mockTransport.hexApduCommandIn.length >= 2)
+	assert.equal(common.mockTransport.hexApduCommandOut.length, common.mockTransport.hexApduCommandIn.length)
+
+	var hexOutgoing = common.mockTransport.hexApduCommandOut.shift();
+	var hexExpected = "33020000142c0000801b020080010200800000000000000000";
+	common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, do_not_compare_path:20, unexpected:9999});
+	var hexIncomming = common.mockTransport.hexApduCommandIn.shift();
+	var hexExpected = "9000";
+	common.compare(hexIncomming, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
+
+    //compare other APDUs, let us calculate original txHexBlob
+	var txHexFromAPDUs = "";
+	const outLen = common.mockTransport.hexApduCommandOut.length;
+	for(var p = 0; p < outLen; p++) {
+		var p1 = ((p + 1 == outLen) ? "02" : "01")
+		var hexOutgoing = common.mockTransport.hexApduCommandOut.shift();
+        assert.equal(hexOutgoing.substring(0, 8), "3302"+p1+"00")
+		const chunkLen = parseInt(hexOutgoing.substring(8, 10), 16)
+		assert.equal(hexOutgoing.length, 10 + 2*chunkLen)
+		txHexFromAPDUs = txHexFromAPDUs.concat(hexOutgoing.substring(10, 10 + 2*chunkLen))
+
+		var hexIncomming = common.mockTransport.hexApduCommandIn.shift();
+		if (p1 == "01") { // not last APDU
+			var hexExpected = "9000";
+			common.compare(hexIncomming, hexExpected, "apdu response", {returnCode:2, unexpected:9999});	
+		}
+		if (p1 == "02") { // last APDU
+		    assert.ok(hexIncomming.length >= 2*(65 + 2))			
+			var returnCodeLen = 2;
+			var signatureCompactLen = 65;
+			var signatureDERLen = (hexIncomming.length/2) - signatureCompactLen - returnCodeLen; // make this part variable length; just like the javascript does
+			var hexExpected = "01".repeat(signatureCompactLen) + "02".repeat(signatureDERLen) + "9000";
+			common.compare(hexIncomming, hexExpected, "apdu response", {do_not_compare_signatureCompact:signatureCompactLen, do_not_compare_signatureDER:signatureDERLen, returnCode:returnCodeLen, unexpected:9999});
+		}
+	}
+
+
+
+	assert.equal(txHexFromAPDUs, txHexBlob);
 
 	/*
 	// Prepare digest by hashing transaction
@@ -255,33 +252,42 @@ async function transactionTest(testTitle, transactionTitle, txHexBlob, txExpecte
 
 	// Verify transaction signature against digest
 	const ec = new EC(sigAlgo.name);
-	const signatureOk = ec.verify(digestHex, signatureDERHex, publicKeyHex, 'hex');
+	const signatureOk = ec.verify(digestHex, signatureDERHex, pubkeyHex, 'hex');
 	if (signatureOk) {
 		console.log(common.humanTime() + " transaction signature verification against digest PASSED");
 	} else {
 		console.log(common.humanTime() + " transaction signature verification against digest FAILED");
-		throw new Error();
+		assert.ok(false)
 	}
 
+
+	//delete the slot so that next test start with clean state
 	const expectedAccountDelete = "0000000000000000";
 	const expectedPathDelete = `m/0/0/0/0/0`;
-	common.testStep(" - - -", "await app.setSlot() // slot=" + slot + " expectedAccountDelete=" + expectedAccountDelete + " expectedPathDelete=" + expectedPathDelete);
-	await app.setSlot(slot, expectedAccountDelete, expectedPathDelete);
-	var hexOutgoing = common.hexApduCommandViaMockTransportArray.shift();
-	var hexExpected = "331200001d0100000000000000000000000000000000000000000000000000000000";
-	common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:28, unexpected:9999});
-	common.testStep(" >    ", "APDU out");
-	common.asyncCurlApduSend(hexOutgoing);
-	common.testStep("   +  ", "buttons");
+	common.testStep(" - - -", "app.setSlot() // slot=" + slot + " expectedAccountDelete=" + expectedAccountDelete + " expectedPathDelete=" + expectedPathDelete);
+	const setSlot2Promise = app.setSlot(slot, expectedAccountDelete, expectedPathDelete);
+
 	common.curlScreenShot(scriptNameCombo); common.curlButton('right', "; navigate the address / path; Delete Account 1");
 	common.curlScreenShot(scriptNameCombo); common.curlButton('right', "; navigate the address / path; Old Account e467..");
 	common.curlScreenShot(scriptNameCombo); common.curlButton('right', "; navigate the address / path; Old Path 44'/..");
 	common.curlScreenShot(scriptNameCombo); common.curlButton('both', "; confirm; Approve");
 	common.curlScreenShot(scriptNameCombo); console.log(common.humanTime() + " // back to main screen");
-	common.testStep("     <", "APDU in");
-	var hexResponse = await common.curlApduResponseWait();
+
+	common.testStep(" - - -", "await setSlot2Promise");
+	const setSlot2Response = await setSlot2Promise;
+	assert.equal(setSlot2Response.returnCode, 0x9000);
+	assert.equal(setSlot2Response.errorMessage, "No errors");
+
+	//I really want to remove this check as this is not SUT
+	assert.equal(common.mockTransport.hexApduCommandOut.length, 1)
+	var hexOutgoing = common.mockTransport.hexApduCommandOut.shift();
+	var hexExpected = "331200001d0100000000000000000000000000000000000000000000000000000000";
+	common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, do_not_compare_slotBytes:28, unexpected:9999});
+
+	assert.equal(common.mockTransport.hexApduCommandIn.length, 1)
+	var hexIncomming = common.mockTransport.hexApduCommandIn.shift();
 	var hexExpected = "9000";
-	common.compare(hexResponse, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
+	common.compare(hexIncomming, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 }
 
 const ECDSA_SECP256K1 = { name: "secp256k1", code: FlowApp.Signature.SECP256K1 };
