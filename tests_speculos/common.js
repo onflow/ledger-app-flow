@@ -94,7 +94,7 @@ async function curlApduResponseWait() {
 	while (curl_apdu_response_exit === "") {
 		await sleep(100, "waiting for async apdu response");
 		loops += 1;
-		if (loops >= 20) {
+		if (loops >= 100) {
 			console.log(humanTime() + " curlApduResponseWait() // ERRROR: looped too many times waiting for apdu response");
 			throw new Error();
 		}
@@ -245,10 +245,10 @@ async function sleep(ms, what) {
 	await timeout(ms);
 }
 
-var hexApduCommandViaMockTransportArray = [];
-var fakeApduResponseViaMockTransport = 0;
-
 var mockTransport = {
+	hexApduCommandOut: [],
+	hexApduCommandIn: [],
+
 	//this.transport.send(_common.CLA, _common.INS.SET_SLOT, 0, 0, payload).then(...)
 	send: async function(cla, ins, p1, p2, pay) {
 		var len = (typeof pay === 'undefined') ? 0 : pay.length;
@@ -259,26 +259,36 @@ var mockTransport = {
 		var hex_len = len.toString(16).padStart(2, '0'); if (process.env.TEST_DEBUG >= 1) { console.log(humanTime() + " .send() len: 0x" + hex_len); } // e.g. 1d
 		var hex_pay = len ? pay.toString('hex') : ""   ; if (process.env.TEST_DEBUG >= 1) { console.log(humanTime() + " .send() pay: 0x" + hex_pay + " <- " + len + " bytes"); } // e.g. 0a00010203040506072c0000801b020080010200800000000000000000
 		var hexApduCommandViaMockTransport = ''.concat(hex_cla, hex_ins, hex_p1, hex_p2, hex_len, hex_pay); // e.g. 331200001d0a00010203040506072c0000801b020080010200800000000000000000
-		hexApduCommandViaMockTransportArray.push(hexApduCommandViaMockTransport);
+		this.hexApduCommandOut.push(hexApduCommandViaMockTransport);		
 		console.log(humanTime() + " .send() // " + hexApduCommandViaMockTransport + " <-- this is the mockTransport.send() (read: fake send) function");
-		return {
-			then: function(functionHandleResponseAsSuccess, functionHandleRepsonseAsError) {
-				if (0 == fakeApduResponseViaMockTransport) {
-					console.log(humanTime() + " .send().then() // dishing up fake apdu response; success");
-					functionHandleResponseAsSuccess(Buffer.from([0x90, 0x00]));
-				} else {
-					fakeApduResponseViaMockTransport = 0; // auto set next fake response to success
-					console.log(humanTime() + " .send().then() // dishing up fake apdu response; error");
-					functionHandleResponseAsError(Buffer.from([0x69, 0x82]));
-				}
-				return;
-			}
-		};
+
+		//Now we actually send
+		testStep(" >    ", "APDU out");
+		asyncCurlApduSend(hexApduCommandViaMockTransport);
+
+		//If we are waiting for this APDU we resolve the promise
+		if (!!this.APDUToWait && cla == this.APDUToWait.cla && ins == this.APDUToWait.ins && p1 == this.APDUToWait.p1) {
+			this.resolveAPDUToWaitPromise()
+		}
+		testStep("     <", "APDU in");
+		const res = await curlApduResponseWait();
+		this.hexApduCommandIn.push(res);		
+
+		return Buffer.from(res, "hex") 
 	},
+
+	APDUToWait: null,
+	APDUToWaitPromise: null,
+	resolveAPDUToWaitPromise: function() {},
+
+	waitForAPDU: async function (cla, ins, p1) {
+		this.APDUToWait = {cla: cla, ins: ins, p1: p1};
+		this.APDUToWaitPromise = new Promise(resolve => this.resolveAPDUToWaitPromise = resolve)
+		await this.APDUToWaitPromise;
+		this.APDUToWait = null;
+		this.APDUToWaitPromise = null;
+		this.resolveAPDUToWaitPromise = function() {};
+	}
 };
 
-function mockTransportSetNextFakeResponseToError() {
-	fakeApduResponseViaMockTransport = 1
-}
-
-export {testStart, testCombo, testStep, testEnd, compare, asyncCurlApduSend, curlApduResponseWait, curlButton, curlScreenShot, humanTime, sleep, mockTransport, mockTransportSetNextFakeResponseToError, hexApduCommandViaMockTransportArray, path};
+export {testStart, testCombo, testStep, testEnd, compare, asyncCurlApduSend, curlApduResponseWait, curlButton, curlScreenShot, humanTime, sleep, mockTransport, path};

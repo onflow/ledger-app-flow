@@ -3,6 +3,7 @@
 import * as common from './common.js';
 import { default as OnflowLedgerMod } from "@onflow/ledger";
 import { fileURLToPath } from 'url';
+import assert from 'assert/strict';
 
 var scriptName = common.path.basename(fileURLToPath(import.meta.url));
 
@@ -16,18 +17,23 @@ console.log(common.humanTime() + " // using FlowApp below with common.mockTransp
 common.curlScreenShot(scriptName); console.log(common.humanTime() + " // screen shot before sending first apdu command");
 
 common.testStep(" - - -", "await app.getVersion()");
-await app.getVersion();
-var hexOutgoing = common.hexApduCommandViaMockTransportArray.shift();
+const getVersionResponse = await app.getVersion();
+assert.equal(getVersionResponse.returnCode, 0x9000);
+assert.equal(getVersionResponse.errorMessage, "No errors");
+assert.equal(getVersionResponse.major, 0);
+assert.equal(getVersionResponse.minor, 9);
+assert.equal(getVersionResponse.patch, 11)
+assert.ok("testMode" in getVersionResponse)
+
+assert.equal(common.mockTransport.hexApduCommandOut.length, 1)
+assert.equal(common.mockTransport.hexApduCommandIn.length, 1)
+
+var hexOutgoing = common.mockTransport.hexApduCommandOut.shift();
 var hexExpected = "3300000000";
 common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, unexpected:9999});
-common.testStep(" >    ", "APDU out");
-common.asyncCurlApduSend(hexOutgoing);
-common.testStep("     <", "APDU in");
-var hexResponse = await common.curlApduResponseWait();
+var hexIncomming = common.mockTransport.hexApduCommandIn.shift();
 var hexExpected = "0000090b00311000049000";
-common.compare(hexResponse, hexExpected, "apdu response", {testMode:1, major:1, minor:1, patch:1, deviceLocked:1, targetId:4, returnCode:2, unexpected:9999});
-
-//screen shot should not change so do not: common.curlScreenShot(scriptName);
+common.compare(hexIncomming, hexExpected, "apdu response", {testMode:1, major:1, minor:1, patch:1, deviceLocked:1, targetId:4, returnCode:2, unexpected:9999});
 
 common.testEnd(scriptName);
 
