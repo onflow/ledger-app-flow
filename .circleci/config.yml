@@ -9,7 +9,8 @@ jobs:
       - checkout
       - run: git submodule update --init --recursive
       - run: apt-get update && apt-get -y install python3.6 && apt -y install python3-pip && pip3 install conan
-      - run: cmake -DCMAKE_BUILD_TYPE=Debug . && make
+      # https://stackoverflow.com/questions/2670121/using-cmake-with-gnu-make-how-can-i-see-the-exact-commands
+      - run: cmake -DCMAKE_BUILD_TYPE=Debug . && make VERBOSE=1
       # Unfortunately need to disable leak sanitizer https://github.com/google/sanitizers/issues/916
       # Still run all other ASAN components
       - run: GTEST_COLOR=1 ASAN_OPTIONS=detect_leaks=0 ctest -VV
