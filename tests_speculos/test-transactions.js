@@ -81,42 +81,11 @@ async function transactionTest(testTitle, transactionTitle, txHexBlob, txExpecte
 	var scriptNameCombo = (scriptName + "." + testTitle).replace(new RegExp("([:/ \-]+)","gm"),"-").toLowerCase(); 
 
 	const txBlob = Buffer.from(txHexBlob, "hex");
-
 	const path = getKeyPath(sigAlgo.code, hashAlgo.code);
-	const address = "e467b9dd11fa00df";
 
 	console.log(common.humanTime() + " // screen shot before sending first apdu command");
 	common.curlScreenShot(scriptNameCombo);
 
-	/*
-	await prepareSlot(sim, app, 1, address, path)
-	*/
-	const slot = 1
-	common.testStep(" - - -", "app.setSlot() // slot=" + slot  + " address=" + address + " path=" + path);
-	const setSlotPromise = app.setSlot(slot, address, path);
-
-	common.testStep("   +  ", "buttons");
-	common.curlScreenShot(scriptNameCombo); common.curlButton('right', "; navigate the address / path; Set Account 1");
-	common.curlScreenShot(scriptNameCombo); common.curlButton('right', "; navigate the address / path; Account e467..");
-	common.curlScreenShot(scriptNameCombo); common.curlButton('right', "; navigate the address / path; Path 44'/..");
-	common.curlScreenShot(scriptNameCombo); common.curlButton('both', "; confirm; Approve");
-	common.curlScreenShot(scriptNameCombo); console.log(common.humanTime() + " // back to main screen");
-	
-	common.testStep(" - - -", "await setSlotPromise")
-	const setSlotResponse = await setSlotPromise;
-	assert.equal(setSlotResponse.returnCode, 0x9000);
-	assert.equal(setSlotResponse.errorMessage, "No errors");
-
-    //I really want to remove this check as this is not SUT
-	assert.equal(common.mockTransport.hexApduCommandOut.length, 1)
-	var hexOutgoing = common.mockTransport.hexApduCommandOut.shift();
-	var hexExpected = "331200001d01e467b9dd11fa00df2c0000801b020080010200800000000000000000";
-	common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, do_not_compare_slotBytes:28, unexpected:9999});
-
-	assert.equal(common.mockTransport.hexApduCommandIn.length, 1)
-	var hexIncomming = common.mockTransport.hexApduCommandIn.shift();
-	var hexExpected = "9000";
-	common.compare(hexIncomming, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 
 	/*
 	const pkResponse = await app.getAddressAndPubKey(1);
@@ -124,8 +93,8 @@ async function transactionTest(testTitle, transactionTitle, txHexBlob, txExpecte
 	expect(pkResponse.errorMessage).toEqual("No errors");
 	*/
 
-	common.testStep(" - - -", "await app.getAddressAndPubKey() // slot=" + slot);
-	const getPubkeyResponse = await app.getAddressAndPubKey(slot);
+	common.testStep(" - - -", "await app.getAddressAndPubKey() // path=" + path);
+	const getPubkeyResponse = await app.getAddressAndPubKey(path);
 	assert.equal(getPubkeyResponse.returnCode, 0x9000);
 	assert.equal(getPubkeyResponse.errorMessage, "No errors");
 	const pubkeyHex = getPubkeyResponse.publicKey.toString("hex")
@@ -134,13 +103,13 @@ async function transactionTest(testTitle, transactionTitle, txHexBlob, txExpecte
 	//I really want to remove this check as this is not SUT
 	assert.equal(common.mockTransport.hexApduCommandOut.length, 1)
 	var hexOutgoing = common.mockTransport.hexApduCommandOut.shift();
-	var hexExpected = "330100000101";
-	common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, unexpected:9999});
+	var hexExpected = "3301000014xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+	common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, do_not_compare_path:20, unexpected:9999});
 
 	assert.equal(common.mockTransport.hexApduCommandIn.length, 1)
 	var hexIncomming = common.mockTransport.hexApduCommandIn.shift();
-	var hexExpected = "e467b9dd11fa00df04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be9000";
-	common.compare(hexIncomming, hexExpected, "apdu response", {address:8, do_not_compare_publicKey:65, returnCode:2, unexpected:9999});
+	var hexExpected = "04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be303464373438326262616666373832373033356435623233386466333138623130363034363733646336313338303837323365666264323366626334623966616433346134313538323864393234656337623833616330656464663232656631313562376332303365653339666230383035373264376535313737356565353462659000";
+	common.compare(hexIncomming, hexExpected, "apdu response", {do_not_compare_publicKey:65, do_not_compare_publicKey_hex:130, returnCode:2, unexpected:9999});
 	
 	/*
 	// WARNING: do not block for this request until transaction
@@ -171,8 +140,6 @@ async function transactionTest(testTitle, transactionTitle, txHexBlob, txExpecte
 	}
 	common.curlScreenShot(scriptNameCombo); common.curlButton('both', "; confirm; Approve");
 	common.curlScreenShot(scriptNameCombo); console.log(common.humanTime() + " // back to main screen");
-	
-	//TODO add final screenshot
 	common.testStep(" - - -", "await signPromise")
 	const signResponse = await signPromise;
 	assert.equal(signResponse.returnCode, 0x9000);
@@ -259,36 +226,10 @@ async function transactionTest(testTitle, transactionTitle, txHexBlob, txExpecte
 		console.log(common.humanTime() + " transaction signature verification against digest FAILED");
 		assert.ok(false)
 	}
-
-
-	//delete the slot so that next test start with clean state
-	const expectedAccountDelete = "0000000000000000";
-	const expectedPathDelete = `m/0/0/0/0/0`;
-	common.testStep(" - - -", "app.setSlot() // slot=" + slot + " expectedAccountDelete=" + expectedAccountDelete + " expectedPathDelete=" + expectedPathDelete);
-	const setSlot2Promise = app.setSlot(slot, expectedAccountDelete, expectedPathDelete);
-
-	common.curlScreenShot(scriptNameCombo); common.curlButton('right', "; navigate the address / path; Delete Account 1");
-	common.curlScreenShot(scriptNameCombo); common.curlButton('right', "; navigate the address / path; Old Account e467..");
-	common.curlScreenShot(scriptNameCombo); common.curlButton('right', "; navigate the address / path; Old Path 44'/..");
-	common.curlScreenShot(scriptNameCombo); common.curlButton('both', "; confirm; Approve");
-	common.curlScreenShot(scriptNameCombo); console.log(common.humanTime() + " // back to main screen");
-
-	common.testStep(" - - -", "await setSlot2Promise");
-	const setSlot2Response = await setSlot2Promise;
-	assert.equal(setSlot2Response.returnCode, 0x9000);
-	assert.equal(setSlot2Response.errorMessage, "No errors");
-
-	//I really want to remove this check as this is not SUT
-	assert.equal(common.mockTransport.hexApduCommandOut.length, 1)
-	var hexOutgoing = common.mockTransport.hexApduCommandOut.shift();
-	var hexExpected = "331200001d0100000000000000000000000000000000000000000000000000000000";
-	common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, do_not_compare_slotBytes:28, unexpected:9999});
-
-	assert.equal(common.mockTransport.hexApduCommandIn.length, 1)
-	var hexIncomming = common.mockTransport.hexApduCommandIn.shift();
-	var hexExpected = "9000";
-	common.compare(hexIncomming, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 }
+
+//End async function transactionTest(
+//Now we use it to test the transactions
 
 const ECDSA_SECP256K1 = { name: "secp256k1", code: FlowApp.Signature.SECP256K1 };
 const ECDSA_P256 = { name: "p256", code: FlowApp.Signature.P256 };

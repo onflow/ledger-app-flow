@@ -20,17 +20,16 @@ const expectedPath = `m/44'/2'/${scheme}'/0/0`;
 
 common.curlScreenShot(scriptName); console.log(common.humanTime() + " // screen shot before sending first apdu command");
 
+//setSlot
 common.testStep(" - - -", "await app.setSlot() // expectedSlot=" + expectedSlot + " expectedAccount=" + expectedAccount + " expectedPath=" + expectedPath);
 const setSlotResponse = await app.setSlot(expectedSlot, expectedAccount, expectedPath);
 assert.equal(setSlotResponse.returnCode, 0x6984);
-
 assert.equal(common.mockTransport.hexApduCommandOut.length, 1)
 assert.equal(common.mockTransport.hexApduCommandIn.length, 1)
 
 var hexOutgoing = common.mockTransport.hexApduCommandOut.shift();
 var hexExpected = "331200001d0a8c5303eaa26202d62c00008002000080010200800000000000000000";
 common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:28, unexpected:9999});
-
 var hexIncomming = common.mockTransport.hexApduCommandIn.shift();
 var hexExpected = "6984";
 common.compare(hexIncomming, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
