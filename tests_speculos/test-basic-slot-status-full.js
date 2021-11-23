@@ -17,6 +17,17 @@ console.log(common.humanTime() + " // using FlowApp below with common.mockTransp
 common.curlScreenShot(scriptName); console.log(common.humanTime() + " // screen shot before sending first apdu command");
 
 //slotStatus test when there are no slots
+common.setTransportSendRecvFunction(async function (hexOutgoing) {
+	common.testStep(" >    ", "APDU out");
+	var hexExpected = "3310000000";
+	common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, unexpected:9999});
+	common.asyncCurlApduSend(hexOutgoing);
+	common.testStep("     <", "APDU in");
+	var hexIncoming = await common.curlApduResponseWait();
+	var hexExpected = "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009000";
+	common.compare(hexIncoming, hexExpected, "apdu response", {slotStatus:64, returnCode:2, unexpected:9999});
+	return hexIncoming;
+});
 common.testStep(" - - -", "await app.slotStatus() // Check initial status");
 const slotStatusResponse = await app.slotStatus();
 assert.equal(slotStatusResponse.returnCode, 0x9000);
@@ -25,40 +36,33 @@ let expectedBuffer = Buffer.alloc(64);
 expectedBuffer.fill(0);
 assert.equal(slotStatusResponse.status.toString("hex"), expectedBuffer.toString("hex"));
 
-assert.equal(common.mockTransport.hexApduCommandOut.length, 1)
-assert.equal(common.mockTransport.hexApduCommandIn.length, 1)
-var hexOutgoing = common.mockTransport.hexApduCommandOut.shift();
-var hexExpected = "3310000000";
-common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, unexpected:9999});
-var hexIncomming = common.mockTransport.hexApduCommandIn.shift();
-var hexExpected = "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009000";
-common.compare(hexIncomming, hexExpected, "apdu response", {slotStatus:64, returnCode:2, unexpected:9999});
-
 //setSlot 10
 const expectedSlot = 10;
 const expectedAccount = "e467b9dd11fa00df";
 const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
 const expectedPath = `m/44'/539'/${scheme}'/0/0`;
-common.testStep(" - - -", "app.setSlot() // expectedSlot=" + expectedSlot + " expectedAccount=" + expectedAccount + " expectedPath=" + expectedPath + "; Set slot 10");
-const setSlotPromise = app.setSlot(expectedSlot, expectedAccount, expectedPath);
-common.testStep("   +  ", "buttons");
-common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Set Account 10");
-common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Account e467..");
-common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Path 44'/..");
-common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve");
-common.curlScreenShot(scriptName); console.log(common.humanTime() + " // back to main screen");
-common.testStep(" - - -", "await setSlotPromise // expectedSlot=" + expectedSlot + " expectedAccount=" + expectedAccount + " expectedPath=" + expectedPath + "; Set slot 10");
-const setSlotResponse = await setSlotPromise
+common.setTransportSendRecvFunction(async function (hexOutgoing) {
+	common.testStep(" >    ", "APDU out");
+	var hexExpected = "331200001d0ae467b9dd11fa00df2c0000801b020080010200800000000000000000";
+	common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:28, unexpected:9999});
+	common.asyncCurlApduSend(hexOutgoing);
+	common.testStep("   +  ", "buttons");
+	common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Set Account 10");
+	common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Account e467..");
+	common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Path 44'/..");
+	common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve");
+	common.curlScreenShot(scriptName); console.log(common.humanTime() + " // back to main screen");
+	common.testStep("     <", "APDU in");
+	var hexIncoming = await common.curlApduResponseWait();
+	var hexExpected = "9000";
+	common.compare(hexIncoming, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
+	return hexIncoming;
+});
+common.testStep(" - - -", "await app.setSlot() // expectedSlot=" + expectedSlot + " expectedAccount=" + expectedAccount + " expectedPath=" + expectedPath + "; Set slot 10");
+const setSlotResponse = await app.setSlot(expectedSlot, expectedAccount, expectedPath);
 assert.equal(setSlotResponse.returnCode, 0x9000);
 
-assert.equal(common.mockTransport.hexApduCommandOut.length, 1)
-assert.equal(common.mockTransport.hexApduCommandIn.length, 1)
-var hexOutgoing = common.mockTransport.hexApduCommandOut.shift();
-var hexExpected = "331200001d0ae467b9dd11fa00df2c0000801b020080010200800000000000000000";
-common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:28, unexpected:9999});
-var hexIncomming = common.mockTransport.hexApduCommandIn.shift();
-var hexExpected = "9000";
-common.compare(hexIncomming, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
+/*
 
 //test slotstatus when slot 10 is used
 common.testStep(" - - -", "await app.slotStatus() // Get slot status");
@@ -195,7 +199,7 @@ common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2
 var hexIncomming = common.mockTransport.hexApduCommandIn.shift();
 var hexExpected = "9000";
 common.compare(hexIncomming, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
-
+*/
 //screen shot should not change so do not: common.curlScreenShot(scriptName);
 
 common.testEnd(scriptName);

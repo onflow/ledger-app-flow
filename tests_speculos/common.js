@@ -245,10 +245,19 @@ async function sleep(ms, what) {
 	await timeout(ms);
 }
 
+var transportSendRecvIndirectFunction = function (hexApduCommandViaMockTransport) {
+	panic("ERROR: please use your own send function, e.g. common.setTransportSendFunction(function(hexOutgoing){ ... })");
+};
+
+function setTransportSendRecvFunction(callerFunction) {
+	transportSendRecvIndirectFunction = callerFunction;
+}
+
 var mockTransport = {
+/*
 	hexApduCommandOut: [],
 	hexApduCommandIn: [],
-
+*/
 	//this.transport.send(_common.CLA, _common.INS.SET_SLOT, 0, 0, payload).then(...)
 	send: async function(cla, ins, p1, p2, pay) {
 		var len = (typeof pay === 'undefined') ? 0 : pay.length;
@@ -259,24 +268,23 @@ var mockTransport = {
 		var hex_len = len.toString(16).padStart(2, '0'); if (process.env.TEST_DEBUG >= 1) { console.log(humanTime() + " .send() len: 0x" + hex_len); } // e.g. 1d
 		var hex_pay = len ? pay.toString('hex') : ""   ; if (process.env.TEST_DEBUG >= 1) { console.log(humanTime() + " .send() pay: 0x" + hex_pay + " <- " + len + " bytes"); } // e.g. 0a00010203040506072c0000801b020080010200800000000000000000
 		var hexApduCommandViaMockTransport = ''.concat(hex_cla, hex_ins, hex_p1, hex_p2, hex_len, hex_pay); // e.g. 331200001d0a00010203040506072c0000801b020080010200800000000000000000
-		this.hexApduCommandOut.push(hexApduCommandViaMockTransport);		
+/*
+		this.hexApduCommandOut.push(hexApduCommandViaMockTransport);
+*/
 		console.log(humanTime() + " .send() // " + hexApduCommandViaMockTransport + " <-- this is the mockTransport.send() (read: fake send) function");
 
-		//Now we actually send
-		testStep(" >    ", "APDU out");
-		asyncCurlApduSend(hexApduCommandViaMockTransport);
-
+		//Now we actually send & receive
+		var hexIncoming = await transportSendRecvIndirectFunction(hexApduCommandViaMockTransport);
+/*
 		//If we are waiting for this APDU we resolve the promise
 		if (!!this.APDUToWait && cla == this.APDUToWait.cla && ins == this.APDUToWait.ins && p1 == this.APDUToWait.p1) {
 			this.resolveAPDUToWaitPromise()
 		}
-		testStep("     <", "APDU in");
-		const res = await curlApduResponseWait();
-		this.hexApduCommandIn.push(res);		
+*/
 
-		return Buffer.from(res, "hex") 
+		return Buffer.from(hexIncoming, "hex") 
 	},
-
+/*
 	APDUToWait: null,
 	APDUToWaitPromise: null,
 	resolveAPDUToWaitPromise: function() {},
@@ -289,6 +297,7 @@ var mockTransport = {
 		this.APDUToWaitPromise = null;
 		this.resolveAPDUToWaitPromise = function() {};
 	}
+*/
 };
 
-export {testStart, testCombo, testStep, testEnd, compare, asyncCurlApduSend, curlApduResponseWait, curlButton, curlScreenShot, humanTime, sleep, mockTransport, path};
+export {testStart, testCombo, testStep, testEnd, compare, asyncCurlApduSend, curlApduResponseWait, curlButton, curlScreenShot, humanTime, sleep, mockTransport, path, setTransportSendRecvFunction};
