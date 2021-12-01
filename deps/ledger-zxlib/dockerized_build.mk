@@ -16,7 +16,6 @@
 
 .PHONY: all deps build clean load delete check_python show_info_recovery_mode
 
-TESTS_ZEMU_DIR?=$(CURDIR)/tests_zemu
 TESTS_SPECULOS_DIR?=$(CURDIR)/tests_speculos
 EXAMPLE_VUE_DIR?=$(CURDIR)/example_vue
 TESTS_JS_PACKAGE?=
@@ -217,31 +216,6 @@ vue: vue_install_js_link
 	cd $(EXAMPLE_VUE_DIR) && yarn install && yarn serve
 
 ########################## VUE Section ###############################
-
-.PHONY: zemu_install_js_link
-ifeq ($(TESTS_JS_DIR),)
-zemu_install_js_link:
-	@echo "No local package defined"
-else
-zemu_install_js_link:
-	# First unlink everything
-	cd $(TESTS_JS_DIR) && yarn unlink || true
-	cd $(TESTS_ZEMU_DIR) && yarn unlink $(TESTS_JS_PACKAGE) || true
-	# Now build and link
-	cd $(TESTS_JS_DIR) && yarn install && yarn build && yarn link || true
-	cd $(TESTS_ZEMU_DIR) && yarn link $(TESTS_JS_PACKAGE) && yarn install || true
-	@echo
-	# List linked packages
-	@echo
-	@cd $(TESTS_ZEMU_DIR) && ( ls -l node_modules ; ls -l node_modules/@* ) | grep ^l || true
-	@echo
-endif
-
-.PHONY: zemu_install
-zemu_install: zemu_install_js_link
-	# and now install everything
-	cd $(TESTS_ZEMU_DIR) && yarn install
-
 .PHONY: speculos_install_js_link
 ifeq ($(TESTS_JS_DIR),)
 speculos_install_js_link:
@@ -298,27 +272,11 @@ speculos_port_5002_stop:
 	$(call run_announce,$@)
 	$(call stop_speculos_container,5002)
 
-.PHONY: zemu
-zemu:
-	cd $(TESTS_ZEMU_DIR)/tools && node debug.mjs $(COIN)
-
-.PHONY: zemu_val
-zemu_val:
-	cd $(TESTS_ZEMU_DIR)/tools && node debug_val.mjs
-
-.PHONY: zemu_debug
-zemu_debug:
-	cd $(TESTS_ZEMU_DIR)/tools && node debug.mjs $(COIN) debug
-
 ########################## TEST Section ###############################
 
 .PHONY: generate_test_vectors
 generate_test_vectors:
 	cd $(TESTS_GENERATE_DIR) && yarn run generate
-
-.PHONY: zemu_test
-zemu_test:
-	cd $(TESTS_ZEMU_DIR) && yarn test$(COIN)
 
 # Note: This error did occur once: docker: Error response from daemon: driver failed programming external connectivity on endpoint speculos-port-5002 (082ea92d039f260880bc264a2f6086e14c42d698f24ff5acbba422baa9c60b29): Error starting userland proxy: listen tcp 0.0.0.0:41002: bind: address already in use.
 # Note: Since we do not need to use the VNC for the tests, then remove this option and hope the error never shows up again: --vnc-port $(3)

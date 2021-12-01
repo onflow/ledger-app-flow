@@ -9,7 +9,7 @@ This repository contains:
 - Ledger Nano S/X BOLOS app
 - Specs / Documentation
 - C++ unit tests
-- Zemu tests
+- Speculos tests
 
 ## ATTENTION
 
@@ -117,17 +117,9 @@ make cpp_test
 
 ### Running device emulation/integration tests
 
-You can run tests on an emulated Ledger device using
-[Zemu](https://github.com/Zondax/zemu),
-a NodeJS package developed by [Zondax](https://zondax.ch/).
+You can run tests on an emulated Ledger device using Speculos.
 
-> NPM package here: https://www.npmjs.com/package/@zondax/zemu
->
-> Repository here: https://github.com/Zondax/zemu
-
-First install the dependencies:
-
-> At this moment, if you change the app you will need to run `make` before running the test again.
+todo: update documentation
 
 ```bash
 make zemu_install

@@ -89,7 +89,6 @@ node_modules/.yarn-integrity
 /build
 /fuzz-*.log
 /fuzz/corpora
-/tests_zemu/snapshots-tmp/
 /tests_speculos/node_modules/
 /tests_speculos/yarn.lock
 *.new.png
