@@ -9,7 +9,6 @@ import assert from 'assert/strict';
 
 //import {ec as EC} from "elliptic"; // SyntaxError: Named export 'ec' not found. The requested module 'elliptic' is a CommonJS module, which may not support all module.exports as named exports.
 import pkg from 'elliptic';
-
 const {ec: EC} = pkg;
 
 var scriptName = common.path.basename(fileURLToPath(import.meta.url));
@@ -86,13 +85,7 @@ async function transactionTest(testTitle, transactionTitle, txHexBlob, txExpecte
 	console.log(common.humanTime() + " // screen shot before sending first apdu command");
 	common.curlScreenShot(scriptNameCombo);
 
-
-	/*
-	const pkResponse = await app.getAddressAndPubKey(1);
-	expect(pkResponse.returnCode).toEqual(0x9000);
-	expect(pkResponse.errorMessage).toEqual("No errors");
-	*/
-
+	//getPubkey
 	common.testStep(" - - -", "await app.getAddressAndPubKey() // path=" + path);
 	const getPubkeyResponse = await app.getAddressAndPubKey(path);
 	assert.equal(getPubkeyResponse.returnCode, 0x9000);
@@ -100,7 +93,6 @@ async function transactionTest(testTitle, transactionTitle, txHexBlob, txExpecte
 	const pubkeyHex = getPubkeyResponse.publicKey.toString("hex")
 	console.log(common.humanTime() + " publicKeyHex=" + pubkeyHex);
 	
-	//I really want to remove this check as this is not SUT
 	assert.equal(common.mockTransport.hexApduCommandOut.length, 1)
 	var hexOutgoing = common.mockTransport.hexApduCommandOut.shift();
 	var hexExpected = "3301000014xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
@@ -111,31 +103,13 @@ async function transactionTest(testTitle, transactionTitle, txHexBlob, txExpecte
 	var hexExpected = "04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be303464373438326262616666373832373033356435623233386466333138623130363034363733646336313338303837323365666264323366626334623966616433346134313538323864393234656337623833616330656464663232656631313562376332303365653339666230383035373264376535313737356565353462659000";
 	common.compare(hexIncomming, hexExpected, "apdu response", {do_not_compare_publicKey:65, do_not_compare_publicKey_hex:130, returnCode:2, unexpected:9999});
 	
-	/*
-	// WARNING: do not block for this request until transaction
-	// has been accepted in the Zemu emulator
-	const signatureRequest = app.sign(path, txBlob);
-	*/
+	//sign
 	common.testStep(" - - -", "app.sign() // path=" + path + " txBlob=" + txBlob.length + ":" + txHexBlob.substring(0, 16) + ".. AKA " + transactionTitle);
 	const signPromise =  app.sign(path, txBlob);
-
-	/*
-	// Click through each approval page and accept transaction
-	// Capture a snapshot of each page
-	const snapshots = await verifyAndAccept(sim, txExpectedPageCount);
-
-	// Expect new snapshots to match saved snapshots
-	snapshots.forEach((image) => expect(image).toMatchImageSnapshot());
-
-	let resp = await signatureRequest;
-	expect(resp.returnCode).toEqual(0x9000);
-	expect(resp.errorMessage).toEqual("No errors");
-	*/
-
 	common.testStep("   +  ", "buttons");
 	//sign is multiAPDU operation. This is outside of what common.curlScreenShot can synchronize. We help by synchronizing with last APDU
 	await common.mockTransport.waitForAPDU(0x33, 0x02, 0x02);	
-	for (var right=0; right < txExpectedPageCount; ++right ) {
+	for (let right=0; right < txExpectedPageCount; ++right ) {
 		common.curlScreenShot(scriptNameCombo); common.curlButton('right', "");
 	}
 	common.curlScreenShot(scriptNameCombo); common.curlButton('both', "; confirm; Approve");
@@ -147,11 +121,11 @@ async function transactionTest(testTitle, transactionTitle, txHexBlob, txExpecte
 	const signatureDERHex = signResponse.signatureDER.toString("hex");
 	console.log(common.humanTime() + " signatureDERHex=" + signatureDERHex);
 
-	//Compare the first APDU 
     assert.ok(common.mockTransport.hexApduCommandOut.length >= 2)
     assert.ok(common.mockTransport.hexApduCommandIn.length >= 2)
 	assert.equal(common.mockTransport.hexApduCommandOut.length, common.mockTransport.hexApduCommandIn.length)
 
+	//Compare the first APDU 
 	var hexOutgoing = common.mockTransport.hexApduCommandOut.shift();
 	var hexExpected = "33020000142c0000801b020080010200800000000000000000";
 	common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, do_not_compare_path:20, unexpected:9999});
@@ -185,30 +159,11 @@ async function transactionTest(testTitle, transactionTitle, txHexBlob, txExpecte
 		}
 	}
 
-
-
+	//Verify that the APDU's contain the correct tx
 	assert.equal(txHexFromAPDUs, txHexBlob);
 
-	/*
 	// Prepare digest by hashing transaction
-	let tag = Buffer.alloc(32);
-	tag.write("FLOW-V0.0-transaction");
-	const hasher = new jsSHA(hashAlgo.name, "UINT8ARRAY");
-	hasher.update(tag);
-	hasher.update(txBlob);
-	const digest = hasher.getHash("HEX");
-
-	// Verify transaction signature against the digest
-	const ec = new EC(sigAlgo.name);
-	const sig = resp.signatureDER.toString("hex");
-	const pk = pkResponse.publicKey.toString("hex");
-	const signatureOk = ec.verify(digest, sig, pk, 'hex');
-	expect(signatureOk).toEqual(true);
-	*/
-
 	common.testStep("   ?  ", "transaction signature verification against digest");
-
-	// Prepare digest by hashing transaction
 	let tag = Buffer.alloc(32);
 	tag.write("FLOW-V0.0-transaction");
 	const hasher = new jsSHA(hashAlgo.name, "UINT8ARRAY");
@@ -227,10 +182,10 @@ async function transactionTest(testTitle, transactionTitle, txHexBlob, txExpecte
 		assert.ok(false)
 	}
 }
-
 //End async function transactionTest(
-//Now we use it to test the transactions
 
+
+//Now we test the transactions
 const ECDSA_SECP256K1 = { name: "secp256k1", code: FlowApp.Signature.SECP256K1 };
 const ECDSA_P256 = { name: "p256", code: FlowApp.Signature.P256 };
 

@@ -35,28 +35,4 @@ var hexExpected = "6984";
 common.compare(hexIncomming, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 
 //screen shot should not change so do not: common.curlScreenShot(scriptName);
-
 common.testEnd(scriptName);
-
-// Above is the speculos-only / zemu-free test.
-// Below is the original zemu test for comparison:
-/*
-    test("slot status - set - bad net", async function () {
-        const sim = new Zemu(APP_PATH);
-        try {
-            await sim.start(simOptions);
-            const app = new FlowApp(sim.getTransport());
-
-            const expectedAddress = "8c5303eaa26202d6"
-            const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
-            const expectedPath = `m/44'/2'/${scheme}'/0/0`;
-            let respRequest = app.setSlot(10, expectedAddress, expectedPath);
-            const resp = await respRequest;
-            console.log(resp);
-            expect(resp.returnCode).toEqual(0x6984);
-
-        } finally {
-            await sim.close();
-        }
-    });
-*/

@@ -46,39 +46,3 @@ var hexExpected = "04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b
 common.compare(hexIncomming, hexExpected, "apdu response", {publicKey:65, publicKey_hex:130, returnCode:2, unexpected:9999});
 
 common.testEnd(scriptName);
-
-// Above is the speculos-only / zemu-free test.
-// Below is the original zemu test for comparison:
-/*
-    test("show address - secp256k1", async function () {
-        const sim = new Zemu(APP_PATH);
-        try {
-            await sim.start(simOptions);
-            const app = new FlowApp(sim.getTransport());
-
-            // Derivation path. First 3 items are automatically hardened!
-            const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
-            const path = `m/44'/539'/${scheme}'/0/0`;
-            const address = "e467b9dd11fa00df"
-
-            await prepareSlot(sim, app, 63, address, path)
-
-            const respRequest = app.showAddressAndPubKey(63);
-            const snapshots = await verifyAndAccept(sim, 7);
-            snapshots.forEach((image) => expect(image).toMatchImageSnapshot());
-                        
-            const resp = await respRequest;
-
-            expect(resp.returnCode).toEqual(0x9000);
-            expect(resp.errorMessage).toEqual("No errors");
-
-            const expected_address_string = "e467b9dd11fa00df";
-            const expected_pk = "04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be";
-
-            expect(resp.address).toEqual(expected_address_string);
-            expect(resp.publicKey.toString('hex')).toEqual(expected_pk);
-        } finally {
-            await sim.close();
-        }
-    });
-*/

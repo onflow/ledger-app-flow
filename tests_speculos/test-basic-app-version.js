@@ -35,29 +35,3 @@ var hexExpected = "0000090c00311000049000";
 common.compare(hexIncomming, hexExpected, "apdu response", {testMode:1, major:1, minor:1, patch:1, deviceLocked:1, targetId:4, returnCode:2, unexpected:9999});
 
 common.testEnd(scriptName);
-
-// todo: remove all commented zemu source code from speculos tests once zemu to speculos port PR has been accepted
-// todo: remove tests_zemu/ folder once zemu to speculos port PR has been accepted
-// Above is the speculos-only / zemu-free test.
-// Below is the original zemu test for comparison:
-/*
-    test("app version", async function () {
-        const sim = new Zemu(APP_PATH);
-        try {
-            await sim.start(simOptions);
-            const app = new FlowApp(sim.getTransport());
-            const resp = await app.getVersion();
-
-            console.log(resp);
-
-            expect(resp.returnCode).toEqual(0x9000);
-            expect(resp.errorMessage).toEqual("No errors");
-            expect(resp).toHaveProperty("testMode");
-            expect(resp).toHaveProperty("major");
-            expect(resp).toHaveProperty("minor");
-            expect(resp).toHaveProperty("patch");
-        } finally {
-            await sim.close();
-        }
-    });
-*/
