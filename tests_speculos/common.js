@@ -142,11 +142,10 @@ async function curlScreenShot(scriptName) {
 		oldSHAcmd = ""; 
 	}
 
-	var loop;
 	var loops = 0;
 	do {
-		loop = 0;
-		var output = syncBackTicks('export PNG=' + png + ' ; curl --silent --show-error --output $PNG.new.png http://127.0.0.1:' + test_speculos_api_port + '/screenshot 2>&1 ; echo sha256:`sha256sum $PNG.new.png` ; '+ oldSHAcmd);
+		// get screenshot
+		const output = syncBackTicks('export PNG=' + png + ' ; curl --silent --show-error --output $PNG.new.png http://127.0.0.1:' + test_speculos_api_port + '/screenshot 2>&1 ; echo sha256:`sha256sum $PNG.new.png` ; '+ oldSHAcmd);
 		const errorArray = output.match(/Empty reply from server/gi);
 		if (null != errorArray) {
 			console.log(humanTime() + " curl: screen shot: warning: curl failed to grab screen shot");
@@ -154,11 +153,13 @@ async function curlScreenShot(scriptName) {
 		}
 		const regex = /sha256:[^\s]*/gm;
 		const sha256Array = output.match(regex); // e.g. ['sha256:f3916e7cbbf8502b3eedbdf40cc6d6063b90f0e4a4814e34f2e7029bdaa4eaac','sha256:f3916e7cbbf8502b3eedbdf40cc6d6063b90f0e4a4814e34f2e7029bdaa4eaac']
+
+		// verify, that the screenshot is not the same as previous one
 		if (sha256Array[0] /* newly generated PNG */ == pngSha256Previous) {
 			loops += 1;
 			if (loops < 20) {
 				console.log(humanTime() + " curlScreenShot() // matches previous screen shot SHA256 (" + pngSha256Previous + "); so requesting another screen shot");
-				loop = 1;
+				continue;
 			} else {
 				console.log(humanTime() + " curlScreenShot() // matches previous screen shot SHA256 (" + pngSha256Previous + "); ERROR: giving up because too many tries; curl one-liner output:");
 				console.log(output);
@@ -166,45 +167,50 @@ async function curlScreenShot(scriptName) {
 				console.log(humanTime() + " curlScreenShot() // NOTE: re-run with TEST_PNG_RE_GEN_FOR=" + scriptName + " to regenerate PNGs");
 				throw new Error();
 			}
-			continue;
 		}
+
+		// we have a new screenshot
+		pngSha256Previous = sha256Array[0];
+
+		// if we generate this screenshot ...
 		if (makeScreenshot == 1) {
-			//if we have to generate this screenshot, the screenshot we have may be partial capture
-			//the tests made suggest, that when we make another screenshot, it will be OK
+			// the screenshot we have may be partial capture
+			// the tests made suggest, that when we make another screenshot, it will be OK
 			if (generateNewScreenshotFromNextCapture == 0) {
-				pngSha256Previous = ""; //so that the next capture has different SHA
+				pngSha256Previous = ""; //resets the previous sha in case that we captured the correct screen
 				generateNewScreenshotFromNextCapture = 1;
-				loop = 1;
 				continue;
 			}
-			//we believe the screenshot is correct
+			// second try, we believe the screenshot is correct
 			generateNewScreenshotFromNextCapture = 0;
-			syncBackTicks('export PNG=' + png + ' ; cp $PNG.new.png $PNG');				
+			syncBackTicks('export PNG=' + png + ' ; cp $PNG.new.png $PNG');
+			break;
 		}
+		// if we want to compare this screenshot
 		else {
-			if (sha256Array[0] != sha256Array[1]) {
-				if (process.env.TEST_IGNORE_SHA256_SUMS >= 1) {
-					console.log(humanTime() + " curlScreenShot() // running tests with TEST_IGNORE_SHA256_SUMS=1 to ignore all PNG differences");
-					// sha256 sums are different but ignore that fact!
-				} else {
-					loops += 1;
-					if (loops < 20) {
-						// note: this deals with the case where the screen shot is of a partial screen rendering, e.g. "               >" instead of "Set Account 10 >".
-						console.log(humanTime() + " curlScreenShot() // screen shot: warning: sha256 sums are different; could be partially rendered screen, so re-requesting screen shot // re-run with TEST_IGNORE_SHA256_SUMS=1 to ignore all PNGs");
-						pngSha256Previous = sha256Array[0];
-						loop = 1;
-						continue;
-					} else {
-						console.log(humanTime() + " curlScreenShot() // screen shot: warning: sha256 sums are different; ERROR: re-requested screen shot too many times // re-run with TEST_IGNORE_SHA256_SUMS=1 to ignore all PNGs");
-						console.log(png);
-						throw new Error();
-					}
-				}
-		    }
-		}
-		pngSha256Previous = sha256Array[0];
-		pngNum ++;
-	} while (loop);
+			// if we have it, we are done
+			if (sha256Array[0] == sha256Array[1]) {
+				break;
+			}
+			// if we want to ignore the test we are done
+			if (process.env.TEST_IGNORE_SHA256_SUMS >= 1) {
+				console.log(humanTime() + " curlScreenShot() // running tests with TEST_IGNORE_SHA256_SUMS=1 to ignore all PNG differences");
+				break;
+			}
+			// otherwise, we will try again (this deals with partial capture)
+			loops += 1;
+			if (loops < 20) {
+				console.log(humanTime() + " curlScreenShot() // screen shot: warning: sha256 sums are different; could be partially rendered screen, so re-requesting screen shot // re-run with TEST_IGNORE_SHA256_SUMS=1 to ignore all PNGs");
+				pngSha256Previous = sha256Array[0];
+				continue;
+			} else {
+				console.log(humanTime() + " curlScreenShot() // screen shot: warning: sha256 sums are different; ERROR: re-requested screen shot too many times // re-run with TEST_IGNORE_SHA256_SUMS=1 to ignore all PNGs");
+				console.log(png);
+				throw new Error();
+			}
+    	}
+	} while (true);
+	pngNum ++;
 }
 
 function hex2ascii(hex) {
