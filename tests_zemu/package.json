@@ -16,7 +16,7 @@
     "zondax"
   ],
   "dependencies": {
-    "@onflow/ledger": "file:../js",
+    "@onflow/ledger": "0.1.0",
     "@zondax/zemu": "^0.7.0"
   },
   "devDependencies": {
