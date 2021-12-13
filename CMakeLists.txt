@@ -28,6 +28,11 @@ string(APPEND CMAKE_C_FLAGS " -fno-omit-frame-pointer -g")
 string(APPEND CMAKE_CXX_FLAGS " -fno-omit-frame-pointer -g")
 string(APPEND CMAKE_LINKER_FLAGS " -fno-omit-frame-pointer -g")
 
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    # prevent undefined hdPath upon linking: https://stackoverflow.com/questions/25421479/clang-and-undefined-symbols-when-building-a-library
+    string(APPEND CMAKE_EXE_LINKER_FLAGS " -undefined dynamic_lookup")
+endif()
+
 add_definitions(-DAPP_STANDARD)
 
 if(ENABLE_FUZZING)

@@ -83,9 +83,12 @@ cmake-build-fuzz/
 !\deps/ledger-zxlib
 !\deps/PicoSHA2
 !\deps/jsmn
+deps/ledger-zxlib/Dockerfile
 
 node_modules/.yarn-integrity
 /build
 /fuzz-*.log
 /fuzz/corpora
-/tests_zemu/snapshots-tmp/
+/tests_speculos/node_modules/
+/tests_speculos/yarn.lock
+*.new.png

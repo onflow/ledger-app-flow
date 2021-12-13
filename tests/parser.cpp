@@ -24,17 +24,17 @@
 
 
 const auto token2 = "{\"type\":\"Optional\",\"value\":null}";
-parser_context_t context2 = {(const uint8_t *)token2, strlen(token2), 0};
+parser_context_t context2 = {(const uint8_t *)token2, (uint16_t)(strlen(token2)), 0};
 const auto token3 = "{\"type\":\"Optional\",\"value\":{\"type\":\"UFix64\",\"value\":\"545.77\"}}";
-parser_context_t context3 = {(const uint8_t *)token3, strlen(token3), 0};
+parser_context_t context3 = {(const uint8_t *)token3, (uint16_t)(strlen(token3)), 0};
 
 const auto token4 = "{\"type\":\"Optional\",\"value\":{\"type\": \"Array\",\"value\":"
                          "[{\"type\":\"String\",\"value\":\"f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164\"}]}}";
-parser_context_t context4 = {(const uint8_t *)token4, strlen(token4), 0};
+parser_context_t context4 = {(const uint8_t *)token4, (uint16_t)(strlen(token4)), 0};
 const auto token5 = "{\"type\":\"Optional\",\"value\":{\"type\": \"Array\",\"value\":"
                         "[{\"type\":\"String\",\"value\":\"e845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164\"},"
                          "{\"type\":\"String\",\"value\":\"d845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164\"}]}}";
-parser_context_t context5 = {(const uint8_t *)token5, strlen(token5), 0};
+parser_context_t context5 = {(const uint8_t *)token5, (uint16_t)(strlen(token5)), 0};
 
 flow_argument_list_t arg_list = {{},{context2, context3, context4, context5}, 4};
 
