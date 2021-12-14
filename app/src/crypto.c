@@ -17,6 +17,7 @@
 #include "crypto.h"
 #include "coin.h"
 #include "zxmacros.h"
+#include "zxformat.h"
 
 uint32_t hdPath[HDPATH_LEN_DEFAULT];
 

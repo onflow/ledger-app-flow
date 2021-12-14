@@ -15,6 +15,7 @@
 ********************************************************************************/
 
 #include <zxmacros.h>
+#include <zxformat.h>
 #include <json/json_parser.h>
 #include "parser_impl.h"
 #include "parser_txdef.h"
