@@ -705,7 +705,7 @@ parser_error_t _read(parser_context_t *c, parser_tx_t *v) {
     return PARSER_OK;
 }
 
-parser_error_t _validateTx(const parser_context_t *c, const parser_tx_t *v) {
+parser_error_t _validateTx(__Z_UNUSED const parser_context_t *c, __Z_UNUSED const parser_tx_t *v) {
     // Placeholder to run any coin specific validation
     return PARSER_OK;
 }
@@ -766,7 +766,7 @@ parser_error_t _countArgumentOptionalItems(const flow_argument_list_t *v, uint8_
     return PARSER_OK;
 }
 
-parser_error_t _getNumItems(const parser_context_t *c, const parser_tx_t *v, uint8_t *numItems) {
+parser_error_t _getNumItems(__Z_UNUSED const parser_context_t *c, const parser_tx_t *v, uint8_t *numItems) {
     uint8_t argArrayLength = 0;
     switch (v->script.type) {
         case SCRIPT_TOKEN_TRANSFER:
