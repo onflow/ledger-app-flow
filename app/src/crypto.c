@@ -18,17 +18,13 @@
 #include "coin.h"
 #include "zxmacros.h"
 #include "zxformat.h"
+#include "zxerror.h"
 
 uint32_t hdPath[HDPATH_LEN_DEFAULT];
 
 #if defined(TARGET_NANOS) || defined(TARGET_NANOX)
 #include "cx.h"
 
-/*#define CHECK_ZXERR(__EXPR) { \
-    zxerr_t __err = __EXPR;  \
-    CHECK_APP_CANARY();  \
-    if (__err != zxerr_ok) return __err; \
-}*/
 
 __Z_INLINE digest_type_e get_hash_type(const uint32_t path[HDPATH_LEN_DEFAULT]) {
     _Static_assert(HDPATH_LEN_DEFAULT >= 3, "Invalid HDPATH_LEN_DEFAULT");
