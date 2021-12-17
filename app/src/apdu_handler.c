@@ -69,7 +69,7 @@ __Z_INLINE void handleSign(volatile uint32_t *flags, volatile uint32_t *tx, uint
     *flags |= IO_ASYNCH_REPLY;
 }
 
-__Z_INLINE void handleSlotStatus(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+__Z_INLINE void handleSlotStatus(__Z_UNUSED volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     if (rx != 5) {
         THROW(APDU_CODE_DATA_INVALID);
     }
@@ -81,7 +81,7 @@ __Z_INLINE void handleSlotStatus(volatile uint32_t *flags, volatile uint32_t *tx
     THROW(APDU_CODE_OK);
 }
 
-__Z_INLINE void handleGetSlot(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+__Z_INLINE void handleGetSlot(__Z_UNUSED volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     if (rx != 6) {
         THROW(APDU_CODE_DATA_INVALID);
     }
@@ -109,7 +109,7 @@ __Z_INLINE void handleGetSlot(volatile uint32_t *flags, volatile uint32_t *tx, u
     THROW(APDU_CODE_OK);
 }
 
-__Z_INLINE void handleSetSlot(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+__Z_INLINE void handleSetSlot(volatile uint32_t *flags, __Z_UNUSED volatile uint32_t *tx, uint32_t rx) {
     if (rx != 5 + 1 + 8 + 20) {
         THROW(APDU_CODE_DATA_INVALID);
     }

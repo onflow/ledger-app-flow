@@ -21,6 +21,7 @@
 #include "parser.h"
 #include "parser_txdef.h"
 #include "coin.h"
+#include "zxformat.h"
 
 #if defined(TARGET_NANOX)
 // For some reason NanoX requires this function
@@ -151,7 +152,7 @@ parser_error_t chainIDFromPayer(const flow_payer_t *v, chain_id_e *chainID) {
 
 parser_error_t parser_printChainID(const flow_payer_t *v,
                                    char *outVal, uint16_t outValLen,
-                                   uint8_t pageIdx, uint8_t *pageCount) {
+                                   __Z_UNUSED uint8_t pageIdx, uint8_t *pageCount) {
     MEMZERO(outVal, outValLen);
     chain_id_e chainID;
     CHECK_PARSER_ERR(chainIDFromPayer(v, &chainID));
@@ -178,7 +179,7 @@ parser_error_t parser_printChainID(const flow_payer_t *v,
 parser_error_t parser_printArgument(const flow_argument_list_t *v,
                                                uint8_t argIndex, char *expectedType, jsmntype_t jsonType,
                                                char *outVal, uint16_t outValLen,
-                                               uint8_t pageIdx, uint8_t *pageCount) {
+                                               __Z_UNUSED uint8_t pageIdx, uint8_t *pageCount) {
     MEMZERO(outVal, outValLen);
 
     if (argIndex >= v->argCount) {
@@ -200,7 +201,7 @@ parser_error_t parser_printArgument(const flow_argument_list_t *v,
 parser_error_t parser_printArgumentOptionalDelegatorID(const flow_argument_list_t *v,
                                                uint8_t argIndex, char *expectedType, jsmntype_t jsonType,
                                                char *outVal, uint16_t outValLen,
-                                               uint8_t pageIdx, uint8_t *pageCount) {
+                                               __Z_UNUSED uint8_t pageIdx, uint8_t *pageCount) {
     MEMZERO(outVal, outValLen);
 
     if (argIndex >= v->argCount) {
@@ -456,7 +457,7 @@ parser_error_t parser_printAuthorizer(const flow_proposal_authorizer_t *v,
     return PARSER_OK;
 }
 
-parser_error_t parser_getItemAfterArguments(const parser_context_t *ctx,
+parser_error_t parser_getItemAfterArguments(__Z_UNUSED const parser_context_t *ctx,
                                            uint16_t displayIdx,
                                            char *outKey, uint16_t outKeyLen,
                                            char *outVal, uint16_t outValLen,
