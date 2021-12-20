@@ -15,6 +15,7 @@
 ********************************************************************************/
 #include "account.h"
 #include "zxmacros.h"
+#include "zxformat.h"
 #include "stdbool.h"
 #include "apdu_codes.h"
 

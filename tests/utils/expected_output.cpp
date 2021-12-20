@@ -21,6 +21,7 @@
 #include <iomanip>
 #include "testcases.h"
 #include "zxmacros.h"
+#include "zxformat.h"
 
 bool TestcaseIsValid(const Json::Value &) {
     return true;
