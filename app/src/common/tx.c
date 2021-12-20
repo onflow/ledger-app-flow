@@ -66,7 +66,7 @@ void tx_initialize() {
 
 void tx_reset() {
     buffering_reset();
-    buffering_append(TX_DOMAIN_TAG, DOMAIN_TAG_LENGTH);
+    buffering_append((uint8_t *)TX_DOMAIN_TAG, DOMAIN_TAG_LENGTH);
 }
 
 uint32_t tx_append(unsigned char *buffer, uint32_t length) {

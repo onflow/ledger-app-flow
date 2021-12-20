@@ -21,6 +21,7 @@
 #include "parser.h"
 #include "parser_txdef.h"
 #include "coin.h"
+#include "zxformat.h"
 
 #if defined(TARGET_NANOX)
 // For some reason NanoX requires this function
@@ -151,7 +152,7 @@ parser_error_t chainIDFromPayer(const flow_payer_t *v, chain_id_e *chainID) {
 
 parser_error_t parser_printChainID(const flow_payer_t *v,
                                    char *outVal, uint16_t outValLen,
-                                   uint8_t pageIdx, uint8_t *pageCount) {
+                                   __Z_UNUSED uint8_t pageIdx, uint8_t *pageCount) {
     MEMZERO(outVal, outValLen);
     chain_id_e chainID;
     CHECK_PARSER_ERR(chainIDFromPayer(v, &chainID));
@@ -178,7 +179,7 @@ parser_error_t parser_printChainID(const flow_payer_t *v,
 parser_error_t parser_printArgument(const flow_argument_list_t *v,
                                                uint8_t argIndex, char *expectedType, jsmntype_t jsonType,
                                                char *outVal, uint16_t outValLen,
-                                               uint8_t pageIdx, uint8_t *pageCount) {
+                                               __Z_UNUSED uint8_t pageIdx, uint8_t *pageCount) {
     MEMZERO(outVal, outValLen);
 
     if (argIndex >= v->argCount) {
@@ -200,7 +201,7 @@ parser_error_t parser_printArgument(const flow_argument_list_t *v,
 parser_error_t parser_printArgumentOptionalDelegatorID(const flow_argument_list_t *v,
                                                uint8_t argIndex, char *expectedType, jsmntype_t jsonType,
                                                char *outVal, uint16_t outValLen,
-                                               uint8_t pageIdx, uint8_t *pageCount) {
+                                               __Z_UNUSED uint8_t pageIdx, uint8_t *pageCount) {
     MEMZERO(outVal, outValLen);
 
     if (argIndex >= v->argCount) {
@@ -456,6 +457,46 @@ parser_error_t parser_printAuthorizer(const flow_proposal_authorizer_t *v,
     return PARSER_OK;
 }
 
+parser_error_t parser_getItemAfterArguments(__Z_UNUSED const parser_context_t *ctx,
+                                           uint16_t displayIdx,
+                                           char *outKey, uint16_t outKeyLen,
+                                           char *outVal, uint16_t outValLen,
+                                           uint8_t pageIdx, uint8_t *pageCount) {
+    switch (displayIdx) {
+        case 0:
+            snprintf(outKey, outKeyLen, "Ref Block");
+            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
+        case 1:
+            snprintf(outKey, outKeyLen, "Gas Limit");
+            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
+        case 2:
+            snprintf(outKey, outKeyLen, "Prop Key Addr");
+            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
+        case 3:
+            snprintf(outKey, outKeyLen, "Prop Key Id");
+            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
+        case 4:
+            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
+            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
+                                          pageCount);
+        case 5:
+            snprintf(outKey, outKeyLen, "Payer");
+            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
+        default:
+            break;
+    }
+    displayIdx -= 6;
+
+    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
+        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
+        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
+                                      pageCount);
+    }
+
+    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+}
+
+
 parser_error_t parser_getItemTokenTransfer(const parser_context_t *ctx,
                                            uint16_t displayIdx,
                                            char *outKey, uint16_t outKeyLen,
@@ -482,37 +523,11 @@ parser_error_t parser_getItemTokenTransfer(const parser_context_t *ctx,
             return parser_printArgument(&parser_tx_obj.arguments, 1,
                                         "Address", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 9:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 10;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 4;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 #define CREATE_ACCOUNT_MAX_PUB_KEYS 5
@@ -550,39 +565,7 @@ parser_error_t parser_getItemCreateAccount(const parser_context_t *ctx,
         return PARSER_OK;
     }
     displayIdx -= pkCount;
-
-    switch (displayIdx) {
-        case 0:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 1:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 2:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 3:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
-        default:
-            break;
-    }
-    displayIdx -= 6;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 parser_error_t parser_getItemAddNewKey(const parser_context_t *ctx,
@@ -608,37 +591,11 @@ parser_error_t parser_getItemAddNewKey(const parser_context_t *ctx,
             snprintf(outKey, outKeyLen, "Pub key");
             return PARSER_OK;
         }
-        case 3:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 9;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 3;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 parser_error_t parser_getItemWithdrawUnlockedTokens(const parser_context_t *ctx,
@@ -661,37 +618,11 @@ parser_error_t parser_getItemWithdrawUnlockedTokens(const parser_context_t *ctx,
             return parser_printArgument(&parser_tx_obj.arguments, 0,
                                         "UFix64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 3:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 9;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 3;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 parser_error_t parser_getItemDepositUnlockedTokens(const parser_context_t *ctx,
@@ -714,37 +645,11 @@ parser_error_t parser_getItemDepositUnlockedTokens(const parser_context_t *ctx,
             return parser_printArgument(&parser_tx_obj.arguments, 0,
                                         "UFix64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 3:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 9;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 3;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 
@@ -797,37 +702,11 @@ parser_error_t parser_getItemRegisterNode(const parser_context_t *ctx,
             return parser_printArgument(&parser_tx_obj.arguments, 5,
                                         "UFix64", JSMN_STRING,
                                     outVal, outValLen, pageIdx, pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 9:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 10:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 11:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 12:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 13:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 14;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 8;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 parser_error_t parser_getItemStakeNewTokens(const parser_context_t *ctx,
@@ -850,37 +729,11 @@ parser_error_t parser_getItemStakeNewTokens(const parser_context_t *ctx,
             return parser_printArgument(&parser_tx_obj.arguments, 0,
                                         "UFix64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 3:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 9;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 3;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 parser_error_t parser_getItemRestakeUnstakedTokens(const parser_context_t *ctx,
@@ -903,37 +756,11 @@ parser_error_t parser_getItemRestakeUnstakedTokens(const parser_context_t *ctx,
             return parser_printArgument(&parser_tx_obj.arguments, 0,
                                         "UFix64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 3:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 9;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 3;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 parser_error_t parser_getItemRestakeRewardedTokens(const parser_context_t *ctx,
@@ -956,37 +783,11 @@ parser_error_t parser_getItemRestakeRewardedTokens(const parser_context_t *ctx,
             return parser_printArgument(&parser_tx_obj.arguments, 0,
                                         "UFix64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 3:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 9;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 3;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 parser_error_t parser_getItemUnstakeTokens(const parser_context_t *ctx,
@@ -1009,37 +810,11 @@ parser_error_t parser_getItemUnstakeTokens(const parser_context_t *ctx,
             return parser_printArgument(&parser_tx_obj.arguments, 0,
                                         "UFix64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 3:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 9;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 3;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 parser_error_t parser_getItemUnstakeAllTokens(const parser_context_t *ctx,
@@ -1057,37 +832,11 @@ parser_error_t parser_getItemUnstakeAllTokens(const parser_context_t *ctx,
             snprintf(outKey, outKeyLen, "ChainID");
             return parser_printChainID(&parser_tx_obj.payer,
                                        outVal, outValLen, pageIdx, pageCount);
-        case 2:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 3:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 8;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 2;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 parser_error_t parser_getItemWithdrawUnstakedTokens(const parser_context_t *ctx,
@@ -1110,37 +859,11 @@ parser_error_t parser_getItemWithdrawUnstakedTokens(const parser_context_t *ctx,
             return parser_printArgument(&parser_tx_obj.arguments, 0,
                                         "UFix64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 3:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 9;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 3;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 parser_error_t parser_getItemWithdrawRewardedTokens(const parser_context_t *ctx,
@@ -1163,37 +886,11 @@ parser_error_t parser_getItemWithdrawRewardedTokens(const parser_context_t *ctx,
             return parser_printArgument(&parser_tx_obj.arguments, 0,
                                         "UFix64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 3:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 9;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 3;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 parser_error_t parser_getItemRegisterOperatorNode(const parser_context_t *ctx,
@@ -1225,37 +922,11 @@ parser_error_t parser_getItemRegisterOperatorNode(const parser_context_t *ctx,
             return parser_printArgument(&parser_tx_obj.arguments, 2,
                                         "UFix64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 9:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 10:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 11;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 5;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 parser_error_t parser_getItemRegisterDelegator(const parser_context_t *ctx,
@@ -1282,37 +953,11 @@ parser_error_t parser_getItemRegisterDelegator(const parser_context_t *ctx,
             return parser_printArgument(&parser_tx_obj.arguments, 1,
                                         "UFix64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 9:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 10;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 4;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 parser_error_t parser_getItemDelegateNewTokens(const parser_context_t *ctx,
@@ -1335,37 +980,11 @@ parser_error_t parser_getItemDelegateNewTokens(const parser_context_t *ctx,
             return parser_printArgument(&parser_tx_obj.arguments, 0,
                                         "UFix64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 3:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 9;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 3;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 parser_error_t parser_getItemRestakeUnstakedDelegatedTokens(const parser_context_t *ctx,
@@ -1388,37 +1007,11 @@ parser_error_t parser_getItemRestakeUnstakedDelegatedTokens(const parser_context
             return parser_printArgument(&parser_tx_obj.arguments, 0,
                                         "UFix64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 3:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 9;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 3;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 parser_error_t parser_getItemRestakeRewardedDelegatedTokens(const parser_context_t *ctx,
@@ -1441,37 +1034,11 @@ parser_error_t parser_getItemRestakeRewardedDelegatedTokens(const parser_context
             return parser_printArgument(&parser_tx_obj.arguments, 0,
                                         "UFix64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 3:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 9;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 3;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 parser_error_t parser_getItemUnstakeDelegatedTokens(const parser_context_t *ctx,
@@ -1494,37 +1061,11 @@ parser_error_t parser_getItemUnstakeDelegatedTokens(const parser_context_t *ctx,
             return parser_printArgument(&parser_tx_obj.arguments, 0,
                                         "UFix64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 3:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 9;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 3;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 parser_error_t parser_getItemWithdrawUnstakedDelegatedTokens(const parser_context_t *ctx,
@@ -1547,37 +1088,11 @@ parser_error_t parser_getItemWithdrawUnstakedDelegatedTokens(const parser_contex
             return parser_printArgument(&parser_tx_obj.arguments, 0,
                                         "UFix64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 3:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 9;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 3;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 parser_error_t parser_getItemWithdrawRewardedDelegatedTokens(const parser_context_t *ctx,
@@ -1600,37 +1115,11 @@ parser_error_t parser_getItemWithdrawRewardedDelegatedTokens(const parser_contex
             return parser_printArgument(&parser_tx_obj.arguments, 0,
                                         "UFix64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 3:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 9;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 3;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 parser_error_t parser_getItemUpdateNetworkingAddress(const parser_context_t *ctx,
@@ -1652,37 +1141,11 @@ parser_error_t parser_getItemUpdateNetworkingAddress(const parser_context_t *ctx
             snprintf(outKey, outKeyLen, "Address");
             return parser_printArgumentString(&parser_tx_obj.arguments.argCtx[0],
                                               outVal, outValLen, pageIdx, pageCount);
-        case 3:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 9;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 3;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 //SCO.01
@@ -1701,37 +1164,11 @@ parser_error_t parser_getItemSetupStaingCollection(const parser_context_t *ctx,
             snprintf(outKey, outKeyLen, "ChainID");
             return parser_printChainID(&parser_tx_obj.payer,
                                        outVal, outValLen, pageIdx, pageCount);
-        case 2:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 3:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 8;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 2;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 //SCO.02
@@ -1759,37 +1196,11 @@ parser_error_t parser_getItemRegisterDelegatorSCO(const parser_context_t *ctx,
             return parser_printArgument(&parser_tx_obj.arguments, 1,
                                         "UFix64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 9:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 10;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 4;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 //SCO.03
@@ -1856,39 +1267,7 @@ parser_error_t parser_getItemRegisterNodeSCO(const parser_context_t *ctx,
         return PARSER_OK;
     }
     displayIdx -= pkCount;
-
-    switch (displayIdx) {
-        case 0:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 1:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 2:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 3:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
-        default:
-            break;
-    }
-    displayIdx -= 6;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 //SCO.04
@@ -1933,39 +1312,7 @@ parser_error_t parser_getItemCreateMachineAccount(const parser_context_t *ctx,
         return PARSER_OK;
     }
     displayIdx -= pkCount;
-
-    switch (displayIdx) {
-        case 0:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 1:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 2:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 3:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
-        default:
-            break;
-    }
-    displayIdx -= 6;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 //SCO.05
@@ -1998,37 +1345,11 @@ parser_error_t parser_getItemRequestUnstaking(const parser_context_t *ctx,
             return parser_printArgument(&parser_tx_obj.arguments, 2,
                                         "UFix64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 9:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 10:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 11;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 5;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 //SCO.06
@@ -2061,37 +1382,11 @@ parser_error_t parser_getItemStakeNewTokensSCO(const parser_context_t *ctx,
             return parser_printArgument(&parser_tx_obj.arguments, 2,
                                         "UFix64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 9:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 10:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 11;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 5;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 //SCO.07
@@ -2124,37 +1419,11 @@ parser_error_t parser_getItemStakeRewardTokens(const parser_context_t *ctx,
             return parser_printArgument(&parser_tx_obj.arguments, 2,
                                         "UFix64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 9:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 10:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 11;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 5;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 //SCO.08
@@ -2187,37 +1456,11 @@ parser_error_t parser_getItemStakeUnstakedTokens(const parser_context_t *ctx,
             return parser_printArgument(&parser_tx_obj.arguments, 2,
                                         "UFix64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 9:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 10:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 11;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 5;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 //SCO.09
@@ -2240,37 +1483,11 @@ parser_error_t parser_getItemUnstakeAll(const parser_context_t *ctx,
             snprintf(outKey, outKeyLen, "Node ID");
             return parser_printArgumentString(&parser_tx_obj.arguments.argCtx[0],
                                               outVal, outValLen, pageIdx, pageCount);
-        case 3:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 9;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 3;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 //SCO.10
@@ -2303,37 +1520,11 @@ parser_error_t parser_getItemWithdrawRewardTokensSCO(const parser_context_t *ctx
             return parser_printArgument(&parser_tx_obj.arguments, 2,
                                         "UFix64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 9:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 10:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 11;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 5;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 //SCO.11
@@ -2366,37 +1557,11 @@ parser_error_t parser_getItemWithdrawUnstakedTokensSCO(const parser_context_t *c
             return parser_printArgument(&parser_tx_obj.arguments, 2,
                                         "UFix64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 9:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 10:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 11;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 5;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 //SCO.12
@@ -2424,37 +1589,11 @@ parser_error_t parser_getItemCloseStake(const parser_context_t *ctx,
             return parser_printArgumentOptionalDelegatorID(&parser_tx_obj.arguments, 1,
                                               "UInt32", JSMN_STRING,
                                               outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 9:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 10;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 4;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 //SCO.13
@@ -2482,37 +1621,11 @@ parser_error_t parser_getItemTransferNode(const parser_context_t *ctx,
             return parser_printArgument(&parser_tx_obj.arguments, 1,
                                         "Address", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 9:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 10;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 4;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 //SCO.14
@@ -2545,37 +1658,11 @@ parser_error_t parser_getItemTransferDelegator(const parser_context_t *ctx,
             return parser_printArgument(&parser_tx_obj.arguments, 2,
                                         "Address", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 9:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 10:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 11;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 5;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 //SCO.15
@@ -2603,37 +1690,11 @@ parser_error_t parser_getItemWithdrawFromMachineAccount(const parser_context_t *
             return parser_printArgument(&parser_tx_obj.arguments, 1,
                                         "UFix64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 9:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 10;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 4;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 //SCO.16
@@ -2660,37 +1721,11 @@ parser_error_t parser_getItemUpdateNetworkingAddressSCO(const parser_context_t *
             snprintf(outKey, outKeyLen, "Address");
             return parser_printArgumentString(&parser_tx_obj.arguments.argCtx[1],
                                               outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 9:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 10;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 4;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 //FUSD.01
@@ -2709,37 +1744,11 @@ parser_error_t parser_getItemSetupFUSDVault(const parser_context_t *ctx,
             snprintf(outKey, outKeyLen, "ChainID");
             return parser_printChainID(&parser_tx_obj.payer,
                                        outVal, outValLen, pageIdx, pageCount);
-        case 2:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 3:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 8;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 2;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 //FUSD.02
@@ -2767,37 +1776,12 @@ parser_error_t parser_getItemTransferFUSD(const parser_context_t *ctx,
             snprintf(outKey, outKeyLen, "Recipient");
             return parser_printArgument(&parser_tx_obj.arguments, 1,
                                         "Address", JSMN_STRING,
-                                        outVal, outValLen, pageIdx, pageCount);        case 4:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 9:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
+                                        outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 10;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 4;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 //TS.01
@@ -2816,37 +1800,11 @@ parser_error_t parser_getItemSetUpTopShotCollection(const parser_context_t *ctx,
             snprintf(outKey, outKeyLen, "ChainID");
             return parser_printChainID(&parser_tx_obj.payer,
                                        outVal, outValLen, pageIdx, pageCount);
-        case 2:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 3:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 8;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 2;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 //TS.02
@@ -2875,37 +1833,11 @@ parser_error_t parser_getItemTransferTopShotMoment(const parser_context_t *ctx,
             return parser_printArgument(&parser_tx_obj.arguments, 1,
                                         "Address", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
-        case 4:
-            snprintf(outKey, outKeyLen, "Ref Block");
-            return parser_printBlockId(&parser_tx_obj.referenceBlockId, outVal, outValLen, pageIdx, pageCount);
-        case 5:
-            snprintf(outKey, outKeyLen, "Gas Limit");
-            return parser_printGasLimit(&parser_tx_obj.gasLimit, outVal, outValLen, pageIdx, pageCount);
-        case 6:
-            snprintf(outKey, outKeyLen, "Prop Key Addr");
-            return parser_printPropKeyAddr(&parser_tx_obj.proposalKeyAddress, outVal, outValLen, pageIdx, pageCount);
-        case 7:
-            snprintf(outKey, outKeyLen, "Prop Key Id");
-            return parser_printPropKeyId(&parser_tx_obj.proposalKeyId, outVal, outValLen, pageIdx, pageCount);
-        case 8:
-            snprintf(outKey, outKeyLen, "Prop Key Seq Num");
-            return parser_printPropSeqNum(&parser_tx_obj.proposalKeySequenceNumber, outVal, outValLen, pageIdx,
-                                          pageCount);
-        case 9:
-            snprintf(outKey, outKeyLen, "Payer");
-            return parser_printPayer(&parser_tx_obj.payer, outVal, outValLen, pageIdx, pageCount);
         default:
             break;
     }
-    displayIdx -= 10;
-
-    if (displayIdx < parser_tx_obj.authorizers.authorizer_count) {
-        snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
-        return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
-                                      pageCount);
-    }
-
-    return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
+    displayIdx -= 4;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
 

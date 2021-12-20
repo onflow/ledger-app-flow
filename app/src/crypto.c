@@ -17,17 +17,14 @@
 #include "crypto.h"
 #include "coin.h"
 #include "zxmacros.h"
+#include "zxformat.h"
+#include "zxerror.h"
 
 uint32_t hdPath[HDPATH_LEN_DEFAULT];
 
 #if defined(TARGET_NANOS) || defined(TARGET_NANOX)
 #include "cx.h"
 
-#define CHECK_ZXERR(__EXPR) { \
-    zxerr_t __err = __EXPR;  \
-    CHECK_APP_CANARY();  \
-    if (__err != zxerr_ok) return __err; \
-}
 
 __Z_INLINE digest_type_e get_hash_type(const uint32_t path[HDPATH_LEN_DEFAULT]) {
     _Static_assert(HDPATH_LEN_DEFAULT >= 3, "Invalid HDPATH_LEN_DEFAULT");
@@ -155,7 +152,7 @@ zxerr_t digest_message(const uint8_t *message, uint16_t messageLen, digest_type_
     }
 }
 
-zxerr_t crypto_sign(const uint32_t path[HDPATH_LEN_DEFAULT], const uint8_t *message, uint16_t messageLen, uint8_t *buffer, uint16_t signatureMaxlen,  uint16_t *sigSize) {
+zxerr_t crypto_sign(const uint32_t path[HDPATH_LEN_DEFAULT], const uint8_t *message, uint16_t messageLen, uint8_t *buffer, uint16_t bufferSize,  uint16_t *sigSize) {    
     zemu_log_stack("crypto_sign");
 
     cx_curve_t curve = get_cx_curve(path);
@@ -164,7 +161,7 @@ zxerr_t crypto_sign(const uint32_t path[HDPATH_LEN_DEFAULT], const uint8_t *mess
         return zxerr_invalid_crypto_settings;
     }
 
-    const enum cx_md_e cx_hash_kind = get_hash_type(path);
+    const digest_type_e cx_hash_kind = get_hash_type(path);
     
     uint8_t messageDigest[32];
     uint16_t messageDigestSize = 0;
@@ -182,6 +179,10 @@ zxerr_t crypto_sign(const uint32_t path[HDPATH_LEN_DEFAULT], const uint8_t *mess
     int signatureLength;
     unsigned int info = 0;
 
+    if (bufferSize < sizeof(signature_t)) {
+        zemu_log_stack("crypto_sign: zxerr_buffer_too_small");
+        return zxerr_buffer_too_small;    
+    }
     signature_t *const signature = (signature_t *) buffer;
 
     BEGIN_TRY
