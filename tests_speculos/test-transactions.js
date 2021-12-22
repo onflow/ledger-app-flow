@@ -16,7 +16,8 @@ var scriptName = common.path.basename(fileURLToPath(import.meta.url));
 common.testStart(scriptName);
 
 const FlowApp = OnflowLedgerMod.default;
-const app = new FlowApp(common.mockTransport);
+const transport = await common.getSpyTransport()
+const app = new FlowApp(transport);
 
 const CHAIN_ID_PAGE_COUNT = 1;
 const REF_BLOCK_PAGE_COUNT = 2;
@@ -93,13 +94,13 @@ async function transactionTest(testTitle, transactionTitle, txHexBlob, txExpecte
 	const pubkeyHex = getPubkeyResponse.publicKey.toString("hex")
 	console.log(common.humanTime() + " publicKeyHex=" + pubkeyHex);
 	
-	assert.equal(common.mockTransport.hexApduCommandOut.length, 1)
-	var hexOutgoing = common.mockTransport.hexApduCommandOut.shift();
+	assert.equal(transport.hexApduCommandOut.length, 1)
+	var hexOutgoing = transport.hexApduCommandOut.shift();
 	var hexExpected = "3301000014xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
 	common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, do_not_compare_path:20, unexpected:9999});
 
-	assert.equal(common.mockTransport.hexApduCommandIn.length, 1)
-	var hexIncomming = common.mockTransport.hexApduCommandIn.shift();
+	assert.equal(transport.hexApduCommandIn.length, 1)
+	var hexIncomming = transport.hexApduCommandIn.shift();
 	var hexExpected = "04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be303464373438326262616666373832373033356435623233386466333138623130363034363733646336313338303837323365666264323366626334623966616433346134313538323864393234656337623833616330656464663232656631313562376332303365653339666230383035373264376535313737356565353462659000";
 	common.compare(hexIncomming, hexExpected, "apdu response", {do_not_compare_publicKey:65, do_not_compare_publicKey_hex:130, returnCode:2, unexpected:9999});
 	
@@ -108,7 +109,7 @@ async function transactionTest(testTitle, transactionTitle, txHexBlob, txExpecte
 	const signPromise =  app.sign(path, txBlob);
 	common.testStep("   +  ", "buttons");
 	//sign is multiAPDU operation. This is outside of what common.curlScreenShot can synchronize. We help by synchronizing with last APDU
-	await common.mockTransport.waitForAPDU(0x33, 0x02, 0x02);	
+	await transport.waitForAPDU(0x33, 0x02, 0x02);	
 	for (let right=0; right < txExpectedPageCount; ++right ) {
 		common.curlScreenShot(scriptNameCombo); common.curlButton('right', "");
 	}
@@ -121,30 +122,30 @@ async function transactionTest(testTitle, transactionTitle, txHexBlob, txExpecte
 	const signatureDERHex = signResponse.signatureDER.toString("hex");
 	console.log(common.humanTime() + " signatureDERHex=" + signatureDERHex);
 
-    assert.ok(common.mockTransport.hexApduCommandOut.length >= 2)
-    assert.ok(common.mockTransport.hexApduCommandIn.length >= 2)
-	assert.equal(common.mockTransport.hexApduCommandOut.length, common.mockTransport.hexApduCommandIn.length)
+    assert.ok(transport.hexApduCommandOut.length >= 2)
+    assert.ok(transport.hexApduCommandIn.length >= 2)
+	assert.equal(transport.hexApduCommandOut.length, transport.hexApduCommandIn.length)
 
 	//Compare the first APDU 
-	var hexOutgoing = common.mockTransport.hexApduCommandOut.shift();
+	var hexOutgoing = transport.hexApduCommandOut.shift();
 	var hexExpected = "33020000142c0000801b020080010200800000000000000000";
 	common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, do_not_compare_path:20, unexpected:9999});
-	var hexIncomming = common.mockTransport.hexApduCommandIn.shift();
+	var hexIncomming = transport.hexApduCommandIn.shift();
 	var hexExpected = "9000";
 	common.compare(hexIncomming, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 
     //compare other APDUs, let us calculate original txHexBlob
 	var txHexFromAPDUs = "";
-	const outLen = common.mockTransport.hexApduCommandOut.length;
+	const outLen = transport.hexApduCommandOut.length;
 	for(var p = 0; p < outLen; p++) {
 		var p1 = ((p + 1 == outLen) ? "02" : "01")
-		var hexOutgoing = common.mockTransport.hexApduCommandOut.shift();
+		var hexOutgoing = transport.hexApduCommandOut.shift();
         assert.equal(hexOutgoing.substring(0, 8), "3302"+p1+"00")
 		const chunkLen = parseInt(hexOutgoing.substring(8, 10), 16)
 		assert.equal(hexOutgoing.length, 10 + 2*chunkLen)
 		txHexFromAPDUs = txHexFromAPDUs.concat(hexOutgoing.substring(10, 10 + 2*chunkLen))
 
-		var hexIncomming = common.mockTransport.hexApduCommandIn.shift();
+		var hexIncomming = transport.hexApduCommandIn.shift();
 		if (p1 == "01") { // not last APDU
 			var hexExpected = "9000";
 			common.compare(hexIncomming, hexExpected, "apdu response", {returnCode:2, unexpected:9999});	
@@ -255,4 +256,5 @@ const exampleAddKeyBlob        = "f90186f9015eb86e7472616e73616374696f6e28707562
 	}
 }
 
+await transport.close()
 common.testEnd(scriptName);

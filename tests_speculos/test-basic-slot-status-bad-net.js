@@ -10,9 +10,10 @@ var scriptName = common.path.basename(fileURLToPath(import.meta.url));
 common.testStart(scriptName);
 
 const FlowApp = OnflowLedgerMod.default;
-const app = new FlowApp(common.mockTransport);
+const transport = await common.getSpyTransport()
+const app = new FlowApp(transport);
 
-console.log(common.humanTime() + " // using FlowApp below with common.mockTransport() to grab apdu command without sending it");
+console.log(common.humanTime() + " // using FlowApp below with transport() to grab apdu command without sending it");
 const expectedSlot = 10;
 const expectedAccount = "8c5303eaa26202d6";
 const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
@@ -24,15 +25,13 @@ common.curlScreenShot(scriptName); console.log(common.humanTime() + " // screen 
 common.testStep(" - - -", "await app.setSlot() // expectedSlot=" + expectedSlot + " expectedAccount=" + expectedAccount + " expectedPath=" + expectedPath);
 const setSlotResponse = await app.setSlot(expectedSlot, expectedAccount, expectedPath);
 assert.equal(setSlotResponse.returnCode, 0x6984);
-assert.equal(common.mockTransport.hexApduCommandOut.length, 1)
-assert.equal(common.mockTransport.hexApduCommandIn.length, 1)
+assert.equal(transport.hexApduCommandOut.length, 1)
+assert.equal(transport.hexApduCommandIn.length, 0)
 
-var hexOutgoing = common.mockTransport.hexApduCommandOut.shift();
+var hexOutgoing = transport.hexApduCommandOut.shift();
 var hexExpected = "331200001d0a8c5303eaa26202d62c00008002000080010200800000000000000000";
 common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:28, unexpected:9999});
-var hexIncomming = common.mockTransport.hexApduCommandIn.shift();
-var hexExpected = "6984";
-common.compare(hexIncomming, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 
 //screen shot should not change so do not: common.curlScreenShot(scriptName);
+await transport.close()
 common.testEnd(scriptName);
