@@ -26,6 +26,19 @@ jobs:
     steps:
       - checkout
       # Docker entrypoint is not considered
+      - run:
+          name: Docker pull speculos + yarn install
+          command: |
+            source /opt/circleci/.nvm/nvm.sh
+            nvm use 16.10.0
+            export MAKE_NVM_SH_PATH=/opt/circleci
+            # Linux docker instances start and stop quicker with `--network host`; see https://github.com/LedgerHQ/speculos/issues/249
+            export MAKE_LINUX_DOCKER_OPTIONS=--network host
+            make speculos_install
+      - run:
+          name: Build build conainer
+          command: |
+           make  build_build_container
       - run: git submodule update --init --recursive
       - run:
           # todo: consider splitting the container cross-compiler upgrade step into its own step: make compiler_container
@@ -43,15 +56,6 @@ jobs:
             npm install -g yarn
             which yarn
             yarn -v
-      - run:
-          name: Docker pull speculos + yarn install
-          command: |
-            source /opt/circleci/.nvm/nvm.sh
-            nvm use 16.10.0
-            export MAKE_NVM_SH_PATH=/opt/circleci
-            # Linux docker instances start and stop quicker with `--network host`; see https://github.com/LedgerHQ/speculos/issues/249
-            export MAKE_LINUX_DOCKER_OPTIONS=--network host
-            make speculos_install
       - run:
           # todo: consider upgrading CircleCI to allow parallel jobs, and splitting this into a separate CircleCI jobs which run in parallel on separate speculos container instances
           name: Run speculos port 5001 tests

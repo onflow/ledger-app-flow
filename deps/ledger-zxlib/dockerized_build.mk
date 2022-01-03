@@ -130,6 +130,10 @@ convert_icon:
 	@convert $(LEDGER_SRC)/tmp.gif -monochrome -size 16x16 -depth 1 $(LEDGER_SRC)/nanos_icon.gif
 	@convert $(LEDGER_SRC)/nanos_icon.gif -crop 14x14+1+1 +repage -negate $(LEDGER_SRC)/nanox_icon.gif
 
+.PHONY: build_build_container
+build_build_container:
+	docker build -t ledger-app-builder:latest $(CURDIR)/deps/ledger-app-builder
+
 .PHONY: build
 build:
 	$(info Replacing app icon)
