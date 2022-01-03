@@ -1,3 +1,6 @@
 [submodule "deps/nanos-secure-sdk"]
 	path = deps/nanos-secure-sdk
 	url = https://github.com/LedgerHQ/nanos-secure-sdk.git
+[submodule "deps/ledger-app-builder"]
+	path = deps/ledger-app-builder
+	url = https://github.com/LedgerHQ/ledger-app-builder
