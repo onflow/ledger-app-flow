@@ -100,10 +100,6 @@ endef
 
 all: build
 
-#.PHONY: build_build_container
-#build_build_container:
-#	docker build -t ledger-app-builder:latest $(CURDIR)/deps/ledger-app-builder
-
 .PHONY: check_todo
 check_todo:
 	git ls-files 2>&1 | xargs egrep -i "\b[t]odo:" 2> /dev/null || true
@@ -121,13 +117,13 @@ deps: check_python
 	@echo "Install dependencies"
 	$(CURDIR)/deps/ledger-zxlib/scripts/install_deps.sh
 
-.PHONY: pull
-pull:
-	docker pull $(DOCKER_IMAGE)
+#.PHONY: pull
+#pull:
+#	docker pull $(DOCKER_IMAGE)
 
-.PHONY: build_rust
-build_rust:
-	$(call run_docker,$(DOCKER_BOLOS_SDK),make -C $(DOCKER_APP_SRC) rust)
+#.PHONY: build_rust
+#build_rust:
+#	$(call run_docker,$(DOCKER_BOLOS_SDK),make -C $(DOCKER_APP_SRC) rust)
 
 .PHONY: convert_icon
 convert_icon:
@@ -142,23 +138,23 @@ build:
 	$(call run_docker_new, , make -j `nproc` )
 #	$(call run_docker_new, , "make -j `nproc` -C $(DOCKER_APP_SRC_NEW)")
 
-.PHONY: buildX
-buildX: build_rust
-	@cp $(LEDGER_SRC)/nanos_icon.gif $(LEDGER_SRC)/glyphs/icon_app.gif
-	@convert $(LEDGER_SRC)/nanos_icon.gif -crop 14x14+1+1 +repage -negate $(LEDGER_SRC)/nanox_icon.gif
-	$(call run_docker,$(DOCKER_BOLOS_SDKX),make -j `nproc` -C $(DOCKER_APP_SRC))
+#.PHONY: buildX
+#buildX: build_rust
+#	@cp $(LEDGER_SRC)/nanos_icon.gif $(LEDGER_SRC)/glyphs/icon_app.gif
+#	@convert $(LEDGER_SRC)/nanos_icon.gif -crop 14x14+1+1 +repage -negate $(LEDGER_SRC)/nanox_icon.gif
+#	$(call run_docker,$(DOCKER_BOLOS_SDKX),make -j `nproc` -C $(DOCKER_APP_SRC))
 
 .PHONY: clean
 clean:
 	$(call run_docker_new, ,make clean)
 
-.PHONY: clean_rust
-clean_rust:
-	$(call run_docker,$(DOCKER_BOLOS_SDK),make -C $(DOCKER_APP_SRC) rust_clean)
+#.PHONY: clean_rust
+#clean_rust:
+#	$(call run_docker,$(DOCKER_BOLOS_SDK),make -C $(DOCKER_APP_SRC) rust_clean)
 
 .PHONY: listvariants
 listvariants:
-	$(call run_docker,$(DOCKER_BOLOS_SDK),make -C $(DOCKER_APP_SRC) listvariants)
+	$(call run_docker_new, ,make -C listvariants)
 
 .PHONY: shell
 shell:
