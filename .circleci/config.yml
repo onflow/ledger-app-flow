@@ -27,6 +27,16 @@ jobs:
       - checkout
       # Docker entrypoint is not considered
       - run:
+          name: Install node + yarn
+          command: |
+            source /opt/circleci/.nvm/nvm.sh
+            nvm install 16.10.0
+            nvm use 16.10.0
+            rm -rf ~/.yarn
+            npm install -g yarn
+            which yarn
+            yarn -v
+      - run:
           name: Docker pull speculos + yarn install
           command: |
             source /opt/circleci/.nvm/nvm.sh
@@ -46,16 +56,6 @@ jobs:
           name: Build
           command: |
             make
-      - run:
-          name: Install node + yarn
-          command: |
-            source /opt/circleci/.nvm/nvm.sh
-            nvm install 16.10.0
-            nvm use 16.10.0
-            rm -rf ~/.yarn
-            npm install -g yarn
-            which yarn
-            yarn -v
       - run:
           # todo: consider upgrading CircleCI to allow parallel jobs, and splitting this into a separate CircleCI jobs which run in parallel on separate speculos container instances
           name: Run speculos port 5001 tests
