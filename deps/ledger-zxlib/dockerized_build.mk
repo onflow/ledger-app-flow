@@ -24,6 +24,7 @@ TESTS_GENERATE_DIR?=$(CURDIR)/tests/generate-transaction-tests
 
 LEDGER_SRC=$(CURDIR)/app
 DOCKER_APP_SRC=/project
+DOCKER_APP_SRC_NEW=/app
 DOCKER_APP_BIN=$(DOCKER_APP_SRC)/app/bin/app.elf
 
 DOCKER_BOLOS_SDK=/project/deps/nanos-secure-sdk
@@ -78,7 +79,30 @@ define run_docker
 	"COIN=$(COIN) APP_TESTING=$(APP_TESTING) $(2)"
 endef
 
+define run_docker_new
+	@echo "docker host: id -u: `id -u`"
+	@echo "docker host: whoami: `whoami`"
+	docker version
+	echo "TODO: this is all cached and fast on a local box, but takes over 4 minutes on CircleCI :-("
+	docker build -t ledger-app-builder:latest $(CURDIR)/deps/ledger-app-builder
+	docker run $(TTY_SETTING) $(INTERACTIVE_SETTING) $(MAKE_LINUX_DOCKER_OPTIONS) --rm \
+	-e SCP_PRIVKEY=$(SCP_PRIVKEY) \
+	-e BOLOS_ENV_IGNORE=/opt/bolos \
+	-e COIN=$(COIN) \
+	-e APP_TESTING=$(APP_TESTING) \
+	-u $(USERID):$(USERID) \
+	-v $(shell pwd)/app:/app \
+	-v $(shell pwd)/deps:/deps \
+	$(1) \
+	ledger-app-builder:latest \
+	$(2)
+endef
+
 all: build
+
+#.PHONY: build_build_container
+#build_build_container:
+#	docker build -t ledger-app-builder:latest $(CURDIR)/deps/ledger-app-builder
 
 .PHONY: check_todo
 check_todo:
@@ -115,7 +139,8 @@ build:
 	$(info Replacing app icon)
 	@cp $(LEDGER_SRC)/nanos_icon.gif $(LEDGER_SRC)/glyphs/icon_app.gif
 	$(info calling make inside docker)
-	$(call run_docker,$(DOCKER_BOLOS_SDK),make -j `nproc` -C $(DOCKER_APP_SRC))
+	$(call run_docker_new, , make -j `nproc` )
+#	$(call run_docker_new, , "make -j `nproc` -C $(DOCKER_APP_SRC_NEW)")
 
 .PHONY: buildX
 buildX: build_rust
@@ -125,7 +150,7 @@ buildX: build_rust
 
 .PHONY: clean
 clean:
-	$(call run_docker,$(DOCKER_BOLOS_SDK),make -C $(DOCKER_APP_SRC) clean)
+	$(call run_docker_new, ,make clean)
 
 .PHONY: clean_rust
 clean_rust:
@@ -137,7 +162,7 @@ listvariants:
 
 .PHONY: shell
 shell:
-	$(call run_docker,$(DOCKER_BOLOS_SDK) -t,bash)
+	$(call run_docker_new, -ti, bash)
 
 .PHONY: load
 load:
