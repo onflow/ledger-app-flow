@@ -1,13 +1,16 @@
 'use strict';
 
 import { spawn, spawnSync } from 'child_process';
+import SpeculosTransport from "@ledgerhq/hw-transport-node-speculos";
 
 import * as path from 'path';
 
-var test_speculos_api_port = process.env.TEST_SPECULOS_API_PORT ? process.env.TEST_SPECULOS_API_PORT : 5000;
+const test_speculos_api_port = process.env.TEST_SPECULOS_API_PORT ? process.env.TEST_SPECULOS_API_PORT : 5000;
+const test_speculos_apdu_port = process.env.TEST_SPECULOS_APDU_PORT ? process.env.TEST_SPECULOS_APDU_PORT : 40000;
 
 console.log(); // blank line to visually separate the tests in the log
-console.log(humanTime() + " // included: common.js; TEST_SPECULOS_API_PORT=" + test_speculos_api_port);
+console.log(humanTime() + " // included: common.js; TEST_SPECULOS_API_PORT=" + test_speculos_api_port 
+                                               + "; TEST_SPECULOS_APDU_PORT=" + test_speculos_apdu_port);
 
 // see https://stackoverflow.com/questions/9763441/milliseconds-to-time-in-javascript
 function msToTime(s) {
@@ -270,43 +273,56 @@ async function sleep(ms, what) {
 	await timeout(ms);
 }
 
-var mockTransport = {
-	hexApduCommandOut: [],
-	hexApduCommandIn: [],
+async function getSpyTransport() {
+	return await (new SpyTransport()).initialize();
+}
+
+class SpyTransport {
+	transport
+
+	//saves the communication
+	hexApduCommandOut = []
+	hexApduCommandIn = []
+
+	//synchronization
+	APDUToWait = null
+	APDUToWaitPromise = null
+	resolveAPDUToWaitPromise = function() {}
+
+	async initialize() {
+		this.transport = await SpeculosTransport.default.open({ apduPort: test_speculos_apdu_port });
+		return this
+	}
 
 	//this.transport.send(_common.CLA, _common.INS.SET_SLOT, 0, 0, payload).then(...)
-	send: async function(cla, ins, p1, p2, pay) {
-		var len = (typeof pay === 'undefined') ? 0 : pay.length;
-		var hex_cla = cla.toString(16).padStart(2, '0'); if (process.env.TEST_DEBUG >= 1) { console.log(humanTime() + " .send() cla: 0x" + hex_cla); } // e.g. 33
-		var hex_ins = ins.toString(16).padStart(2, '0'); if (process.env.TEST_DEBUG >= 1) { console.log(humanTime() + " .send() ins: 0x" + hex_ins); } // e.g. 12
-		var hex_p1  =  p1.toString(16).padStart(2, '0'); if (process.env.TEST_DEBUG >= 1) { console.log(humanTime() + " .send() p1 : 0x" + hex_p1 ); } // e.g. 00
-		var hex_p2  =  p2.toString(16).padStart(2, '0'); if (process.env.TEST_DEBUG >= 1) { console.log(humanTime() + " .send() p2 : 0x" + hex_p2 ); } // e.g. 00
-		var hex_len = len.toString(16).padStart(2, '0'); if (process.env.TEST_DEBUG >= 1) { console.log(humanTime() + " .send() len: 0x" + hex_len); } // e.g. 1d
-		var hex_pay = len ? pay.toString('hex') : ""   ; if (process.env.TEST_DEBUG >= 1) { console.log(humanTime() + " .send() pay: 0x" + hex_pay + " <- " + len + " bytes"); } // e.g. 0a00010203040506072c0000801b020080010200800000000000000000
-		var hexApduCommandViaMockTransport = ''.concat(hex_cla, hex_ins, hex_p1, hex_p2, hex_len, hex_pay); // e.g. 331200001d0a00010203040506072c0000801b020080010200800000000000000000
+	async send(cla, ins, p1, p2, pay) {
+		const len = (typeof pay === 'undefined') ? 0 : pay.length;
+		const hex_cla = cla.toString(16).padStart(2, '0'); if (process.env.TEST_DEBUG >= 1) { console.log(humanTime() + " .send() cla: 0x" + hex_cla); } // e.g. 33
+		const hex_ins = ins.toString(16).padStart(2, '0'); if (process.env.TEST_DEBUG >= 1) { console.log(humanTime() + " .send() ins: 0x" + hex_ins); } // e.g. 12
+		const hex_p1  =  p1.toString(16).padStart(2, '0'); if (process.env.TEST_DEBUG >= 1) { console.log(humanTime() + " .send() p1 : 0x" + hex_p1 ); } // e.g. 00
+		const hex_p2  =  p2.toString(16).padStart(2, '0'); if (process.env.TEST_DEBUG >= 1) { console.log(humanTime() + " .send() p2 : 0x" + hex_p2 ); } // e.g. 00
+		const hex_len = len.toString(16).padStart(2, '0'); if (process.env.TEST_DEBUG >= 1) { console.log(humanTime() + " .send() len: 0x" + hex_len); } // e.g. 1d
+		const hex_pay = len ? pay.toString('hex') : ""   ; if (process.env.TEST_DEBUG >= 1) { console.log(humanTime() + " .send() pay: 0x" + hex_pay + " <- " + len + " bytes"); } // e.g. 0a00010203040506072c0000801b020080010200800000000000000000
+		const hexApduCommandViaMockTransport = ''.concat(hex_cla, hex_ins, hex_p1, hex_p2, hex_len, hex_pay); // e.g. 331200001d0a00010203040506072c0000801b020080010200800000000000000000
 		this.hexApduCommandOut.push(hexApduCommandViaMockTransport);		
 		console.log(humanTime() + " .send() // " + hexApduCommandViaMockTransport + " <-- this is the mockTransport.send() (read: fake send) function");
 
 		//Now we actually send
 		testStep(" >    ", "APDU out");
-		asyncCurlApduSend(hexApduCommandViaMockTransport);
+		const sendPromise = this.transport.send(cla, ins, p1, p2, pay)
 
 		//If we are waiting for this APDU we resolve the promise
 		if (!!this.APDUToWait && cla == this.APDUToWait.cla && ins == this.APDUToWait.ins && p1 == this.APDUToWait.p1) {
 			this.resolveAPDUToWaitPromise()
 		}
 		testStep("     <", "APDU in");
-		const res = await curlApduResponseWait();
-		this.hexApduCommandIn.push(res);		
+		const res = await sendPromise;
+		this.hexApduCommandIn.push(""+Buffer.from(res).toString("hex"));		
 
-		return Buffer.from(res, "hex") 
-	},
+		return Buffer.from(res) 
+	}
 
-	APDUToWait: null,
-	APDUToWaitPromise: null,
-	resolveAPDUToWaitPromise: function() {},
-
-	waitForAPDU: async function (cla, ins, p1) {
+	async waitForAPDU(cla, ins, p1) {
 		this.APDUToWait = {cla: cla, ins: ins, p1: p1};
 		this.APDUToWaitPromise = new Promise(resolve => this.resolveAPDUToWaitPromise = resolve)
 		await this.APDUToWaitPromise;
@@ -314,6 +330,10 @@ var mockTransport = {
 		this.APDUToWaitPromise = null;
 		this.resolveAPDUToWaitPromise = function() {};
 	}
+
+	async close() {
+		await this.transport.close()
+	}
 };
 
-export {testStart, testCombo, testStep, testEnd, compare, asyncCurlApduSend, curlApduResponseWait, curlButton, curlScreenShot, humanTime, sleep, mockTransport, path};
+export {testStart, testCombo, testStep, testEnd, compare, asyncCurlApduSend, curlApduResponseWait, curlButton, curlScreenShot, humanTime, sleep, getSpyTransport, path};

@@ -6,6 +6,7 @@
   "main": "index.js",
   "type": "module",
   "dependencies": {
+    "@ledgerhq/hw-transport-node-speculos": "^6.20.0",
     "@onflow/ledger": "file:../js"
   },
   "devDependencies": {

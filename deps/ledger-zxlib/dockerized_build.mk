@@ -281,7 +281,7 @@ generate_test_vectors:
 # Note: This error did occur once: docker: Error response from daemon: driver failed programming external connectivity on endpoint speculos-port-5002 (082ea92d039f260880bc264a2f6086e14c42d698f24ff5acbba422baa9c60b29): Error starting userland proxy: listen tcp 0.0.0.0:41002: bind: address already in use.
 # Note: Since we do not need to use the VNC for the tests, then remove this option and hope the error never shows up again: --vnc-port $(3)
 define start_speculos_container
-	docker run --detach --name speculos-port-$(1) --rm -it -v $(CURDIR)/app:/speculos/app --publish $(1):$(1) --publish $(3):$(3) speculos --model nanos --sdk 2.0 --seed "equip will roof matter pink blind book anxiety banner elbow sun young" --display headless --apdu-port $(2) --api-port $(1) ./app/bin/app.elf ; rm -f ../speculos-port-$(1).log ; docker logs --follow speculos-port-$(1) 2>&1 | tee -a ../speculos-port-$(1).log > /dev/null 2>&1 &
+	docker run --detach --name speculos-port-$(1) --rm -it -v $(CURDIR)/app:/speculos/app --publish $(1):$(1) --publish $(2):$(2) --publish $(3):$(3) speculos --model nanos --sdk 2.0 --seed "equip will roof matter pink blind book anxiety banner elbow sun young" --display headless --apdu-port $(2) --api-port $(1) ./app/bin/app.elf ; rm -f ../speculos-port-$(1).log ; docker logs --follow speculos-port-$(1) 2>&1 | tee -a ../speculos-port-$(1).log > /dev/null 2>&1 &
 	@perl -e 'use Time::HiRes; $$t1=Time::HiRes::time(); while(1){ $$o=`cat ../speculos-port-$(1).log`; if($$o =~ m~Running on .*\:$(1)~s){ printf qq[# detected -- via log -- speculos listening after %f seconds; spy on emulated device via http://localhost:$(1)/\n], Time::HiRes::time() - $$t1; exit; } Time::HiRes::sleep(0.01); };'
 endef
 
@@ -295,27 +295,27 @@ define run_announce
 endef
 
 define run_nodejs_test
-	@cd $(TESTS_SPECULOS_DIR) && TEST_SPECULOS_API_PORT=$(1) node $(2) 2>&1 | tee -a ../../speculos-port-$(1).log 2>&1 | perl -lane '$$lines .= $$_ . "\n"; printf qq[%s\n], $$_ if(m~test(Start|Combo|Step|End)~); sub END{ die qq[ERROR: testEnd not detected; test failed?\n] if($$lines !~ m~testEnd~s); }'
+	@cd $(TESTS_SPECULOS_DIR) && TEST_SPECULOS_API_PORT=$(1) TEST_SPECULOS_APDU_PORT=$(2) node $(3) 2>&1 | tee -a ../../speculos-port-$(1).log 2>&1 | perl -lane '$$lines .= $$_ . "\n"; printf qq[%s\n], $$_ if(m~test(Start|Combo|Step|End)~); sub END{ die qq[ERROR: testEnd not detected; test failed?\n] if($$lines !~ m~testEnd~s); }'
 endef
 
 .PHONY: speculos_port_5001_test_internal
 speculos_port_5001_test_internal:
 	$(call run_announce,$@)
-	$(call run_nodejs_test,5001,test-basic-app-version.js)
-	$(call run_nodejs_test,5001,test-basic-slot-status-bad-net.js)
-	$(call run_nodejs_test,5001,test-basic-slot-status-full.js)
-	$(call run_nodejs_test,5001,test-basic-sign-basic-invalid.js)
-	$(call run_nodejs_test,5001,test-basic-get-address-secp256k1.js)
-	$(call run_nodejs_test,5001,test-basic-show-address-secp256k1.js)
-	$(call run_nodejs_test,5001,test-basic-get-address-secp256r1.js)
-	$(call run_nodejs_test,5001,test-basic-show-address-secp256r1.js)
-	$(call run_nodejs_test,5001,test-basic-show-address-expert.js)
+	$(call run_nodejs_test,5001,40001,test-basic-app-version.js)
+	$(call run_nodejs_test,5001,40001,test-basic-slot-status-bad-net.js)
+	$(call run_nodejs_test,5001,40001,test-basic-slot-status-full.js)
+	$(call run_nodejs_test,5001,40001,test-basic-sign-basic-invalid.js)
+	$(call run_nodejs_test,5001,40001,test-basic-get-address-secp256k1.js)
+	$(call run_nodejs_test,5001,40001,test-basic-show-address-secp256k1.js)
+	$(call run_nodejs_test,5001,40001,test-basic-get-address-secp256r1.js)
+	$(call run_nodejs_test,5001,40001,test-basic-show-address-secp256r1.js)
+	$(call run_nodejs_test,5001,40001,test-basic-show-address-expert.js)
 	@echo "# ALL TESTS COMPLETED!" | tee -a ../speculos-port-5001.log
 
 .PHONY: speculos_port_5002_test_internal
 speculos_port_5002_test_internal:
 	$(call run_announce,$@)
-	$(call run_nodejs_test,5002,test-transactions.js)
+	$(call run_nodejs_test,5002,40002,test-transactions.js)
 	@echo "# ALL TESTS COMPLETED!" | tee -a ../speculos-port-5002.log
 
 .PHONY: speculos_port_5001_test
