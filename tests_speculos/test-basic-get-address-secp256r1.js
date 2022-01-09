@@ -18,7 +18,7 @@ const scheme = FlowApp.Signature.P256 | FlowApp.Hash.SHA2_256;
 const path = `m/44'/539'/${scheme}'/0/0`;
 
 console.log(common.humanTime() + " // screen shot before sending first apdu command");
-common.curlScreenShot(scriptName);
+await common.curlScreenShot(scriptName);
 
 //get pubkey
 common.testStep(" - - -", "await app.getAddressAndPubKey() // path=" + path);

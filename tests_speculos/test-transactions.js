@@ -29,7 +29,7 @@ const PAYER_PAGE_COUNT = 1;
 const AUTHORIZER_PAGE_COUNT = 1;
 const ACCEPT_PAGE_COUNT = 1;
 
-const PAGE_SIZE = 34;
+const PAGE_SIZE = (process.env.TEST_DEVICE && process.env.TEST_DEVICE == "nanox") ? 57: 34;
 
 function getArgumentPageCount(arg) {
     if (arg.type == "Array") {
@@ -84,7 +84,7 @@ async function transactionTest(testTitle, transactionTitle, txHexBlob, txExpecte
 	const path = getKeyPath(sigAlgo.code, hashAlgo.code);
 
 	console.log(common.humanTime() + " // screen shot before sending first apdu command");
-	common.curlScreenShot(scriptNameCombo);
+	await common.curlScreenShot(scriptNameCombo);
 
 	//getPubkey
 	common.testStep(" - - -", "await app.getAddressAndPubKey() // path=" + path);
@@ -110,11 +110,14 @@ async function transactionTest(testTitle, transactionTitle, txHexBlob, txExpecte
 	common.testStep("   +  ", "buttons");
 	//sign is multiAPDU operation. This is outside of what common.curlScreenShot can synchronize. We help by synchronizing with last APDU
 	await transport.waitForAPDU(0x33, 0x02, 0x02);	
-	for (let right=0; right < txExpectedPageCount; ++right ) {
-		common.curlScreenShot(scriptNameCombo); common.curlButton('right', "");
+	if (process.env.TEST_DEVICE && process.env.TEST_DEVICE == "nanox") {
+		await common.curlScreenShot(scriptNameCombo); common.curlButton('right', "; Please review");
 	}
-	common.curlScreenShot(scriptNameCombo); common.curlButton('both', "; confirm; Approve");
-	common.curlScreenShot(scriptNameCombo); console.log(common.humanTime() + " // back to main screen");
+	for (let right=0; right < txExpectedPageCount; ++right ) {
+		await common.curlScreenShot(scriptNameCombo); common.curlButton('right', "");
+	}
+	await common.curlScreenShot(scriptNameCombo); common.curlButton('both', "; confirm; Approve");
+	await common.curlScreenShot(scriptNameCombo); console.log(common.humanTime() + " // back to main screen");
 	common.testStep(" - - -", "await signPromise")
 	const signResponse = await signPromise;
 	assert.equal(signResponse.returnCode, 0x9000);
@@ -185,7 +188,6 @@ async function transactionTest(testTitle, transactionTitle, txHexBlob, txExpecte
 }
 //End async function transactionTest(
 
-
 //Now we test the transactions
 const ECDSA_SECP256K1 = { name: "secp256k1", code: FlowApp.Signature.SECP256K1 };
 const ECDSA_P256 = { name: "p256", code: FlowApp.Signature.P256 };
@@ -205,17 +207,17 @@ const exampleAddKeyBlob        = "f90186f9015eb86e7472616e73616374696f6e28707562
 		{
 			title: "Transfer FLOW",
 			blob: exampleTransferBlob,
-			pageCount: 12,
+			pageCount: (process.env.TEST_DEVICE && process.env.TEST_DEVICE == "nanox")?12:12,
 		},
 		{
 			title: "Create Account",
 			blob: exampleCreateAccountBlob,
-			pageCount: 20,
+			pageCount: (process.env.TEST_DEVICE && process.env.TEST_DEVICE == "nanox")?16:20,
 		},
 		{
 			title: "Add Key",
 			blob: exampleAddKeyBlob,
-			pageCount: 15,
+			pageCount: (process.env.TEST_DEVICE && process.env.TEST_DEVICE == "nanox")?13:15,
 		},
 	];
 

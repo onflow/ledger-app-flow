@@ -15,7 +15,7 @@ const app = new FlowApp(transport);
 
 console.log(common.humanTime() + " // using FlowApp below with transport() to grab apdu command without sending it");
 
-common.curlScreenShot(scriptName); console.log(common.humanTime() + " // screen shot before sending first apdu command");
+await common.curlScreenShot(scriptName); console.log(common.humanTime() + " // screen shot before sending first apdu command");
 
 //slotStatus test when there are no slots
 common.testStep(" - - -", "await app.slotStatus() // Check initial status");
@@ -44,11 +44,14 @@ const expectedPath = `m/44'/539'/${scheme}'/0/0`;
 common.testStep(" - - -", "app.setSlot() // expectedSlot=" + expectedSlot + " expectedAccount=" + expectedAccount + " expectedPath=" + expectedPath + "; Set slot 10");
 const setSlotPromise = app.setSlot(expectedSlot, expectedAccount, expectedPath);
 common.testStep("   +  ", "buttons");
-common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Set Account 10");
-common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Account e467..");
-common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Path 44'/..");
-common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve");
-common.curlScreenShot(scriptName); console.log(common.humanTime() + " // back to main screen");
+if (process.env.TEST_DEVICE && process.env.TEST_DEVICE == "nanox") {
+    common.curlScreenShot(scriptName); common.curlButton('right', "; Please review");
+}
+await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Set Account 10");
+await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Account e467..");
+await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Path 44'/..");
+await common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve");
+await common.curlScreenShot(scriptName); console.log(common.humanTime() + " // back to main screen");
 common.testStep(" - - -", "await setSlotPromise // expectedSlot=" + expectedSlot + " expectedAccount=" + expectedAccount + " expectedPath=" + expectedPath + "; Set slot 10");
 const setSlotResponse = await setSlotPromise
 assert.equal(setSlotResponse.returnCode, 0x9000);
@@ -120,13 +123,16 @@ const expectedPath2 = `m/44'/539'/${scheme}'/0/1`;
 common.testStep(" - - -", "app.setSlot() // expectedSlot=" + expectedSlot + " expectedAccount2=" + expectedAccount2 + " expectedPath2=" + expectedPath2 + "; Set slot 10");
 const setSlotPromise2 = app.setSlot(expectedSlot, expectedAccount2, expectedPath2);
 common.testStep("   +  ", "buttons");
-common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Update Account 10");
-common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Old Account e467..");
-common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Old Path 44'/..");
-common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; New Account e467..");
-common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; New Path 44'/..");
-common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve");
-common.curlScreenShot(scriptName); console.log(common.humanTime() + " // back to main screen");
+if (process.env.TEST_DEVICE && process.env.TEST_DEVICE == "nanox") {
+    await common.curlScreenShot(scriptName); common.curlButton('right', "; Please review");
+}
+await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Update Account 10");
+await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Old Account e467..");
+await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Old Path 44'/..");
+await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; New Account e467..");
+await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; New Path 44'/..");
+await common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve");
+await common.curlScreenShot(scriptName); console.log(common.humanTime() + " // back to main screen");
 common.testStep(" - - -", "await setSlotPromise // expectedSlot=" + expectedSlot + " expectedAccount2=" + expectedAccount2 + " expectedPath=2" + expectedPath2 + "; Set slot 10");
 const setSlotResponse2 = await setSlotPromise2
 assert.equal(setSlotResponse2.returnCode, 0x9000);
@@ -181,11 +187,14 @@ const expectedPathDelete = `m/0/0/0/0/0`;
 common.testStep(" - - -", "app.setSlot() // expectedSlot=" + expectedSlot + " expectedAccountDelete=" + expectedAccountDelete + " expectedPathDelete=" + expectedPathDelete + "; Delete slot 10");
 const setSlotPromise3 = app.setSlot(10, expectedAccountDelete, expectedPathDelete);
 common.testStep("   +  ", "buttons");
-common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Delete Account 10");
-common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Old Account e467..");
-common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Old Path 44'/..");
-common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve");
-common.curlScreenShot(scriptName); console.log(common.humanTime() + " // back to main screen");
+if (process.env.TEST_DEVICE && process.env.TEST_DEVICE == "nanox") {
+    await common.curlScreenShot(scriptName); common.curlButton('right', "; Please review");
+}
+await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Delete Account 10");
+await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Old Account e467..");
+await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Old Path 44'/..");
+await common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve");
+await common.curlScreenShot(scriptName); console.log(common.humanTime() + " // back to main screen");
 common.testStep(" - - -", "await setSlotPromise2 // expectedSlot=" + expectedSlot + " expectedAccountDelete=" + expectedAccountDelete + " expectedPathDelete=" + expectedPathDelete + "; Delete slot 10");
 const setSlotResponse3 = await setSlotPromise3;
 assert.equal(setSlotResponse3.returnCode, 0x9000);

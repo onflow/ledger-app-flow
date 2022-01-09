@@ -18,25 +18,25 @@ console.log(common.humanTime() + " // Derivation path. First 3 items are automat
 const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
 const path = `m/44'/539'/${scheme}'/0/0`;
 
-common.curlScreenShot(scriptName); console.log(common.humanTime() + " // screen shot before sending first apdu command");
+await common.curlScreenShot(scriptName); console.log(common.humanTime() + " // screen shot before sending first apdu command");
 
 //change to expert mode
 common.testStep("   +  ", "buttons; enable expert mode");
-common.curlButton('right', "; Expert mode: disabled"); common.curlScreenShot(scriptName);
-common.curlButton('both' , "; Expert mode: enabled" ); common.curlScreenShot(scriptName);
-common.curlButton('left' , "; Flow Ready"           ); common.curlScreenShot(scriptName);
+common.curlButton('right', "; Expert mode: disabled"); await common.curlScreenShot(scriptName);
+common.curlButton('both' , "; Expert mode: enabled" ); await common.curlScreenShot(scriptName);
+common.curlButton('left' , "; Flow Ready"           ); await common.curlScreenShot(scriptName);
 
 //show pubkey
 common.testStep(" - - -", "app.showAddressAndPubKey() // path=" + path);
 const showPubkeyPromise = app.showAddressAndPubKey(path);
 common.testStep("   +  ", "buttons");
-common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Pub Key [1/4] 04d7..");
-common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Pub Key [2/4] ..");
-common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Pub Key [3/4] ..");
-common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Pub Key [4/4] ..");
-common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Your Path 44'/..");
-common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve"); // todo: should showAddressAndPubKey() need an 'Approve' dialog?
-common.curlScreenShot(scriptName); console.log(common.humanTime() + " // back to main screen");
+await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Pub Key [1/4] 04d7..");
+await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Pub Key [2/4] ..");
+await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Pub Key [3/4] ..");
+await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Pub Key [4/4] ..");
+await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Your Path 44'/..");
+await common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve"); // todo: should showAddressAndPubKey() need an 'Approve' dialog?
+await common.curlScreenShot(scriptName); console.log(common.humanTime() + " // back to main screen");
 const showPubkeyResponse = await showPubkeyPromise
 assert.equal(showPubkeyResponse.returnCode, 0x9000);
 assert.equal(showPubkeyResponse.errorMessage, "No errors");
