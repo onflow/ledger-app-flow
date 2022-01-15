@@ -85,7 +85,6 @@ cmake-build-fuzz/
 !\deps/ledger-zxlib
 !\deps/PicoSHA2
 !\deps/jsmn
-deps/ledger-zxlib/Dockerfile
 
 node_modules/.yarn-integrity
 /build
