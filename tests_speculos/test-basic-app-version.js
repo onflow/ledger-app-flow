@@ -14,7 +14,7 @@ const transport = await common.getSpyTransport()
 const app = new FlowApp(transport);
 
 console.log(common.humanTime() + " // using FlowApp below with transport() to grab apdu command without sending it");
-common.curlScreenShot(scriptName); console.log(common.humanTime() + " // screen shot before sending first apdu command");
+await common.curlScreenShot(scriptName); console.log(common.humanTime() + " // screen shot before sending first apdu command");
 
 //getVersion
 common.testStep(" - - -", "await app.getVersion()");
@@ -33,6 +33,9 @@ var hexExpected = "3300000000";
 common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, unexpected:9999});
 var hexIncomming = transport.hexApduCommandIn.shift();
 var hexExpected = "0000090c00311000049000";
+if (process.env.TEST_DEVICE && process.env.TEST_DEVICE == "nanox") {
+    var hexExpected = "0000090c00330000049000";
+}
 common.compare(hexIncomming, hexExpected, "apdu response", {testMode:1, major:1, minor:1, patch:1, deviceLocked:1, targetId:4, returnCode:2, unexpected:9999});
 
 await transport.close()

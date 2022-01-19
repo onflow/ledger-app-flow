@@ -19,17 +19,17 @@ const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
 const path = `m/44'/539'/${scheme}'/0/0`;
 
 console.log(common.humanTime() + " // screen shot before sending first apdu command");
-common.curlScreenShot(scriptName);
+await common.curlScreenShot(scriptName);
 
 //showAddress
 common.testStep(" - - -", "app.showAddressAndPubKey() // path=" + path);
 const showPubkeyPromise = app.showAddressAndPubKey(path);
-common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Pub Key [1/4] 04d7..");
-common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Pub Key [2/4] ..");
-common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Pub Key [3/4] ..");
-common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Pub Key [4/4] ..");
-common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve"); // todo: should showAddressAndPubKey() need an 'Approve' dialog?*/
-common.curlScreenShot(scriptName); console.log(common.humanTime() + " // back to main screen");
+await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Pub Key [1/4] 04d7..");
+await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Pub Key [2/4] ..");
+await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Pub Key [3/4] ..");
+await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Pub Key [4/4] ..");
+await common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve"); // todo: should showAddressAndPubKey() need an 'Approve' dialog?*/
+await common.curlScreenShot(scriptName); console.log(common.humanTime() + " // back to main screen");
 const showPubkeyResponse = await showPubkeyPromise
 assert.equal(showPubkeyResponse.returnCode, 0x9000);
 assert.equal(showPubkeyResponse.errorMessage, "No errors");

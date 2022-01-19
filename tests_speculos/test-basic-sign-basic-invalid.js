@@ -21,7 +21,7 @@ const address = "e467b9dd11fa00df"
 const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
 const path = `m/44'/539'/${scheme}'/0/0`;
 
-common.curlScreenShot(scriptName); console.log(common.humanTime() + " // screen shot before sending first apdu command");
+await common.curlScreenShot(scriptName); console.log(common.humanTime() + " // screen shot before sending first apdu command");
 
 //send invalid message
 let invalidMessage = Buffer.from(

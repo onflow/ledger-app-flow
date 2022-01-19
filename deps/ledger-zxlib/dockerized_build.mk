@@ -24,10 +24,24 @@ TESTS_GENERATE_DIR?=$(CURDIR)/tests/generate-transaction-tests
 
 LEDGER_SRC=$(CURDIR)/app
 DOCKER_APP_SRC=/project
+DOCKER_APP_SRC_NEW=/app
 DOCKER_APP_BIN=$(DOCKER_APP_SRC)/app/bin/app.elf
 
-DOCKER_BOLOS_SDK=/project/deps/nanos-secure-sdk
-DOCKER_BOLOS_SDKX=/project/deps/nano2-sdk
+SPECULOS_SDK=2.0
+SPECULOS_MODEL_SWITCH=nanos
+NANO_ICON_GIF=nanos_icon.gif
+BOLOS_SDK_DIRECTORY=/opt/nanos-secure-sdk
+TARGET_NAME=TARGET_NANOS
+TEST_DEVICE=nanos
+ifeq ($(TARGET_DEVICE), NANO_X)
+    $(info Targeting NanoX)
+    SPECULOS_MODEL_SWITCH=nanox
+    NANO_ICON_GIF=nanox_icon.gif
+    BOLOS_SDK_DIRECTORY=/opt/nanox-secure-sdk
+    TARGET_NAME=TARGET_NANOX
+    TEST_DEVICE=nanox
+endif
+
 
 # todo: figure out if we are running on MacOS or Linux and how to set this env var dynamically: MAKE_LINUX_DOCKER_OPTIONS=--network host
 
@@ -51,8 +65,6 @@ $(info TESTS_JS_PACKAGE      : $(TESTS_JS_PACKAGE))
 $(info MAKE_NVM_SH_PATH      : $(MAKE_NVM_SH_PATH))
 endif
 
-DOCKER_IMAGE=zondax-builder-bolos-2021-10-04
-
 ifdef INTERACTIVE
 INTERACTIVE_SETTING:="-i"
 TTY_SETTING:="-t"
@@ -66,16 +78,20 @@ define run_docker
 	@echo "docker host: whoami: `whoami`"
 	docker version
 	echo "TODO: this is all cached and fast on a local box, but takes over 4 minutes on CircleCI :-("
-	cat deps/ledger-zxlib/Dockerfile.template | perl -lane 'sub BEGIN{ $$userid=`id -u`; chomp $$userid; } s~<USERID>~$$userid~g; print;' > deps/ledger-zxlib/Dockerfile
-	docker build --tag zondax-builder-bolos-2021-10-04 deps/ledger-zxlib/
+	docker build -t ledger-app-builder:latest $(CURDIR)/deps/ledger-app-builder
 	docker run $(TTY_SETTING) $(INTERACTIVE_SETTING) $(MAKE_LINUX_DOCKER_OPTIONS) --rm \
 	-e SCP_PRIVKEY=$(SCP_PRIVKEY) \
-	-e BOLOS_SDK=$(1) \
 	-e BOLOS_ENV_IGNORE=/opt/bolos \
+	-e COIN=$(COIN) \
+	-e APP_TESTING=$(APP_TESTING) \
+	-e BOLOS_SDK=$(BOLOS_SDK_DIRECTORY) \
+	-e TARGET_NAME=$(TARGET_NAME) \
 	-u $(USERID):$(USERID) \
-	-v $(shell pwd):/project \
-	$(DOCKER_IMAGE) \
-	"COIN=$(COIN) APP_TESTING=$(APP_TESTING) $(2)"
+	-v $(shell pwd)/app:/app \
+	-v $(shell pwd)/deps:/deps \
+	$(1) \
+	ledger-app-builder:latest \
+	$(2)
 endef
 
 all: build
@@ -97,47 +113,33 @@ deps: check_python
 	@echo "Install dependencies"
 	$(CURDIR)/deps/ledger-zxlib/scripts/install_deps.sh
 
-.PHONY: pull
-pull:
-	docker pull $(DOCKER_IMAGE)
-
-.PHONY: build_rust
-build_rust:
-	$(call run_docker,$(DOCKER_BOLOS_SDK),make -C $(DOCKER_APP_SRC) rust)
-
 .PHONY: convert_icon
 convert_icon:
 	@convert $(LEDGER_SRC)/tmp.gif -monochrome -size 16x16 -depth 1 $(LEDGER_SRC)/nanos_icon.gif
 	@convert $(LEDGER_SRC)/nanos_icon.gif -crop 14x14+1+1 +repage -negate $(LEDGER_SRC)/nanox_icon.gif
 
+.PHONY: build_build_container
+build_build_container:
+	docker build -t ledger-app-builder:latest $(CURDIR)/deps/ledger-app-builder
+
 .PHONY: build
 build:
 	$(info Replacing app icon)
-	@cp $(LEDGER_SRC)/nanos_icon.gif $(LEDGER_SRC)/glyphs/icon_app.gif
+	@cp $(LEDGER_SRC)/$(NANO_ICON_GIF) $(LEDGER_SRC)/glyphs/icon_app.gif
 	$(info calling make inside docker)
-	$(call run_docker,$(DOCKER_BOLOS_SDK),make -j `nproc` -C $(DOCKER_APP_SRC))
-
-.PHONY: buildX
-buildX: build_rust
-	@cp $(LEDGER_SRC)/nanos_icon.gif $(LEDGER_SRC)/glyphs/icon_app.gif
-	@convert $(LEDGER_SRC)/nanos_icon.gif -crop 14x14+1+1 +repage -negate $(LEDGER_SRC)/nanox_icon.gif
-	$(call run_docker,$(DOCKER_BOLOS_SDKX),make -j `nproc` -C $(DOCKER_APP_SRC))
+	$(call run_docker, , make -j `nproc`)
 
 .PHONY: clean
 clean:
-	$(call run_docker,$(DOCKER_BOLOS_SDK),make -C $(DOCKER_APP_SRC) clean)
-
-.PHONY: clean_rust
-clean_rust:
-	$(call run_docker,$(DOCKER_BOLOS_SDK),make -C $(DOCKER_APP_SRC) rust_clean)
+	$(call run_docker, ,make clean)
 
 .PHONY: listvariants
 listvariants:
-	$(call run_docker,$(DOCKER_BOLOS_SDK),make -C $(DOCKER_APP_SRC) listvariants)
+	$(call run_docker, ,make listvariants)
 
 .PHONY: shell
 shell:
-	$(call run_docker,$(DOCKER_BOLOS_SDK) -t,bash)
+	$(call run_docker, -ti, bash)
 
 .PHONY: load
 load:
@@ -281,7 +283,7 @@ generate_test_vectors:
 # Note: This error did occur once: docker: Error response from daemon: driver failed programming external connectivity on endpoint speculos-port-5002 (082ea92d039f260880bc264a2f6086e14c42d698f24ff5acbba422baa9c60b29): Error starting userland proxy: listen tcp 0.0.0.0:41002: bind: address already in use.
 # Note: Since we do not need to use the VNC for the tests, then remove this option and hope the error never shows up again: --vnc-port $(3)
 define start_speculos_container
-	docker run --detach --name speculos-port-$(1) --rm -it -v $(CURDIR)/app:/speculos/app --publish $(1):$(1) --publish $(2):$(2) --publish $(3):$(3) speculos --model nanos --sdk 2.0 --seed "equip will roof matter pink blind book anxiety banner elbow sun young" --display headless --apdu-port $(2) --api-port $(1) ./app/bin/app.elf ; rm -f ../speculos-port-$(1).log ; docker logs --follow speculos-port-$(1) 2>&1 | tee -a ../speculos-port-$(1).log > /dev/null 2>&1 &
+	docker run --detach --name speculos-port-$(1) --rm -it -v $(CURDIR)/app:/speculos/app --publish $(1):$(1) --publish $(2):$(2) --publish $(3):$(3) speculos --model $(SPECULOS_MODEL_SWITCH) --sdk $(SPECULOS_SDK) --seed "equip will roof matter pink blind book anxiety banner elbow sun young" --display headless --apdu-port $(2) --api-port $(1) ./app/bin/app.elf ; rm -f ../speculos-port-$(1).log ; docker logs --follow speculos-port-$(1) 2>&1 | tee -a ../speculos-port-$(1).log > /dev/null 2>&1 &
 	@perl -e 'use Time::HiRes; $$t1=Time::HiRes::time(); while(1){ $$o=`cat ../speculos-port-$(1).log`; if($$o =~ m~Running on .*\:$(1)~s){ printf qq[# detected -- via log -- speculos listening after %f seconds; spy on emulated device via http://localhost:$(1)/\n], Time::HiRes::time() - $$t1; exit; } Time::HiRes::sleep(0.01); };'
 endef
 
@@ -295,7 +297,7 @@ define run_announce
 endef
 
 define run_nodejs_test
-	@cd $(TESTS_SPECULOS_DIR) && TEST_SPECULOS_API_PORT=$(1) TEST_SPECULOS_APDU_PORT=$(2) node $(3) 2>&1 | tee -a ../../speculos-port-$(1).log 2>&1 | perl -lane '$$lines .= $$_ . "\n"; printf qq[%s\n], $$_ if(m~test(Start|Combo|Step|End)~); sub END{ die qq[ERROR: testEnd not detected; test failed?\n] if($$lines !~ m~testEnd~s); }'
+	@cd $(TESTS_SPECULOS_DIR) && TEST_SPECULOS_API_PORT=$(1) TEST_SPECULOS_APDU_PORT=$(2) TEST_DEVICE=$(TEST_DEVICE) node $(3) 2>&1 | tee -a ../../speculos-port-$(1).log 2>&1 | perl -lane '$$lines .= $$_ . "\n"; printf qq[%s\n], $$_ if(m~test(Start|Combo|Step|End)~); sub END{ die qq[ERROR: testEnd not detected; test failed?\n] if($$lines !~ m~testEnd~s); }'
 endef
 
 .PHONY: speculos_port_5001_test_internal
@@ -321,18 +323,18 @@ speculos_port_5002_test_internal:
 .PHONY: speculos_port_5001_test
 speculos_port_5001_test:
 	$(call run_announce,$@)
-	@make --no-print-directory speculos_port_5001_start
-	@-make --no-print-directory speculos_port_5001_test_internal
-	@make --no-print-directory speculos_port_5001_stop
+	@make --no-print-directory speculos_port_5001_start 
+	@-make --no-print-directory speculos_port_5001_test_internal 
+	@make --no-print-directory speculos_port_5001_stop 
 	$(call run_announce,note: logs: cat ../speculos-port-5001.log)
 	@cat ../speculos-port-5001.log
 
 .PHONY: speculos_port_5002_test
 speculos_port_5002_test:
 	$(call run_announce,$@)
-	@make --no-print-directory speculos_port_5002_start
-	@-make --no-print-directory speculos_port_5002_test_internal
-	@make --no-print-directory speculos_port_5002_stop
+	@make --no-print-directory speculos_port_5002_start 
+	@-make --no-print-directory speculos_port_5002_test_internal 
+	@make --no-print-directory speculos_port_5002_stop 
 	$(call run_announce,note: logs: cat ../speculos-port-5002.log)
 	@# todo: only output the last part of the log for the test that failed if it failed
 	@# todo: figure out how to run both (or more) tests in parallel, e.g. via something like tmux?

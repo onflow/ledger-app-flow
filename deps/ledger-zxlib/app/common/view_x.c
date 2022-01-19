@@ -237,11 +237,16 @@ void h_secret_click() {
 
 void view_idle_show_impl(uint8_t item_idx, char *statusString) {
     if (statusString == NULL ) {
+
+#ifdef APP_SECRET_MODE_ENABLED
         if (app_mode_secret()) {
             snprintf(viewdata.key, MAX_CHARS_PER_KEY_LINE, "%s", MENU_MAIN_APP_LINE2_SECRET);
         } else {
+#endif
             snprintf(viewdata.key, MAX_CHARS_PER_KEY_LINE, "%s", MENU_MAIN_APP_LINE2);
+#ifdef APP_SECRET_MODE_ENABLED
         }
+#endif
     } else {
         snprintf(viewdata.key, MAX_CHARS_PER_KEY_LINE, "%s", statusString);
     }

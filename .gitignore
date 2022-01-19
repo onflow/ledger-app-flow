@@ -76,14 +76,15 @@ cmake-build-fuzz/
 /app/bin/
 /app/debug/
 /app/obj/
+/app/glyphs/icon_app.gif
 
 \deps/*
 !\deps/nanos-secure-sdk
+!\deps/ledger-app-builder
 \deps/nano2-sdk
 !\deps/ledger-zxlib
 !\deps/PicoSHA2
 !\deps/jsmn
-deps/ledger-zxlib/Dockerfile
 
 node_modules/.yarn-integrity
 /build

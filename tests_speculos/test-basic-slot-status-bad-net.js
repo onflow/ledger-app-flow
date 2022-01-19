@@ -19,7 +19,7 @@ const expectedAccount = "8c5303eaa26202d6";
 const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
 const expectedPath = `m/44'/2'/${scheme}'/0/0`;
 
-common.curlScreenShot(scriptName); console.log(common.humanTime() + " // screen shot before sending first apdu command");
+await common.curlScreenShot(scriptName); console.log(common.humanTime() + " // screen shot before sending first apdu command");
 
 //setSlot
 common.testStep(" - - -", "await app.setSlot() // expectedSlot=" + expectedSlot + " expectedAccount=" + expectedAccount + " expectedPath=" + expectedPath);
