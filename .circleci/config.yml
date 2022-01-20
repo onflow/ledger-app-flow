@@ -120,3 +120,4 @@ workflows:
             branches:
               only:
                 - master
+                - test_circle_ci_fix
