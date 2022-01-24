@@ -229,8 +229,8 @@ zxerr_t crypto_sign(const uint32_t path[HDPATH_LEN_DEFAULT], const uint8_t *mess
 }
 
 typedef struct {
-    uint8_t publicKey[SECP256K1_PK_LEN];
-    char addrStr[SECP256K1_PK_LEN*2];
+    uint8_t publicKey[SECP256_PK_LEN];
+    char addrStr[SECP256_PK_LEN*2];
     uint8_t padding[4];
 } __attribute__((packed)) answer_t;
 

@@ -35,14 +35,8 @@ extern "C" {
 #define HDPATH_0_TESTNET     (0x80000000u | 0x2cu)
 #define HDPATH_1_TESTNET     (0x80000000u | 0x1u)
 
-#define SECP256K1_PK_LEN            65u
-#define SECP256R1_PK_LEN            65u
+#define SECP256_PK_LEN            65u
 
-typedef enum {
-    ADDR_SECP256K1 = 0,
-} address_kind_e;
-
-#define VIEW_ADDRESS_OFFSET_SECP256K1       (SECP256K1_PK_LEN )
 #define COIN_AMOUNT_DECIMAL_PLACES          0           // FIXME: Adjust this
 #define COIN_SUPPORTED_TX_VERSION           0
 

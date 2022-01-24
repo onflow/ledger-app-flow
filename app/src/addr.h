@@ -20,6 +20,17 @@
 extern "C" {
 #endif
 
+//Enum to determine if we should show address
+typedef enum {
+    show_address_yes,
+    show_address_empty_slot,
+    show_address_hdpaths_not_equal,
+} show_addres_t;
+
+extern show_addres_t show_address;
+
+#define ADDRESS_OFFSET (3*SECP256_PK_LEN+1)
+
 /// Return the number of items in the address view
 zxerr_t addr_getNumItems(uint8_t *num_items);
 

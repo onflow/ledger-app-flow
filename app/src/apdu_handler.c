@@ -29,6 +29,10 @@
 #include "coin.h"
 #include "account.h"
 #include "zxmacros.h"
+#include "zxformat.h"
+
+#define MAIN_SLOT 0
+#define EXPECTED_ADDRESS_STRING_LENGHT 16
 
 __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     extractHDPath(rx, OFFSET_DATA);
@@ -37,6 +41,42 @@ __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx,
 
     if (requireConfirmation) {
         app_fill_address();
+
+        account_slot_t slot;
+        zxerr_t err = slot_getSlot(MAIN_SLOT, (uint8_t *) &slot, sizeof(slot));
+
+        if (!(err == zxerr_no_data  || err == zxerr_ok)) {
+            zemu_log_stack("Unknown slot error");
+            THROW(APDU_CODE_UNKNOWN);
+        }
+
+        //Case 1 Empty slot 0 
+        if (err == zxerr_no_data) {
+            show_address = show_address_empty_slot;
+        }
+        else {
+            //Case 2 Slot 0 derivation path is not the same as APDU derivation path
+            if (memcmp(slot.path.data, hdPath, sizeof(hdPath))) {
+                show_address = show_address_hdpaths_not_equal;            
+            }
+            //Case 3 Everything is OK
+            else {
+                show_address = show_address_yes;
+
+                uint32_t dstLen = sizeof(G_io_apdu_buffer) - ADDRESS_OFFSET;
+                if (dstLen < EXPECTED_ADDRESS_STRING_LENGHT + 1) { //+1 for terminating 0
+                    zemu_log_stack("G_io_apdu_buffer unexpectedly short.");
+                    THROW(APDU_CODE_UNKNOWN);
+                }
+         
+                uint32_t len = array_to_hexstr((char *)(G_io_apdu_buffer + ADDRESS_OFFSET), dstLen, slot.account.data, sizeof(slot.account.data));
+
+                if (len != EXPECTED_ADDRESS_STRING_LENGHT) {
+                    zemu_log_stack("Address conversion error.");
+                    THROW(APDU_CODE_EXECUTION_ERROR+len);
+                }
+            }
+        }
 
         view_review_init(addr_getItem, addr_getNumItems, app_reply_address);
         view_review_show();
