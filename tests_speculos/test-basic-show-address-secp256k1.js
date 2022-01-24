@@ -34,7 +34,7 @@ if (!(process.env.TEST_DEVICE && process.env.TEST_DEVICE == "nanox")) {
     await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Pub Key [4/4] ..");
 }
 await common.curlScreenShot(scriptName); common.curlButton('right', "; Not saved on the device. ..");
-await common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve"); // todo: should showAddressAndPubKey() need an 'Approve' dialog?*/
+await common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve"); // todo: should showAddressAndPubKey() need an 'Approve' dialog?
 await common.curlScreenShot(scriptName); console.log(common.humanTime() + " // back to main screen");
 const showPubkeyResponse = await showPubkeyPromise
 assert.equal(showPubkeyResponse.returnCode, 0x9000);
@@ -64,7 +64,7 @@ if (process.env.TEST_DEVICE && process.env.TEST_DEVICE == "nanox") {
 await common.curlScreenShot(scriptName); common.curlButton('right', "; Set slot 0 ..");
 await common.curlScreenShot(scriptName); common.curlButton('right', "; Path ..");
 await common.curlScreenShot(scriptName); common.curlButton('right', "; Address ..");
-await common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve"); // todo: should showAddressAndPubKey() need an 'Approve' dialog?*/
+await common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve"); // todo: should showAddressAndPubKey() need an 'Approve' dialog?
 await common.curlScreenShot(scriptName); console.log(common.humanTime() + " // back to main screen");
 const setSlotResponse = await setSlotPromise
 assert.equal(setSlotResponse.returnCode, 0x9000);
@@ -91,7 +91,7 @@ if (!(process.env.TEST_DEVICE && process.env.TEST_DEVICE == "nanox")) {
     await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Pub Key [4/4] ..");
 }
 await common.curlScreenShot(scriptName); common.curlButton('right', "; Other path saved on the device. ..");
-await common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve"); // todo: should showAddressAndPubKey() need an 'Approve' dialog?*/
+await common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve"); // todo: should showAddressAndPubKey() need an 'Approve' dialog?
 await common.curlScreenShot(scriptName); console.log(common.humanTime() + " // back to main screen");
 const showPubkeyResponse2 = await showPubkeyPromise2
 assert.equal(showPubkeyResponse2.returnCode, 0x9000);
@@ -123,7 +123,7 @@ if (!(process.env.TEST_DEVICE && process.env.TEST_DEVICE == "nanox")) {
 await common.curlScreenShot(scriptName); common.curlButton('right', "; address ...");
 await common.curlScreenShot(scriptName); common.curlButton('right', "; warning text screen 1 ..");
 await common.curlScreenShot(scriptName); common.curlButton('right', "; warning text screen 1 ..");
-await common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve"); // todo: should showAddressAndPubKey() need an 'Approve' dialog?*/
+await common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve"); // todo: should showAddressAndPubKey() need an 'Approve' dialog?
 await common.curlScreenShot(scriptName); console.log(common.humanTime() + " // back to main screen");
 const showPubkeyResponse3 = await showPubkeyPromise3
 assert.equal(showPubkeyResponse3.returnCode, 0x9000);

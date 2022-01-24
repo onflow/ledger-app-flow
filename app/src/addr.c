@@ -24,6 +24,8 @@
 #include "addr.h"
 
 show_addres_t show_address;
+uint8_t pubkey_to_display[SECP256_PK_LEN];
+uint8_t address_to_display[ADDRESS_LENGTH];
 
 zxerr_t addr_getNumItems(uint8_t *num_items) {
     zemu_log_stack("addr_getNumItems");
@@ -45,8 +47,8 @@ zxerr_t addr_getItem(int8_t displayIdx,
 
     if (displayIdx--==0) {
             snprintf(outKey, outKeyLen, "Pub Key");
-            // +2 is to skip 0x04 prefix that indicates uncompresed key 
-            pageString(outVal, outValLen, (char *) (G_io_apdu_buffer + SECP256_PK_LEN + 2), pageIdx, pageCount);
+            // +1 is to skip 0x04 prefix that indicates uncompresed key 
+            pageHexString(outVal, outValLen, pubkey_to_display+1, sizeof(pubkey_to_display)-1, pageIdx, pageCount);
             return zxerr_ok;
     }
 
@@ -62,7 +64,7 @@ zxerr_t addr_getItem(int8_t displayIdx,
                     return zxerr_ok;
                 case show_address_yes:
                     snprintf(outKey, outKeyLen, "Address:");
-                    pageString(outVal, outValLen, (char *) (G_io_apdu_buffer + 3*SECP256_PK_LEN + 1), pageIdx, pageCount);
+                    pageHexString(outVal, outValLen, address_to_display, sizeof(address_to_display), pageIdx, pageCount);
                     return zxerr_ok;
                 default:
                     return zxerr_no_data;
@@ -76,7 +78,7 @@ zxerr_t addr_getItem(int8_t displayIdx,
     }
 
     if (show_address == show_address_yes && displayIdx--==0) {
-        snprintf(outKey, outKeyLen, "%s", (char *) (G_io_apdu_buffer + 3*SECP256_PK_LEN + 1));
+        array_to_hexstr(outKey, outKeyLen, address_to_display, sizeof(address_to_display)); 
 #if defined(TARGET_NANOX)
         snprintf(outVal, outValLen, " using any Flow blockchain explorer.");
 #else

@@ -49,8 +49,6 @@ extern uint32_t hdPath[HDPATH_LEN_DEFAULT];
 
 zxerr_t crypto_extractPublicKey(const uint32_t path[HDPATH_LEN_DEFAULT], uint8_t *pubKey, uint16_t pubKeyLen);
 
-zxerr_t crypto_fillAddress(const uint32_t path[HDPATH_LEN_DEFAULT], uint8_t *buffer, uint16_t bufferLen, uint16_t *addrLen);
-
 zxerr_t crypto_sign(
     const uint32_t path[HDPATH_LEN_DEFAULT],
     const uint8_t *message,

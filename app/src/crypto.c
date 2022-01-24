@@ -16,6 +16,7 @@
 
 #include "crypto.h"
 #include "coin.h"
+#include "addr.h"
 #include "zxmacros.h"
 #include "zxformat.h"
 #include "zxerror.h"
@@ -225,30 +226,6 @@ zxerr_t crypto_sign(const uint32_t path[HDPATH_LEN_DEFAULT], const uint8_t *mess
 
     // return actual size using value from signatureLength
     *sigSize = sizeof_field(signature_t, r) + sizeof_field(signature_t, s) + sizeof_field(signature_t, v) + signatureLength;
-    return zxerr_ok;
-}
-
-typedef struct {
-    uint8_t publicKey[SECP256_PK_LEN];
-    char addrStr[SECP256_PK_LEN*2];
-    uint8_t padding[4];
-} __attribute__((packed)) answer_t;
-
-zxerr_t crypto_fillAddress(const uint32_t path[HDPATH_LEN_DEFAULT], uint8_t *buffer, uint16_t buffer_len, uint16_t *addrLen) {
-    MEMZERO(buffer, buffer_len);
-
-    if (buffer_len < sizeof(answer_t)) {
-        zemu_log_stack("crypto_fillAddress: zxerr_buffer_too_small");
-        return zxerr_buffer_too_small;
-    }
-
-    answer_t *const answer = (answer_t *) buffer;
-
-    CHECK_ZXERR(crypto_extractPublicKey(path, answer->publicKey, sizeof_field(answer_t, publicKey)));
-
-    array_to_hexstr(answer->addrStr, sizeof_field(answer_t, addrStr) + 2, answer->publicKey, sizeof_field(answer_t, publicKey) );
-
-    *addrLen = sizeof(answer_t) - sizeof_field(answer_t, padding);
     return zxerr_ok;
 }
 

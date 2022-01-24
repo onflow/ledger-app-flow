@@ -320,6 +320,34 @@ __Z_INLINE void pageString(char *outValue, uint16_t outValueLen,
     pageStringExt(outValue, outValueLen, inValue, (uint16_t) strlen(inValue), pageIdx, pageCount);
 }
 
+__Z_INLINE void pageHexString(char *outValue, uint16_t outValueLen,
+                              const uint8_t *inValue, uint16_t inValueLen,
+                              uint8_t pageIdx, uint8_t *pageCount) {
+    MEMZERO(outValue, outValueLen);
+    *pageCount = 0;
+
+    uint16_t availableLen = (outValueLen - 1)/2;  //leave space for NULL termination
+
+    if (availableLen == 0) {
+        return;
+    }
+
+    *pageCount = (uint8_t) (inValueLen / availableLen);  //we need two characters on out per one character in int
+    const uint16_t lastChunkLen = (inValueLen % availableLen);
+
+    if (lastChunkLen > 0) {
+        (*pageCount)++;
+    }
+
+    if (pageIdx < *pageCount) {
+        if (lastChunkLen > 0 && pageIdx == *pageCount - 1) {
+            array_to_hexstr(outValue, outValueLen, inValue + (pageIdx * availableLen), lastChunkLen); 
+        } else {
+            array_to_hexstr(outValue, outValueLen, inValue + (pageIdx * availableLen), availableLen); 
+        }
+    }
+}
+
 __Z_INLINE zxerr_t formatBufferData(
         const uint8_t *ptr,
         uint64_t len,

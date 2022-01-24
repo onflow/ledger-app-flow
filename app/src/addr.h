@@ -28,8 +28,8 @@ typedef enum {
 } show_addres_t;
 
 extern show_addres_t show_address;
-
-#define ADDRESS_OFFSET (3*SECP256_PK_LEN+1)
+extern uint8_t pubkey_to_display[SECP256_PK_LEN];
+extern uint8_t address_to_display[ADDRESS_LENGTH];
 
 /// Return the number of items in the address view
 zxerr_t addr_getNumItems(uint8_t *num_items);

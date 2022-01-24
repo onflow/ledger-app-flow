@@ -31,14 +31,32 @@
 #include "zxmacros.h"
 #include "zxformat.h"
 
-__Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
-    extractHDPath(rx, OFFSET_DATA);
+//#define ASSERT(CONDITION) { if (!(CONDITION)) {THROW(APDU_CODE_UNKNOWN);}; }
+#define ASSERT(CONDITION) { if (!(CONDITION)) {THROW(0x6F01);}; }
 
+__Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+    //extract hdPath to hdPath global variable
+    extractHDPath(rx, OFFSET_DATA);
     uint8_t requireConfirmation = G_io_apdu_buffer[OFFSET_P1];
 
-    if (requireConfirmation) {
-        app_fill_address();
+    //extract pubkey to pubkey_to_display global variable
+    MEMZERO(pubkey_to_display, sizeof(pubkey_to_display));
+    zxerr_t err = crypto_extractPublicKey(hdPath, pubkey_to_display, sizeof(pubkey_to_display));
+    if (err !=  zxerr_ok) {
+        zemu_log_stack("Public key extraction erorr");
+        THROW(APDU_CODE_UNKNOWN);
+    }
 
+    //We prepare apdu response, as of now, it is pubkey and pubkey in hex ...
+    ASSERT(sizeof(G_io_apdu_buffer) > SECP256_PK_LEN + 2*SECP256_PK_LEN+1);
+    ASSERT(sizeof(pubkey_to_display) == SECP256_PK_LEN);
+    memmove(G_io_apdu_buffer, pubkey_to_display, sizeof(pubkey_to_display)); 
+    const uint16_t remainingLength = sizeof(G_io_apdu_buffer) - SECP256_PK_LEN;
+    uint32_t len = array_to_hexstr((char *)(G_io_apdu_buffer + SECP256_PK_LEN), remainingLength, pubkey_to_display, sizeof(pubkey_to_display));
+    ASSERT(len == 2*SECP256_PK_LEN);
+    ASSERT(GET_PUB_KEY_RESPONSE_LENGTH == 3*SECP256_PK_LEN);
+
+    if (requireConfirmation) {
         account_slot_t slot;
         zxerr_t err = slot_getSlot(MAIN_SLOT, (uint8_t *) &slot, sizeof(slot));
 
@@ -53,25 +71,15 @@ __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx,
         }
         else {
             //Case 2 Slot 0 derivation path is not the same as APDU derivation path
+            ASSERT(sizeof(slot.path.data) == sizeof(hdPath))
             if (memcmp(slot.path.data, hdPath, sizeof(hdPath))) {
                 show_address = show_address_hdpaths_not_equal;            
             }
             //Case 3 Everything is OK
             else {
+                ASSERT(sizeof(address_to_display) == sizeof(slot.account.data));
+                memcpy(address_to_display, slot.account.data, sizeof(address_to_display));
                 show_address = show_address_yes;
-
-                uint32_t dstLen = sizeof(G_io_apdu_buffer) - ADDRESS_OFFSET;
-                if (dstLen < 2*ADDRESS_LENGTH + 1) { //+1 for terminating 0
-                    zemu_log_stack("G_io_apdu_buffer unexpectedly short.");
-                    THROW(APDU_CODE_UNKNOWN);
-                }
-         
-                uint32_t len = array_to_hexstr((char *)(G_io_apdu_buffer + ADDRESS_OFFSET), dstLen, slot.account.data, sizeof(slot.account.data));
-
-                if (len != 2*ADDRESS_LENGTH) {
-                    zemu_log_stack("Address conversion error.");
-                    THROW(APDU_CODE_EXECUTION_ERROR+len);
-                }
             }
         }
 
@@ -82,7 +90,7 @@ __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx,
         return;
     }
 
-    *tx = app_fill_address();
+    *tx =  GET_PUB_KEY_RESPONSE_LENGTH;
     THROW(APDU_CODE_OK);
 }
 
