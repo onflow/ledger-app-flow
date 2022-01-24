@@ -45,6 +45,10 @@ extern "C" {
 #define APPVERSION_LINE1 "Version"
 #define APPVERSION_LINE2 "v" APPVERSION
 
+#define MAIN_SLOT 0
+#define ADDRESS_LENGTH 8
+
+
 #ifdef __cplusplus
 }
 #endif

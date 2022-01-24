@@ -31,9 +31,6 @@
 #include "zxmacros.h"
 #include "zxformat.h"
 
-#define MAIN_SLOT 0
-#define EXPECTED_ADDRESS_STRING_LENGHT 16
-
 __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     extractHDPath(rx, OFFSET_DATA);
 
@@ -64,14 +61,14 @@ __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx,
                 show_address = show_address_yes;
 
                 uint32_t dstLen = sizeof(G_io_apdu_buffer) - ADDRESS_OFFSET;
-                if (dstLen < EXPECTED_ADDRESS_STRING_LENGHT + 1) { //+1 for terminating 0
+                if (dstLen < 2*ADDRESS_LENGTH + 1) { //+1 for terminating 0
                     zemu_log_stack("G_io_apdu_buffer unexpectedly short.");
                     THROW(APDU_CODE_UNKNOWN);
                 }
          
                 uint32_t len = array_to_hexstr((char *)(G_io_apdu_buffer + ADDRESS_OFFSET), dstLen, slot.account.data, sizeof(slot.account.data));
 
-                if (len != EXPECTED_ADDRESS_STRING_LENGHT) {
+                if (len != 2*ADDRESS_LENGTH) {
                     zemu_log_stack("Address conversion error.");
                     THROW(APDU_CODE_EXECUTION_ERROR+len);
                 }

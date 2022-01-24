@@ -26,6 +26,8 @@
 #include "view_templates.h"
 #include "tx.h"
 
+#include "menu_handler.h"
+
 #ifdef APP_SECRET_MODE_ENABLED
 #include "secret.h"
 #endif
@@ -40,6 +42,7 @@ void h_expert_update();
 void h_review_loop_start();
 void h_review_loop_inside();
 void h_review_loop_end();
+void h_view_address();
 
 #ifdef APP_SECRET_MODE_ENABLED
 void h_secret_click();
@@ -54,6 +57,7 @@ uint8_t flow_inside_loop;
 UX_STEP_NOCB(ux_idle_flow_1_step, pbb, { &C_icon_app, MENU_MAIN_APP_LINE1, viewdata.key,});
 UX_STEP_CB_INIT(ux_idle_flow_2_step, bn,  h_expert_update(), h_expert_toggle(), { "Expert mode:", viewdata.value, });
 UX_STEP_NOCB(ux_idle_flow_3_step, bn, { APPVERSION_LINE1, APPVERSION_LINE2, });
+UX_STEP_CB(ux_idle_flow_31_step, bn, h_view_address(), { "View", "address", });
 
 #ifdef APP_SECRET_MODE_ENABLED
 UX_STEP_CB(ux_idle_flow_4_step, bn, h_secret_click(), { "Developed by:", "Zondax.ch", });
@@ -68,6 +72,7 @@ const ux_flow_step_t *const ux_idle_flow [] = {
   &ux_idle_flow_1_step,
   &ux_idle_flow_2_step,
   &ux_idle_flow_3_step,
+  &ux_idle_flow_31_step,
   &ux_idle_flow_4_step,
   &ux_idle_flow_5_step,
   &ux_idle_flow_6_step,
@@ -275,4 +280,10 @@ void view_error_show_impl() {
     }
     ux_flow_init(0, ux_error_flow, NULL);
 }
+
+void h_view_address() {
+    handleMenuShowAddress();
+//    view_review_show_impl();
+}
+
 #endif

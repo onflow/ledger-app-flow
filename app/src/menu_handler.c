@@ -48,7 +48,14 @@ __Z_INLINE void menuaddr_return() {
 }
 
 void handleMenuShowAddress() {
-    app_fill_address();
+    account_slot_t slot;
+    zxerr_t err = slot_getSlot(MAIN_SLOT, (uint8_t *) &slot, sizeof(slot));
+    if (err == zxerr_no_data) {
+        show_address = show_address_empty_slot;
+    }
+    else {
+        show_address = show_address_yes;
+    }
 
     view_review_init(menuaddr_getItem, menuaddr_getNumItems, menuaddr_return);
     view_review_show();

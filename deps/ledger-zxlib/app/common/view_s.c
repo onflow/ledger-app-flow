@@ -274,7 +274,6 @@ void h_expert_toggle() {
 
 void h_view_address() {
     handleMenuShowAddress();
-//    view_idle_show(3, NULL);
 }
 
 #ifdef APP_SECRET_MODE_ENABLED
