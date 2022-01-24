@@ -141,6 +141,32 @@ var hexIncomming = transport.hexApduCommandIn.shift();
 var hexExpected = "04d525023d85460e62b82e69a1e60fadaa81338cdb4112d84fe018851283ae53727dd0233c273cb396eb477404e3125971aef36e35b52a8930b48ffe6c03ba604b303464353235303233643835343630653632623832653639613165363066616461613831333338636462343131326438346665303138383531323833616535333732376464303233336332373363623339366562343737343034653331323539373161656633366533356235326138393330623438666665366330336261363034629000";
 common.compare(hexIncomming, hexExpected, "apdu response", {publicKey:65, publicKey_hex:130, returnCode:2, unexpected:9999});
 
+//Delete slot 0
+const expectedAccountDelete = "0000000000000000";
+const expectedPathDelete = `m/0/0/0/0/0`;
+common.testStep(" - - -", "app.setSlot() // expectedSlot=" + slot + " expectedAccountDelete=" + expectedAccountDelete + " expectedPathDelete=" + expectedPathDelete + "; Delete slot 10");
+const setSlotPromise3 = app.setSlot(slot, expectedAccountDelete, expectedPathDelete);
+common.testStep("   +  ", "buttons");
+if (process.env.TEST_DEVICE && process.env.TEST_DEVICE == "nanox") {
+    await common.curlScreenShot(scriptName); common.curlButton('right', "; Please review");
+}
+await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Delete Account 10");
+await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Old Account e467..");
+await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Old Path 44'/..");
+await common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve");
+await common.curlScreenShot(scriptName); console.log(common.humanTime() + " // back to main screen");
+common.testStep(" - - -", "await setSlotPromise3 // slot=" + slot + " expectedAccountDelete=" + expectedAccountDelete + " expectedPathDelete=" + expectedPathDelete + "; Delete slot 10");
+const setSlotResponse3 = await setSlotPromise3;
+assert.equal(setSlotResponse3.returnCode, 0x9000);
+
+assert.equal(transport.hexApduCommandOut.length, 1)
+assert.equal(transport.hexApduCommandIn.length, 1)
+var hexOutgoing = transport.hexApduCommandOut.shift();
+var hexExpected = "331200001d0000000000000000000000000000000000000000000000000000000000";
+common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:28, unexpected:9999});
+var hexIncomming = transport.hexApduCommandIn.shift();
+var hexExpected = "9000";
+common.compare(hexIncomming, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 
 await transport.close()
 common.testEnd(scriptName);

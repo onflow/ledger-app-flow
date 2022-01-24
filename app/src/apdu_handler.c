@@ -31,8 +31,7 @@
 #include "zxmacros.h"
 #include "zxformat.h"
 
-//#define ASSERT(CONDITION) { if (!(CONDITION)) {THROW(APDU_CODE_UNKNOWN);}; }
-#define ASSERT(CONDITION) { if (!(CONDITION)) {THROW(0x6F01);}; }
+#define ASSERT(CONDITION) { if (!(CONDITION)) {THROW(APDU_CODE_UNKNOWN);}; }
 
 __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     //extract hdPath to hdPath global variable

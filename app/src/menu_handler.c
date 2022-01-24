@@ -11,53 +11,36 @@
 #include "account.h"
 #include "zxmacros.h"
 
-
-zxerr_t menuaddr_getNumItems(uint8_t *num_items) {
-    zemu_log_stack("menuaddr_getNumItems");
-    *num_items = 2;
-    return zxerr_ok;
-}
-
-zxerr_t menuaddr_getItem(int8_t displayIdx,
-                     char *outKey, uint16_t outKeyLen,
-                     char *outVal, uint16_t outValLen,
-                     uint8_t pageIdx, uint8_t *pageCount) {
-    zemu_log_stack("addr_getItem");
-    switch (displayIdx) {
-        case 0:
-            snprintf(outKey, outKeyLen, "Pub Key");
-            snprintf(outVal, outValLen, "Pub key here");
-//            pageString(outVal, outValLen, (char *) (G_io_apdu_buffer + VIEW_ADDRESS_OFFSET_SECP256K1 + 2), pageIdx, pageCount);
-            return zxerr_ok;
-        case 1: {
-            snprintf(outKey, outKeyLen, "Address");
-            snprintf(outVal, outValLen, "Address here");
-/*            snprintf(outKey, outKeyLen, "Your Path");
-            char buffer[300];
-            bip32_to_str(buffer, sizeof(buffer), hdPath, HDPATH_LEN_DEFAULT);
-            pageString(outVal, outValLen, buffer, pageIdx, pageCount);*/
-            return zxerr_ok;
-        }
-        default:
-            return zxerr_no_data;
-    }
-}
+#define ASSERT(CONDITION) { if (!(CONDITION)) {THROW(APDU_CODE_UNKNOWN);}; }
 
 __Z_INLINE void menuaddr_return() {
-    view_idle_show(3, NULL);
+    view_idle_show(0, NULL);
 }
 
 void handleMenuShowAddress() {
     account_slot_t slot;
     zxerr_t err = slot_getSlot(MAIN_SLOT, (uint8_t *) &slot, sizeof(slot));
     if (err == zxerr_no_data) {
-        show_address = show_address_empty_slot;
+        show_address = show_address_no_pubkey;
     }
     else {
         show_address = show_address_yes;
+        ASSERT(sizeof(hdPath) == sizeof(slot.path.data));
+        memcpy(hdPath, slot.path.data, sizeof(hdPath));
+
+        //extract pubkey to pubkey_to_display global variable
+        MEMZERO(pubkey_to_display, sizeof(pubkey_to_display));
+        zxerr_t err = crypto_extractPublicKey(hdPath, pubkey_to_display, sizeof(pubkey_to_display));
+        if (err !=  zxerr_ok) {
+            zemu_log_stack("Public key extraction erorr");
+            THROW(APDU_CODE_UNKNOWN);
+        }
+
+        ASSERT(sizeof(address_to_display) == sizeof(slot.account.data));
+        memcpy(address_to_display, slot.account.data, sizeof(address_to_display));
     }
 
-    view_review_init(menuaddr_getItem, menuaddr_getNumItems, menuaddr_return);
+    view_review_init(addr_getItem, addr_getNumItems, menuaddr_return);
     view_review_show();
 
     return;

@@ -29,8 +29,11 @@ uint8_t address_to_display[ADDRESS_LENGTH];
 
 zxerr_t addr_getNumItems(uint8_t *num_items) {
     zemu_log_stack("addr_getNumItems");
-    *num_items = 2;
-    if (app_mode_expert()) {
+    *num_items = 1;
+    if (show_address != show_address_no_pubkey) {
+        *num_items += 1;
+    }
+    if (app_mode_expert() && show_address != show_address_no_pubkey) {
         *num_items += 1;
     }
     if (show_address == show_address_yes) {
@@ -45,7 +48,7 @@ zxerr_t addr_getItem(int8_t displayIdx,
                      uint8_t pageIdx, uint8_t *pageCount) {
     zemu_log_stack("addr_getItem");
 
-    if (displayIdx--==0) {
+    if (show_address != show_address_no_pubkey && displayIdx--==0) {
             snprintf(outKey, outKeyLen, "Pub Key");
             // +1 is to skip 0x04 prefix that indicates uncompresed key 
             pageHexString(outVal, outValLen, pubkey_to_display+1, sizeof(pubkey_to_display)-1, pageIdx, pageCount);
@@ -54,6 +57,10 @@ zxerr_t addr_getItem(int8_t displayIdx,
 
     if (displayIdx--==0) {
             switch(show_address) {
+                case show_address_no_pubkey:
+                    snprintf(outKey, outKeyLen, "Account data");
+                    pageString(outVal, outValLen, "not saved on the device.", pageIdx, pageCount);
+                    return zxerr_ok;
                 case show_address_empty_slot:
                     snprintf(outKey, outKeyLen, "Address:");
                     pageString(outVal, outValLen, "Not saved on the device.", pageIdx, pageCount);
@@ -87,7 +94,7 @@ zxerr_t addr_getItem(int8_t displayIdx,
         return zxerr_ok;
     }
 
-    if (app_mode_expert() && displayIdx--==0) {
+    if (app_mode_expert() && show_address != show_address_no_pubkey && displayIdx--==0) {
             snprintf(outKey, outKeyLen, "Your Path");
             char buffer[300];
             bip32_to_str(buffer, sizeof(buffer), hdPath, HDPATH_LEN_DEFAULT);

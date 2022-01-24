@@ -22,6 +22,7 @@ extern "C" {
 
 //Enum to determine if we should show address
 typedef enum {
+    show_address_no_pubkey,
     show_address_yes,
     show_address_empty_slot,
     show_address_hdpaths_not_equal,

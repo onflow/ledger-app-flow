@@ -195,7 +195,7 @@ await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate 
 await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Old Path 44'/..");
 await common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve");
 await common.curlScreenShot(scriptName); console.log(common.humanTime() + " // back to main screen");
-common.testStep(" - - -", "await setSlotPromise2 // expectedSlot=" + expectedSlot + " expectedAccountDelete=" + expectedAccountDelete + " expectedPathDelete=" + expectedPathDelete + "; Delete slot 10");
+common.testStep(" - - -", "await setSlotPromise3 // expectedSlot=" + expectedSlot + " expectedAccountDelete=" + expectedAccountDelete + " expectedPathDelete=" + expectedPathDelete + "; Delete slot 10");
 const setSlotResponse3 = await setSlotPromise3;
 assert.equal(setSlotResponse3.returnCode, 0x9000);
 
