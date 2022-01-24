@@ -161,9 +161,9 @@ async function curlScreenShot(scriptName) {
 		if (sha256Array[0] /* newly generated PNG */ == pngSha256Previous) {
 			loops += 1;
 			generateNewScreenshotFromNextCapture = 0
-			if (loops < 100) {
+			if (loops < 50) {
 				console.log(humanTime() + " curlScreenShot() // matches previous screen shot SHA256 (" + pngSha256Previous + "); so requesting another screen shot");
-				await sleep(10*loops)
+				await sleep(50+10*loops)
 				continue;
 			} else {
 				console.log(humanTime() + " curlScreenShot() // matches previous screen shot SHA256 (" + pngSha256Previous + "); ERROR: giving up because too many tries; curl one-liner output:");
@@ -191,7 +191,7 @@ async function curlScreenShot(scriptName) {
 		}
 		// if we want to compare this screenshot
 		else {
-		pngSha256Previous = sha256Array[0];
+    		pngSha256Previous = sha256Array[0];
 		
 			// if we have it, we are done
 			if (sha256Array[0] == sha256Array[1]) {
@@ -204,7 +204,8 @@ async function curlScreenShot(scriptName) {
 			}
 			// otherwise, we will try again (this deals with partial capture)
 			loops += 1;
-			if (loops < 100) {
+			if (loops < 50) {
+				await sleep(50+10*loops)
 				console.log(humanTime() + " curlScreenShot() // screen shot: warning: sha256 sums are different; could be partially rendered screen, so re-requesting screen shot // re-run with TEST_IGNORE_SHA256_SUMS=1 to ignore all PNGs");
 				pngSha256Previous = sha256Array[0];
 				continue;
