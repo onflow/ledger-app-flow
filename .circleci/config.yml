@@ -96,7 +96,7 @@ jobs:
     docker:
       - image: zondax/builder-bolos:latest
     environment:
-      - BOLOS_SDK=/home/zondax/project/deps/nanos-secure-sdk
+      - BOLOS_SDK_IGNORE=/home/zondax/project/deps/nanos-secure-sdk
       - BOLOS_ENV_IGNORE=/opt/bolos
     steps:
       - checkout
@@ -124,3 +124,4 @@ workflows:
             branches:
               only:
                 - master
+                - test_circle_ci_fix
