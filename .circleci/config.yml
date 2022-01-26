@@ -97,7 +97,7 @@ jobs:
       - image: zondax/builder-bolos:latest
     environment:
       - BOLOS_SDK=/home/zondax/project/deps/nanos-secure-sdk
-      - BOLOS_ENV=/opt/bolos
+      - BOLOS_ENV_IGNORE=/opt/bolos
     steps:
       - checkout
       - run: git submodule update --init --recursive
