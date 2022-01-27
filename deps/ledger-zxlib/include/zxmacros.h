@@ -40,6 +40,9 @@ extern void explicit_bzero(void *s, size_t n) __THROW __nonnull ((1));
 #define __Z_UNUSED __attribute__((unused))
 #define NV_ALIGN __attribute__ ((aligned(64)))
 
+#define STATIC_ASSERT _Static_assert
+
+
 #if defined(LEDGER_SPECIFIC)
 #include "bolos_target.h"
 #endif

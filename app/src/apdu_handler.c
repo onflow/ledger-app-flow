@@ -31,8 +31,6 @@
 #include "zxmacros.h"
 #include "zxformat.h"
 
-#define ASSERT(CONDITION) { if (!(CONDITION)) {THROW(APDU_CODE_UNKNOWN);}; }
-
 __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     //extract hdPath to hdPath global variable
     extractHDPath(rx, OFFSET_DATA);
@@ -47,13 +45,16 @@ __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx,
     }
 
     //We prepare apdu response, as of now, it is pubkey and pubkey in hex ...
-    ASSERT(sizeof(G_io_apdu_buffer) > SECP256_PK_LEN + 2*SECP256_PK_LEN+1);
-    ASSERT(sizeof(pubkey_to_display) == SECP256_PK_LEN);
+    STATIC_ASSERT(sizeof(G_io_apdu_buffer) > SECP256_PK_LEN + 2*SECP256_PK_LEN+1, "IO Buffer too small");
+    STATIC_ASSERT(sizeof(pubkey_to_display) == SECP256_PK_LEN, "Buffer too small");
     memmove(G_io_apdu_buffer, pubkey_to_display, sizeof(pubkey_to_display)); 
     const uint16_t remainingLength = sizeof(G_io_apdu_buffer) - SECP256_PK_LEN;
     uint32_t len = array_to_hexstr((char *)(G_io_apdu_buffer + SECP256_PK_LEN), remainingLength, pubkey_to_display, sizeof(pubkey_to_display));
-    ASSERT(len == 2*SECP256_PK_LEN);
-    ASSERT(GET_PUB_KEY_RESPONSE_LENGTH == 3*SECP256_PK_LEN);
+    if (len != 2*SECP256_PK_LEN) {
+        zemu_log_stack("Error converting pubkey to hex");
+        THROW(APDU_CODE_UNKNOWN);
+    }
+    STATIC_ASSERT(GET_PUB_KEY_RESPONSE_LENGTH == 3*SECP256_PK_LEN, "REsponse length too small");
 
     if (requireConfirmation) {
         account_slot_t slot;
@@ -70,13 +71,13 @@ __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx,
         }
         else {
             //Case 2 Slot 0 derivation path is not the same as APDU derivation path
-            ASSERT(sizeof(slot.path.data) == sizeof(hdPath))
+            STATIC_ASSERT(sizeof(slot.path.data) == sizeof(hdPath), "Incompatible derivation path types");
             if (memcmp(slot.path.data, hdPath, sizeof(hdPath))) {
                 show_address = show_address_hdpaths_not_equal;            
             }
             //Case 3 Everything is OK
             else {
-                ASSERT(sizeof(address_to_display) == sizeof(slot.account.data));
+                STATIC_ASSERT(sizeof(address_to_display) == sizeof(slot.account.data), "Incompatible address types");
                 memcpy(address_to_display, slot.account.data, sizeof(address_to_display));
                 show_address = show_address_yes;
             }

@@ -11,8 +11,6 @@
 #include "account.h"
 #include "zxmacros.h"
 
-#define ASSERT(CONDITION) { if (!(CONDITION)) {THROW(APDU_CODE_UNKNOWN);}; }
-
 __Z_INLINE void menuaddr_return() {
     view_idle_show(0, NULL);
 }
@@ -25,7 +23,7 @@ void handleMenuShowAddress() {
     }
     else {
         show_address = show_address_yes;
-        ASSERT(sizeof(hdPath) == sizeof(slot.path.data));
+        STATIC_ASSERT(sizeof(hdPath) == sizeof(slot.path.data), "Incompatible derivation path types");
         memcpy(hdPath, slot.path.data, sizeof(hdPath));
 
         //extract pubkey to pubkey_to_display global variable
@@ -36,7 +34,7 @@ void handleMenuShowAddress() {
             THROW(APDU_CODE_UNKNOWN);
         }
 
-        ASSERT(sizeof(address_to_display) == sizeof(slot.account.data));
+        STATIC_ASSERT(sizeof(address_to_display) == sizeof(slot.account.data),  "Incompatible derivation address types");
         memcpy(address_to_display, slot.account.data, sizeof(address_to_display));
     }
 
