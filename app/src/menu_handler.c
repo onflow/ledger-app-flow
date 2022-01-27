@@ -34,8 +34,8 @@ void handleMenuShowAddress() {
             THROW(APDU_CODE_UNKNOWN);
         }
 
-        STATIC_ASSERT(sizeof(address_to_display) == sizeof(slot.account.data),  "Incompatible derivation address types");
-        memcpy(address_to_display, slot.account.data, sizeof(address_to_display));
+        STATIC_ASSERT(sizeof(address_to_display.data) == sizeof(slot.account.data),  "Incompatible derivation address types");
+        memcpy(address_to_display.data, slot.account.data, sizeof(address_to_display.data));
     }
 
     view_review_init(addr_getItem, addr_getNumItems, menuaddr_return);

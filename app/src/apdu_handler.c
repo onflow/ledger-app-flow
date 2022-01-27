@@ -77,8 +77,8 @@ __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx,
             }
             //Case 3 Everything is OK
             else {
-                STATIC_ASSERT(sizeof(address_to_display) == sizeof(slot.account.data), "Incompatible address types");
-                memcpy(address_to_display, slot.account.data, sizeof(address_to_display));
+                STATIC_ASSERT(sizeof(address_to_display.data) == sizeof(slot.account.data), "Incompatible address types");
+                memcpy(address_to_display.data, slot.account.data, sizeof(address_to_display.data));
                 show_address = show_address_yes;
             }
         }

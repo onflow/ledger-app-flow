@@ -29,6 +29,11 @@ typedef struct {
     uint32_t data[HDPATH_LEN_DEFAULT];
 } hd_path_t;
 
+#define ACCOUNT_SIZE       8
+typedef struct {
+    uint8_t data[ACCOUNT_SIZE];
+} flow_account_t;
+
 #define HDPATH_0_DEFAULT     (0x80000000u | 0x2cu)
 #define HDPATH_1_DEFAULT     (0x80000000u | 0x21bu)
 #define HDPATH_2_DEFAULT     (0x80000000u | 0u)
@@ -49,8 +54,6 @@ typedef struct {
 #define APPVERSION_LINE2 "v" APPVERSION
 
 #define MAIN_SLOT 0
-#define ADDRESS_LENGTH 8
-
 
 #ifdef __cplusplus
 }

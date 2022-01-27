@@ -23,12 +23,7 @@ extern "C" {
 #include "zxerror.h"
 #include "coin.h"
 
-#define SLOT_ACCOUNT_SIZE       8
 #define SLOT_COUNT              64
-
-typedef struct {
-    uint8_t data[SLOT_ACCOUNT_SIZE];
-} flow_account_t;
 
 typedef struct {
     flow_account_t account;

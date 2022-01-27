@@ -25,7 +25,7 @@
 
 show_addres_t show_address;
 uint8_t pubkey_to_display[SECP256_PK_LEN];
-uint8_t address_to_display[ADDRESS_LENGTH];
+flow_account_t address_to_display;
 
 zxerr_t addr_getNumItems(uint8_t *num_items) {
     zemu_log_stack("addr_getNumItems");
@@ -71,7 +71,7 @@ zxerr_t addr_getItem(int8_t displayIdx,
                     return zxerr_ok;
                 case show_address_yes:
                     snprintf(outKey, outKeyLen, "Address:");
-                    pageHexString(outVal, outValLen, address_to_display, sizeof(address_to_display), pageIdx, pageCount);
+                    pageHexString(outVal, outValLen, address_to_display.data, sizeof(address_to_display.data), pageIdx, pageCount);
                     return zxerr_ok;
                 default:
                     return zxerr_no_data;
@@ -85,7 +85,7 @@ zxerr_t addr_getItem(int8_t displayIdx,
     }
 
     if (show_address == show_address_yes && displayIdx--==0) {
-        array_to_hexstr(outKey, outKeyLen, address_to_display, sizeof(address_to_display)); 
+        array_to_hexstr(outKey, outKeyLen, address_to_display.data, sizeof(address_to_display.data)); 
 #if defined(TARGET_NANOX)
         snprintf(outVal, outValLen, " using any Flow blockchain explorer.");
 #else
