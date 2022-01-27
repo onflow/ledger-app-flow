@@ -29,13 +29,14 @@ void handleMenuShowAddress() {
         //extract pubkey to pubkey_to_display global variable
         MEMZERO(pubkey_to_display, sizeof(pubkey_to_display));
         zxerr_t err = crypto_extractPublicKey(hdPath, pubkey_to_display, sizeof(pubkey_to_display));
-        if (err !=  zxerr_ok) {
-            zemu_log_stack("Public key extraction erorr");
-            THROW(APDU_CODE_UNKNOWN);
+        if (err ==  zxerr_ok) {
+            STATIC_ASSERT(sizeof(address_to_display.data) == sizeof(slot.account.data),  "Incompatible derivation address types");
+            memcpy(address_to_display.data, slot.account.data, sizeof(address_to_display.data));
         }
-
-        STATIC_ASSERT(sizeof(address_to_display.data) == sizeof(slot.account.data),  "Incompatible derivation address types");
-        memcpy(address_to_display.data, slot.account.data, sizeof(address_to_display.data));
+        {
+            zemu_log_stack("Public key extraction errorr");
+            show_address = show_address_error;
+        }
     }
 
     view_review_init(addr_getItem, addr_getNumItems, menuaddr_return);

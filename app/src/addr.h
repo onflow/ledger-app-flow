@@ -26,6 +26,7 @@ typedef enum {
     show_address_yes,
     show_address_empty_slot,
     show_address_hdpaths_not_equal,
+    show_address_error,
 } show_addres_t;
 
 extern show_addres_t show_address;
