@@ -25,6 +25,9 @@ extern "C" {
 #include <stddef.h>
 
 #define HDPATH_LEN_DEFAULT   5
+typedef struct {
+    uint32_t data[HDPATH_LEN_DEFAULT];
+} hd_path_t;
 
 #define HDPATH_0_DEFAULT     (0x80000000u | 0x2cu)
 #define HDPATH_1_DEFAULT     (0x80000000u | 0x21bu)

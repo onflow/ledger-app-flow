@@ -31,12 +31,8 @@ typedef struct {
 } flow_account_t;
 
 typedef struct {
-    uint32_t data[HDPATH_LEN_DEFAULT];
-} flow_path_t;
-
-typedef struct {
     flow_account_t account;
-    flow_path_t path;
+    hd_path_t path;
 } account_slot_t;
 
 typedef struct {

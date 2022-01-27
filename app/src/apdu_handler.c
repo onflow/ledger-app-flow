@@ -71,8 +71,8 @@ __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx,
         }
         else {
             //Case 2 Slot 0 derivation path is not the same as APDU derivation path
-            STATIC_ASSERT(sizeof(slot.path.data) == sizeof(hdPath), "Incompatible derivation path types");
-            if (memcmp(slot.path.data, hdPath, sizeof(hdPath))) {
+            STATIC_ASSERT(sizeof(slot.path.data) == sizeof(hdPath.data), "Incompatible derivation path types");
+            if (memcmp(slot.path.data, hdPath.data, sizeof(hdPath.data))) {
                 show_address = show_address_hdpaths_not_equal;            
             }
             //Case 3 Everything is OK

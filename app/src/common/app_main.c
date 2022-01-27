@@ -91,17 +91,17 @@ unsigned short io_exchange_al(unsigned char channel, unsigned short tx_len) {
 }
 
 void extractHDPath(uint32_t rx, uint32_t offset) {
-    if ((rx - offset) < sizeof(uint32_t) * HDPATH_LEN_DEFAULT) {
+    if ((rx - offset) < sizeof(hdPath.data)) {
         THROW(APDU_CODE_WRONG_LENGTH);
     }
 
-    MEMCPY(hdPath, G_io_apdu_buffer + offset, sizeof(uint32_t) * HDPATH_LEN_DEFAULT);
+    MEMCPY(hdPath.data, G_io_apdu_buffer + offset, sizeof(hdPath.data));
 
-    const bool mainnet = hdPath[0] == HDPATH_0_DEFAULT &&
-                         hdPath[1] == HDPATH_1_DEFAULT;
+    const bool mainnet = hdPath.data[0] == HDPATH_0_DEFAULT &&
+                         hdPath.data[1] == HDPATH_1_DEFAULT;
 
-    const bool testnet = hdPath[0] == HDPATH_0_TESTNET &&
-                         hdPath[1] == HDPATH_1_TESTNET;
+    const bool testnet = hdPath.data[0] == HDPATH_0_TESTNET &&
+                         hdPath.data[1] == HDPATH_1_TESTNET;
 
     if (!mainnet && !testnet) {
         THROW(APDU_CODE_DATA_INVALID);

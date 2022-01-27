@@ -23,8 +23,8 @@ void handleMenuShowAddress() {
     }
     else {
         show_address = show_address_yes;
-        STATIC_ASSERT(sizeof(hdPath) == sizeof(slot.path.data), "Incompatible derivation path types");
-        memcpy(hdPath, slot.path.data, sizeof(hdPath));
+        STATIC_ASSERT(sizeof(hdPath.data) == sizeof(slot.path.data), "Incompatible derivation path types");
+        memcpy(hdPath.data, slot.path.data, sizeof(hdPath.data));
 
         //extract pubkey to pubkey_to_display global variable
         MEMZERO(pubkey_to_display, sizeof(pubkey_to_display));

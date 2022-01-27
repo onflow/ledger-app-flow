@@ -97,7 +97,7 @@ zxerr_t addr_getItem(int8_t displayIdx,
     if (app_mode_expert() && show_address != show_address_no_pubkey && displayIdx--==0) {
             snprintf(outKey, outKeyLen, "Your Path");
             char buffer[300];
-            bip32_to_str(buffer, sizeof(buffer), hdPath, HDPATH_LEN_DEFAULT);
+            bip32_to_str(buffer, sizeof(buffer), hdPath.data, HDPATH_LEN_DEFAULT);
             pageString(outVal, outValLen, buffer, pageIdx, pageCount);
             return zxerr_ok;
     }

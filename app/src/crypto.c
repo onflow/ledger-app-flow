@@ -21,15 +21,15 @@
 #include "zxformat.h"
 #include "zxerror.h"
 
-uint32_t hdPath[HDPATH_LEN_DEFAULT];
+hd_path_t hdPath;
 
 #if defined(TARGET_NANOS) || defined(TARGET_NANOX)
 #include "cx.h"
 
 
-__Z_INLINE digest_type_e get_hash_type(const uint32_t path[HDPATH_LEN_DEFAULT]) {
+__Z_INLINE digest_type_e get_hash_type(const hd_path_t path) {
     _Static_assert(HDPATH_LEN_DEFAULT >= 3, "Invalid HDPATH_LEN_DEFAULT");
-    const uint8_t hash_type = (uint8_t) (path[2] & 0xFF);
+    const uint8_t hash_type = (uint8_t) (path.data[2] & 0xFF);
     switch(hash_type) {
         case 0x01:
             zemu_log_stack("path: sha2_256");
@@ -43,9 +43,9 @@ __Z_INLINE digest_type_e get_hash_type(const uint32_t path[HDPATH_LEN_DEFAULT]) 
     }
 }
 
-__Z_INLINE cx_curve_t get_cx_curve(const uint32_t path[HDPATH_LEN_DEFAULT]) {
+__Z_INLINE cx_curve_t get_cx_curve(const hd_path_t path) {
     _Static_assert(HDPATH_LEN_DEFAULT >= 3, "Invalid HDPATH_LEN_DEFAULT");
-    const uint8_t curve_code = (uint8_t) ((path[2] >> 8) & 0xFF);
+    const uint8_t curve_code = (uint8_t) ((path.data[2] >> 8) & 0xFF);
     switch(curve_code) {
         case 0x02: {
             zemu_log_stack("curve: secp256k1");
@@ -60,7 +60,7 @@ __Z_INLINE cx_curve_t get_cx_curve(const uint32_t path[HDPATH_LEN_DEFAULT]) {
     }
 }
 
-zxerr_t crypto_extractPublicKey(const uint32_t path[HDPATH_LEN_DEFAULT], uint8_t *pubKey, uint16_t pubKeyLen) {
+zxerr_t crypto_extractPublicKey(const hd_path_t path, uint8_t *pubKey, uint16_t pubKeyLen) {
     zemu_log_stack("crypto_extractPublicKey");
     MEMZERO(pubKey, pubKeyLen);
 
@@ -86,7 +86,7 @@ zxerr_t crypto_extractPublicKey(const uint32_t path[HDPATH_LEN_DEFAULT], uint8_t
         TRY {
             zemu_log_stack("extractPublicKey: derive_node_bip32");
             os_perso_derive_node_bip32(curve,
-                                       path,
+                                       path.data,
                                        HDPATH_LEN_DEFAULT,
                                        privateKeyData, NULL);
 
@@ -153,7 +153,7 @@ zxerr_t digest_message(const uint8_t *message, uint16_t messageLen, digest_type_
     }
 }
 
-zxerr_t crypto_sign(const uint32_t path[HDPATH_LEN_DEFAULT], const uint8_t *message, uint16_t messageLen, uint8_t *buffer, uint16_t bufferSize,  uint16_t *sigSize) {    
+zxerr_t crypto_sign(const hd_path_t path, const uint8_t *message, uint16_t messageLen, uint8_t *buffer, uint16_t bufferSize,  uint16_t *sigSize) {    
     zemu_log_stack("crypto_sign");
 
     cx_curve_t curve = get_cx_curve(path);
@@ -193,7 +193,7 @@ zxerr_t crypto_sign(const uint32_t path[HDPATH_LEN_DEFAULT], const uint8_t *mess
             // Generate keys
             zemu_log_stack("derive path");
             os_perso_derive_node_bip32(curve,
-                                       path,
+                                       path.data,
                                        HDPATH_LEN_DEFAULT,
                                        privateKeyData, NULL);
 
