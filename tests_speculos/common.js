@@ -110,7 +110,9 @@ async function curlApduResponseWait() {
 	return response.data;
 }
 
+var lastButton = "";
 function curlButton(which, hint) { // e.g. which: 'left', 'right', or 'both'
+	lastButton = which;
 	console.log(humanTime() + " curlButton() // " + which + hint);
 	var output = syncBackTicks('curl --silent --show-error --max-time 60 --data \'{"action":"press-and-release"}\' http://127.0.0.1:' + test_speculos_api_port + '/button/' + which + ' 2>&1');
 	if (output != '{}') {
@@ -161,9 +163,15 @@ async function curlScreenShot(scriptName) {
 		if (sha256Array[0] /* newly generated PNG */ == pngSha256Previous) {
 			loops += 1;
 			generateNewScreenshotFromNextCapture = 0
-			if (loops < 50) {
+			if (loops < 20) {
+				if (loops == 15 && lastButton!="") {
+					await sleep(100);
+					console.log(humanTime() + " Retrying last button press: " +lastButton);
+					curlButton(lastButton, "Retry last button press.");
+					await sleep(100);
+				}
 				console.log(humanTime() + " curlScreenShot() // matches previous screen shot SHA256 (" + pngSha256Previous + "); so requesting another screen shot");
-				await sleep(50+10*loops)
+				await sleep(100+10*loops)
 				continue;
 			} else {
 				console.log(humanTime() + " curlScreenShot() // matches previous screen shot SHA256 (" + pngSha256Previous + "); ERROR: giving up because too many tries; curl one-liner output:");
@@ -204,8 +212,8 @@ async function curlScreenShot(scriptName) {
 			}
 			// otherwise, we will try again (this deals with partial capture)
 			loops += 1;
-			if (loops < 50) {
-				await sleep(50+10*loops)
+			if (loops < 20) {
+				await sleep(100+10*loops)
 				console.log(humanTime() + " curlScreenShot() // screen shot: warning: sha256 sums are different; could be partially rendered screen, so re-requesting screen shot // re-run with TEST_IGNORE_SHA256_SUMS=1 to ignore all PNGs");
 				pngSha256Previous = sha256Array[0];
 				continue;

@@ -45,7 +45,7 @@ common.testStep(" - - -", "app.setSlot() // expectedSlot=" + expectedSlot + " ex
 const setSlotPromise = app.setSlot(expectedSlot, expectedAccount, expectedPath);
 common.testStep("   +  ", "buttons");
 if (process.env.TEST_DEVICE && process.env.TEST_DEVICE == "nanox") {
-    common.curlScreenShot(scriptName); common.curlButton('right', "; Please review");
+    await common.curlScreenShot(scriptName); common.curlButton('right', "; Please review");
 }
 await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Set Account 10");
 await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Account e467..");

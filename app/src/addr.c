@@ -63,7 +63,7 @@ zxerr_t addr_getItem(int8_t displayIdx,
             switch(show_address) {
                 case show_address_error:
                     snprintf(outKey, outKeyLen, "Error");
-                    pageString(outVal, outValLen, "deriving public key.", pageIdx, pageCount);
+                    pageString(outVal, outValLen, " deriving public  key.", pageIdx, pageCount);
                     return zxerr_ok;
                 case show_address_no_pubkey:
                     snprintf(outKey, outKeyLen, "Account data");

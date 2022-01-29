@@ -22,7 +22,6 @@ void handleMenuShowAddress() {
         show_address = show_address_no_pubkey;
     }
     else {
-        show_address = show_address_yes;
         STATIC_ASSERT(sizeof(hdPath.data) == sizeof(slot.path.data), "Incompatible derivation path types");
         memcpy(hdPath.data, slot.path.data, sizeof(hdPath.data));
 
@@ -30,10 +29,11 @@ void handleMenuShowAddress() {
         MEMZERO(pubkey_to_display, sizeof(pubkey_to_display));
         zxerr_t err = crypto_extractPublicKey(hdPath, pubkey_to_display, sizeof(pubkey_to_display));
         if (err ==  zxerr_ok) {
+            show_address = show_address_yes;
             STATIC_ASSERT(sizeof(address_to_display.data) == sizeof(slot.account.data),  "Incompatible derivation address types");
             memcpy(address_to_display.data, slot.account.data, sizeof(address_to_display.data));
         }
-        {
+        else {
             zemu_log_stack("Public key extraction errorr");
             show_address = show_address_error;
         }

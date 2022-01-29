@@ -54,7 +54,7 @@ __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx,
         zemu_log_stack("Error converting pubkey to hex");
         THROW(APDU_CODE_UNKNOWN);
     }
-    STATIC_ASSERT(GET_PUB_KEY_RESPONSE_LENGTH == 3*SECP256_PK_LEN, "REsponse length too small");
+    STATIC_ASSERT(GET_PUB_KEY_RESPONSE_LENGTH == 3*SECP256_PK_LEN, "Response length too small");
 
     if (requireConfirmation) {
         account_slot_t slot;
