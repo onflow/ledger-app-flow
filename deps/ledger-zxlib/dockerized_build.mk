@@ -325,7 +325,7 @@ speculos_port_5002_test_internal:
 speculos_port_5001_test:
 	$(call run_announce,$@)
 	@make --no-print-directory speculos_port_5001_start 
-	@-make --no-print-directory speculos_port_5001_test_internal 
+	@make --no-print-directory speculos_port_5001_test_internal 
 	@make --no-print-directory speculos_port_5001_stop 
 	$(call run_announce,note: logs: cat ../speculos-port-5001.log)
 	@cat ../speculos-port-5001.log
@@ -334,7 +334,7 @@ speculos_port_5001_test:
 speculos_port_5002_test:
 	$(call run_announce,$@)
 	@make --no-print-directory speculos_port_5002_start 
-	@-make --no-print-directory speculos_port_5002_test_internal 
+	@make --no-print-directory speculos_port_5002_test_internal 
 	@make --no-print-directory speculos_port_5002_stop 
 	$(call run_announce,note: logs: cat ../speculos-port-5002.log)
 	@# todo: only output the last part of the log for the test that failed if it failed
