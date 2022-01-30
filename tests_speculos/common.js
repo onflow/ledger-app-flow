@@ -52,14 +52,6 @@ function syncBackTicks(command) {
 	return output;
 }
 
-function asyncBackTicks(command) {
-	if (process.env.TEST_DEBUG >= 1) {
-		console.log(humanTime() + " asyncBackTicks() // command: " + command);
-	}
-	const spawnObject = spawn( 'bash', [ '-c', command ] );
-	return spawnObject;
-}
-
 function testStart(scriptName) { // e.g. test-basic-slot-status-set.js
 	console.log(humanTime() + " " + "vv".repeat(63) + " testStart() // " + scriptName);
 	console.log(humanTime() + " // re-run with TEST_PNG_RE_GEN_FOR=" + scriptName + " to regenerate PNGs, TEST_IGNORE_SHA256_SUMS=1 to ignore all PNGs, TEST_DEBUG=1 for extra debug output");
@@ -82,33 +74,6 @@ function testEnd(scriptName) { // e.g. test-basic-slot-status-set.js
 	console.log(humanTime() + " " + "^^".repeat(63) + " testEnd()   // " + scriptName);
 }
 
-var curl_apdu_response_data = "";
-var curl_apdu_response_exit = "";
-
-function asyncCurlApduSend(apduCommand) {
-	console.log(humanTime() + " asyncCurlApduSend() // " + apduCommand);
-	var curl_apdu_object = asyncBackTicks('curl --silent --show-error --max-time 300 --data \'{"data":"' + apduCommand + '"}\' http://127.0.0.1:' + test_speculos_api_port + '/apdu 2>&1');
-	curl_apdu_object.stdout.on('data', function (data) { curl_apdu_response_data = data.toString().trim(); console.log(humanTime() + " asyncCurlApduSend() // async data "           + curl_apdu_response_data); });
-	curl_apdu_object.on       ('exit', function (code) { curl_apdu_response_exit = code.toString().trim(); console.log(humanTime() + " asyncCurlApduSend() // async exit with code " + curl_apdu_response_exit); });
-}
-
-async function curlApduResponseWait() {
-	var loops = 0;
-	while (curl_apdu_response_exit === "") {
-		await sleep(100, "waiting for async apdu response");
-		loops += 1;
-		if (loops >= 100) {
-			console.log(humanTime() + " curlApduResponseWait() // ERRROR: looped too many times waiting for apdu response");
-			throw new Error();
-		}
-	}
-	var response_json = curl_apdu_response_data;
-	console.log(humanTime() + " curlApduResponseWait() // response_json:" + response_json);
-	var response = JSON.parse(response_json);
-	curl_apdu_response_data = "";
-	curl_apdu_response_exit = "";
-	return response.data;
-}
 
 var lastButton = "";
 function curlButton(which, hint) { // e.g. which: 'left', 'right', or 'both'
@@ -347,4 +312,4 @@ class SpyTransport {
 	}
 };
 
-export {testStart, testCombo, testStep, testEnd, compare, asyncCurlApduSend, curlApduResponseWait, curlButton, curlScreenShot, humanTime, sleep, getSpyTransport, path};
+export {testStart, testCombo, testStep, testEnd, compare, curlButton, curlScreenShot, humanTime, sleep, getSpyTransport, path};
