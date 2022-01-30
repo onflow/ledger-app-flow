@@ -20,12 +20,12 @@ function msToTime(s) {
 		return ('00' + n).slice(-z);
 	}
 
-	var ms = s % 1000;
+	const ms = s % 1000;
 	s = (s - ms) / 1000;
-	var secs = s % 60;
+	const secs = s % 60;
 	s = (s - secs) / 60;
-	var mins = s % 60;
-	var hrs = (((s - mins) / 60) + 20) % 24;
+	const mins = s % 60;
+	const hrs = (((s - mins) / 60) + 20) % 24;
 
 	return pad(hrs) + ':' + pad(mins) + ':' + pad(secs) + '.' + pad(ms, 3);
 }
@@ -43,7 +43,7 @@ function syncBackTicks(command) {
 		console.log(humanTime() + " syncBackTicks() // command: " + command);
 	}
 	const curl_bash = spawnSync( 'bash', [ '-c', command ] );
-	var output = curl_bash.stdout.toString().trim();
+	const output = curl_bash.stdout.toString().trim();
 	if (process.env.TEST_DEBUG >= 1) {
 		if (output != '') {
 			console.log(output);
@@ -76,20 +76,20 @@ function testEnd(scriptName) { // e.g. test-basic-slot-status-set.js
 
 
 var lastButton = "";
+var pngNum = 1;
+var pngSha256Previous = "";
+var pngScriptNamePrevious = "";
+var generateNewScreenshotFromNextCapture = 0;
+
 function curlButton(which, hint) { // e.g. which: 'left', 'right', or 'both'
 	lastButton = which;
 	console.log(humanTime() + " curlButton() // " + which + hint);
-	var output = syncBackTicks('curl --silent --show-error --max-time 60 --data \'{"action":"press-and-release"}\' http://127.0.0.1:' + test_speculos_api_port + '/button/' + which + ' 2>&1');
+	const output = syncBackTicks('curl --silent --show-error --max-time 60 --data \'{"action":"press-and-release"}\' http://127.0.0.1:' + test_speculos_api_port + '/button/' + which + ' 2>&1');
 	if (output != '{}') {
 		console.log(humanTime() + " ERROR: unexpected curl stdout: " + output);
 		throw new Error();
 	}
 }
-
-var pngNum = 1;
-var pngSha256Previous = "";
-var pngScriptNamePrevious = "";
-var generateNewScreenshotFromNextCapture = 0;
 
 async function curlScreenShot(scriptName) {
 	if (pngScriptNamePrevious != scriptName) {
@@ -97,22 +97,15 @@ async function curlScreenShot(scriptName) {
 		pngSha256Previous      = "";
 		pngNum                 = 1;
 	}
-	var test_device = "nanos"; // default device unless env var TEST_DEVICE says different
-	if (process.env.TEST_DEVICE) {
-		test_device = process.env.TEST_DEVICE; // todo: change makefile to build and test on nanox device too
-	}
-	var png = scriptName + "/" + test_device + "." + pngNum.toString(10).padStart(2, '0') + ".png"
-	png = png.replace(".js", ""); // e.g. test-transactions.staking-sign-ts.02-transfer-top-shot-moment-p256-sha3-256/nanos.01.png
+	const test_device = process.env.TEST_DEVICE ? process.env.TEST_DEVICE : "nanos"; 
+	// e.g. test-transactions.staking-sign-ts.02-transfer-top-shot-moment-p256-sha3-256/nanos.01.png
+	const png = scriptName.replace(".js", "") + "/" + test_device + "." + pngNum.toString(10).padStart(2, '0') + ".png"
 	console.log(humanTime() + " curlScreenShot() // " + png + ".new.png");
 
-	var makeScreenshot = 0;
-	var oldSHAcmd = "echo sha256:`sha256sum $PNG`";
-	if (process.env.TEST_PNG_RE_GEN_FOR && (scriptName.substring(0, process.env.TEST_PNG_RE_GEN_FOR.length) == process.env.TEST_PNG_RE_GEN_FOR)) {
-		makeScreenshot = 1;
-		oldSHAcmd = ""; 
-	}
+	const makeScreenshot = (process.env.TEST_PNG_RE_GEN_FOR && (scriptName.substring(0, process.env.TEST_PNG_RE_GEN_FOR.length) == process.env.TEST_PNG_RE_GEN_FOR));
+	const oldSHAcmd = makeScreenshot ? "" : "echo sha256:`sha256sum $PNG`";
 
-	var loops = 0;
+	let loops = 0;
 	do {
 		// get screenshot
 		const output = syncBackTicks('export PNG=' + png + ' ; curl --silent --show-error --output $PNG.new.png http://127.0.0.1:' + test_speculos_api_port + '/screenshot 2>&1 ; echo sha256:`sha256sum $PNG.new.png` ; '+ oldSHAcmd);
@@ -148,7 +141,7 @@ async function curlScreenShot(scriptName) {
 		}
 
 		// if we generate this screenshot ...
-		if (makeScreenshot == 1) {
+		if (makeScreenshot) {
 			// the screenshot we have may be partial capture
 			// the tests made suggest, that when we make another screenshot, it will be OK
 			if (generateNewScreenshotFromNextCapture == 0) {
@@ -193,27 +186,24 @@ async function curlScreenShot(scriptName) {
 }
 
 function hex2ascii(hex) {
-	var str = '';
-	for (var i = 0; i < hex.length; i += 2)
+	let str = '';
+	for (let i = 0; i < hex.length; i += 2)
 		str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
 	return str;
 }
 
 function compare(givenHex, expected, whatGiven, parts) {
 	//console.log(humanTime() + " compare() // givenHex:" + givenHex + " expected:" + expected);
-	var givenHexExploded = "";
-	var expectedExploded = "";
-	var signatureCompact = "";
-	var p = 0;
-	var foundHexMismatch = "";
-	var foundLenMismatch = "";
-	for (let [key, value] of Object.entries(parts)) {
-		var givenHexSubstring = givenHex.substring(p, p + (value * 2));
-		var expectedSubstring = expected.substring(p, p + (value * 2));
-		var expectedSubstringLength = (value * 2);
-		if (key == "unexpected") {
-			expectedSubstringLength = 0;
-		}
+	let givenHexExploded = "";
+	let expectedExploded = "";
+	let signatureCompact = "";
+	let p = 0;
+	let foundHexMismatch = "";
+	let foundLenMismatch = "";
+	for (const [key, value] of Object.entries(parts)) {
+		const givenHexSubstring = givenHex.substring(p, p + (value * 2));
+		const expectedSubstring = expected.substring(p, p + (value * 2));
+		const expectedSubstringLength = (key == "unexpected") ? 0 : (value * 2);
 		if ((key.substring(0, 15) != "do_not_compare_") && (givenHexSubstring != expectedSubstring)) {
 			foundHexMismatch = key;
 		}
@@ -222,8 +212,8 @@ function compare(givenHex, expected, whatGiven, parts) {
 		}
 		givenHexExploded = givenHexExploded + key + ':' + givenHexSubstring + ' ';
 		expectedExploded = expectedExploded + key + ':' + expectedSubstring + ' ';
-		if (key === 'signatureCompact') {
-			var hex = givenHex.substring(p, p + (value * 2));
+		if (key == 'signatureCompact') {
+			const hex = givenHex.substring(p, p + (value * 2));
 			signatureCompact = "; signatureCompact.ascii:" + hex2ascii(hex);
 		}
 		p += value * 2;
