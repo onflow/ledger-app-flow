@@ -110,7 +110,9 @@ async function curlApduResponseWait() {
 	return response.data;
 }
 
+var lastButton = "";
 function curlButton(which, hint) { // e.g. which: 'left', 'right', or 'both'
+	lastButton = which;
 	console.log(humanTime() + " curlButton() // " + which + hint);
 	var output = syncBackTicks('curl --silent --show-error --max-time 60 --data \'{"action":"press-and-release"}\' http://127.0.0.1:' + test_speculos_api_port + '/button/' + which + ' 2>&1');
 	if (output != '{}') {
@@ -160,8 +162,16 @@ async function curlScreenShot(scriptName) {
 		// verify, that the screenshot is not the same as previous one
 		if (sha256Array[0] /* newly generated PNG */ == pngSha256Previous) {
 			loops += 1;
+			generateNewScreenshotFromNextCapture = 0
 			if (loops < 20) {
+				if (loops == 15 && lastButton!="") {
+					await sleep(100);
+					console.log(humanTime() + " Retrying last button press: " +lastButton);
+					curlButton(lastButton, "Retry last button press.");
+					await sleep(100);
+				}
 				console.log(humanTime() + " curlScreenShot() // matches previous screen shot SHA256 (" + pngSha256Previous + "); so requesting another screen shot");
+				await sleep(100+10*loops)
 				continue;
 			} else {
 				console.log(humanTime() + " curlScreenShot() // matches previous screen shot SHA256 (" + pngSha256Previous + "); ERROR: giving up because too many tries; curl one-liner output:");
@@ -172,18 +182,16 @@ async function curlScreenShot(scriptName) {
 			}
 		}
 
-		// we have a new screenshot
-		pngSha256Previous = sha256Array[0];
-
 		// if we generate this screenshot ...
 		if (makeScreenshot == 1) {
 			// the screenshot we have may be partial capture
 			// the tests made suggest, that when we make another screenshot, it will be OK
 			if (generateNewScreenshotFromNextCapture == 0) {
-				pngSha256Previous = ""; //resets the previous sha in case that we captured the correct screen
 				generateNewScreenshotFromNextCapture = 1;
 				continue;
 			}
+			pngSha256Previous = sha256Array[0];
+
 			// second try, we believe the screenshot is correct
 			generateNewScreenshotFromNextCapture = 0;
 			syncBackTicks('export PNG=' + png + ' ; cp $PNG.new.png $PNG');
@@ -191,6 +199,8 @@ async function curlScreenShot(scriptName) {
 		}
 		// if we want to compare this screenshot
 		else {
+    		pngSha256Previous = sha256Array[0];
+		
 			// if we have it, we are done
 			if (sha256Array[0] == sha256Array[1]) {
 				break;
@@ -203,6 +213,7 @@ async function curlScreenShot(scriptName) {
 			// otherwise, we will try again (this deals with partial capture)
 			loops += 1;
 			if (loops < 20) {
+				await sleep(100+10*loops)
 				console.log(humanTime() + " curlScreenShot() // screen shot: warning: sha256 sums are different; could be partially rendered screen, so re-requesting screen shot // re-run with TEST_IGNORE_SHA256_SUMS=1 to ignore all PNGs");
 				pngSha256Previous = sha256Array[0];
 				continue;

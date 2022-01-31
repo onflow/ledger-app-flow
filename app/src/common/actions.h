@@ -22,7 +22,7 @@
 #include <os_io_seproxyhal.h>
 #include "coin.h"
 
-extern uint16_t action_addr_len;
+#define GET_PUB_KEY_RESPONSE_LENGTH (3 * SECP256_PK_LEN)
 
 __Z_INLINE void app_sign() {
     const uint8_t *message = get_signable();
@@ -45,23 +45,9 @@ __Z_INLINE void app_reject() {
     io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, 2);
 }
 
-__Z_INLINE uint8_t app_fill_address() {
-    // Put data directly in the apdu buffer
-    MEMZERO(G_io_apdu_buffer, IO_APDU_BUFFER_SIZE);
-
-    action_addr_len = 0;
-    zxerr_t err = crypto_fillAddress(hdPath, G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 2, &action_addr_len);
-
-    if (err != zxerr_ok || action_addr_len == 0) {
-        THROW(APDU_CODE_EXECUTION_ERROR);
-    }
-
-    return action_addr_len;
-}
-
 __Z_INLINE void app_reply_address() {
-    set_code(G_io_apdu_buffer, action_addr_len, APDU_CODE_OK);
-    io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, action_addr_len + 2);
+    set_code(G_io_apdu_buffer, GET_PUB_KEY_RESPONSE_LENGTH, APDU_CODE_OK);
+    io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, GET_PUB_KEY_RESPONSE_LENGTH + 2);
 }
 
 __Z_INLINE void app_reply_error() {

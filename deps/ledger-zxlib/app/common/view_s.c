@@ -25,6 +25,8 @@
 #include "view_templates.h"
 #include "zxutils_ledger.h"
 
+#include "menu_handler.h"
+
 #include <string.h>
 #include <stdio.h>
 
@@ -35,6 +37,7 @@
 #define BAGL_WIDTH_MARGIN 10
 
 void h_expert_toggle();
+void h_view_address();
 void h_expert_update();
 void h_review_button_left();
 void h_review_button_right();
@@ -57,6 +60,7 @@ const ux_menu_entry_t menu_main[] = {
     {NULL, NULL, 0, &C_icon_app, MENU_MAIN_APP_LINE1, viewdata.key, 33, 12},
     {NULL, h_expert_toggle, 0, &C_icon_app, "Expert mode:", viewdata.value, 33, 12},
     {NULL, NULL, 0, &C_icon_app, APPVERSION_LINE1, APPVERSION_LINE2, 33, 12},
+    {NULL, h_view_address, 0, &C_icon_app, "View", "address", 33, 12},
 
     {NULL,
 #ifdef APP_SECRET_MODE_ENABLED
@@ -266,6 +270,10 @@ void view_error_show_impl() {
 void h_expert_toggle() {
     app_mode_set_expert(!app_mode_expert());
     view_idle_show(1, NULL);
+}
+
+void h_view_address() {
+    handleMenuShowAddress();
 }
 
 #ifdef APP_SECRET_MODE_ENABLED

@@ -35,6 +35,7 @@ await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate 
 await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Pub Key [3/4] ..");
 await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Pub Key [4/4] ..");
 await common.curlScreenShot(scriptName); common.curlButton('right', "; navigate the address / path; Your Path 44'/..");
+await common.curlScreenShot(scriptName); common.curlButton('right', "; Not saved on the device. ..");
 await common.curlScreenShot(scriptName); common.curlButton('both', "; confirm; Approve"); // todo: should showAddressAndPubKey() need an 'Approve' dialog?
 await common.curlScreenShot(scriptName); console.log(common.humanTime() + " // back to main screen");
 const showPubkeyResponse = await showPubkeyPromise

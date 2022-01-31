@@ -129,18 +129,18 @@ todo: update documentation
 make speculos_install
 ```
 
-Then you can run JS tests. The tests compare against saved snapshots.
+Then you can run JS tests. The tests compare against saved snapshots. Using `-k` allows make to stop Speculos even if the tests fail. 
 
 ```bash
-make speculos_port_5001_test
-make speculos_port_5002_test
+make -k speculos_port_5001_test
+make -k speculos_port_5002_test
 ```
 
-Or for NanoX
+Or for NanoX:
 
 ```bash
-TARGET_DEVICE=NANO_X make speculos_port_5001_test
-TARGET_DEVICE=NANO_X make speculos_port_5002_test
+TARGET_DEVICE=NANO_X make -k speculos_port_5001_test
+TARGET_DEVICE=NANO_X make -k speculos_port_5002_test
 ```
 
 If you want to change the snapshots you can set `TEST_PNG_RE_GEN_FOR` enviroment variable. If you want to change snapshots set `TEST_PNG_RE_GEN_FOR=test`, otherwise you can set a prefix and tests with that prefix will be re-generated. Dont forget to review generated snapshot. 

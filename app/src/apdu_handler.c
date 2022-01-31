@@ -29,14 +29,59 @@
 #include "coin.h"
 #include "account.h"
 #include "zxmacros.h"
+#include "zxformat.h"
 
 __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+    //extract hdPath to hdPath global variable
     extractHDPath(rx, OFFSET_DATA);
-
     uint8_t requireConfirmation = G_io_apdu_buffer[OFFSET_P1];
 
+    //extract pubkey to pubkey_to_display global variable
+    MEMZERO(pubkey_to_display, sizeof(pubkey_to_display));
+    zxerr_t err = crypto_extractPublicKey(hdPath, pubkey_to_display, sizeof(pubkey_to_display));
+    if (err !=  zxerr_ok) {
+        zemu_log_stack("Public key extraction erorr");
+        THROW(APDU_CODE_UNKNOWN);
+    }
+
+    //We prepare apdu response, as of now, it is pubkey and pubkey in hex ...
+    STATIC_ASSERT(sizeof(G_io_apdu_buffer) > SECP256_PK_LEN + 2*SECP256_PK_LEN+1, "IO Buffer too small");
+    STATIC_ASSERT(sizeof(pubkey_to_display) == SECP256_PK_LEN, "Buffer too small");
+    memmove(G_io_apdu_buffer, pubkey_to_display, sizeof(pubkey_to_display)); 
+    const uint16_t remainingLength = sizeof(G_io_apdu_buffer) - SECP256_PK_LEN;
+    uint32_t len = array_to_hexstr((char *)(G_io_apdu_buffer + SECP256_PK_LEN), remainingLength, pubkey_to_display, sizeof(pubkey_to_display));
+    if (len != 2*SECP256_PK_LEN) {
+        zemu_log_stack("Error converting pubkey to hex");
+        THROW(APDU_CODE_UNKNOWN);
+    }
+    STATIC_ASSERT(GET_PUB_KEY_RESPONSE_LENGTH == 3*SECP256_PK_LEN, "Response length too small");
+
     if (requireConfirmation) {
-        app_fill_address();
+        account_slot_t slot;
+        zxerr_t err = slot_getSlot(MAIN_SLOT, (uint8_t *) &slot, sizeof(slot));
+
+        if (!(err == zxerr_no_data  || err == zxerr_ok)) {
+            zemu_log_stack("Unknown slot error");
+            THROW(APDU_CODE_UNKNOWN);
+        }
+
+        //Case 1 Empty slot 0 
+        if (err == zxerr_no_data) {
+            show_address = show_address_empty_slot;
+        }
+        else {
+            //Case 2 Slot 0 derivation path is not the same as APDU derivation path
+            STATIC_ASSERT(sizeof(slot.path.data) == sizeof(hdPath.data), "Incompatible derivation path types");
+            if (memcmp(slot.path.data, hdPath.data, sizeof(hdPath.data))) {
+                show_address = show_address_hdpaths_not_equal;            
+            }
+            //Case 3 Everything is OK
+            else {
+                STATIC_ASSERT(sizeof(address_to_display.data) == sizeof(slot.account.data), "Incompatible address types");
+                memcpy(address_to_display.data, slot.account.data, sizeof(address_to_display.data));
+                show_address = show_address_yes;
+            }
+        }
 
         view_review_init(addr_getItem, addr_getNumItems, app_reply_address);
         view_review_show();
@@ -45,7 +90,7 @@ __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx,
         return;
     }
 
-    *tx = app_fill_address();
+    *tx =  GET_PUB_KEY_RESPONSE_LENGTH;
     THROW(APDU_CODE_OK);
 }
 

@@ -25,6 +25,14 @@ extern "C" {
 #include <stddef.h>
 
 #define HDPATH_LEN_DEFAULT   5
+typedef struct {
+    uint32_t data[HDPATH_LEN_DEFAULT];
+} hd_path_t;
+
+#define ACCOUNT_SIZE       8
+typedef struct {
+    uint8_t data[ACCOUNT_SIZE];
+} flow_account_t;
 
 #define HDPATH_0_DEFAULT     (0x80000000u | 0x2cu)
 #define HDPATH_1_DEFAULT     (0x80000000u | 0x21bu)
@@ -35,14 +43,8 @@ extern "C" {
 #define HDPATH_0_TESTNET     (0x80000000u | 0x2cu)
 #define HDPATH_1_TESTNET     (0x80000000u | 0x1u)
 
-#define SECP256K1_PK_LEN            65u
-#define SECP256R1_PK_LEN            65u
+#define SECP256_PK_LEN            65u
 
-typedef enum {
-    ADDR_SECP256K1 = 0,
-} address_kind_e;
-
-#define VIEW_ADDRESS_OFFSET_SECP256K1       (SECP256K1_PK_LEN )
 #define COIN_AMOUNT_DECIMAL_PLACES          0           // FIXME: Adjust this
 #define COIN_SUPPORTED_TX_VERSION           0
 
@@ -50,6 +52,8 @@ typedef enum {
 #define MENU_MAIN_APP_LINE2 "Ready"
 #define APPVERSION_LINE1 "Version"
 #define APPVERSION_LINE2 "v" APPVERSION
+
+#define MAIN_SLOT 0
 
 #ifdef __cplusplus
 }
