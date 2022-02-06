@@ -297,7 +297,7 @@ define run_announce
 endef
 
 define run_nodejs_test
-	@cd $(TESTS_SPECULOS_DIR) && TEST_SPECULOS_API_PORT=$(1) TEST_SPECULOS_APDU_PORT=$(2) TEST_DEVICE=$(TEST_DEVICE) node $(3) 2>&1 | tee -a ../../speculos-port-$(1).log 2>&1 | perl -lane '$$lines .= $$_ . "\n"; printf qq[%s\n], $$_ if(m~test(Start|Combo|Step|End)~); sub END{ die qq[ERROR: testEnd not detected; test failed?\n] if($$lines !~ m~testEnd~s); }'
+	@cd $(TESTS_SPECULOS_DIR) && TEST_SPECULOS_API_PORT=$(1) TEST_SPECULOS_APDU_PORT=$(2) TEST_DEVICE=$(TEST_DEVICE) node $(3) 2>&1 | tee -a ../../speculos-port-$(1).log 2>&1 | perl -lane '$$lines .= $$_ . "\n"; printf qq[%s\n], $$_ if(m~test(Start|Combo|Step|End)~); sub END{ die qq[ERROR: testEnd not detected; test failed?\n] if($$lines !~ m~testEnd~s); }' 1> /dev/null
 endef
 
 .PHONY: speculos_port_5001_test_internal
@@ -313,19 +313,19 @@ speculos_port_5001_test_internal:
 	$(call run_nodejs_test,5001,40001,test-basic-show-address-secp256r1.js)
 	$(call run_nodejs_test,5001,40001,test-basic-show-address-expert.js)
 	$(call run_nodejs_test,5001,40001,test-menu.js)
-	@echo "# ALL TESTS COMPLETED!" | tee -a ../speculos-port-5001.log
+	@echo "# ALL TESTS COMPLETED!" 
 
 .PHONY: speculos_port_5002_test_internal
 speculos_port_5002_test_internal:
 	$(call run_announce,$@)
 	$(call run_nodejs_test,5002,40002,test-transactions.js)
-	@echo "# ALL TESTS COMPLETED!" | tee -a ../speculos-port-5002.log
+	@echo "# ALL TESTS COMPLETED!" 
 
 .PHONY: speculos_port_5001_test
 speculos_port_5001_test:
 	$(call run_announce,$@)
 	@make --no-print-directory speculos_port_5001_start 
-	@make --no-print-directory speculos_port_5001_test_internal 
+	@-make --no-print-directory speculos_port_5001_test_internal 
 	@make --no-print-directory speculos_port_5001_stop 
 	$(call run_announce,note: logs: cat ../speculos-port-5001.log)
 	@cat ../speculos-port-5001.log
@@ -334,11 +334,10 @@ speculos_port_5001_test:
 speculos_port_5002_test:
 	$(call run_announce,$@)
 	@make --no-print-directory speculos_port_5002_start 
-	@make --no-print-directory speculos_port_5002_test_internal 
+	@-make --no-print-directory speculos_port_5002_test_internal 
 	@make --no-print-directory speculos_port_5002_stop 
 	$(call run_announce,note: logs: cat ../speculos-port-5002.log)
-	@# todo: only output the last part of the log for the test that failed if it failed
-	@# todo: figure out how to run both (or more) tests in parallel, e.g. via something like tmux?
+	@# todo: Remove that dangerous node silencing
 	@cat ../speculos-port-5002.log
 
 .PHONY: rust_test
