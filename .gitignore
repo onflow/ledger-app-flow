@@ -92,4 +92,5 @@ node_modules/.yarn-integrity
 /fuzz/corpora
 /tests_speculos/node_modules/
 /tests_speculos/yarn.lock
+/tests_speculos/speculos-port*.log
 *.new.png
