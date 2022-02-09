@@ -19,61 +19,13 @@ const transport = await getSpyTransport(speculosConf);
 const FlowApp = OnflowLedgerMod.default;
 const app = new FlowApp(transport);
 
-const CHAIN_ID_PAGE_COUNT = 1;
-const REF_BLOCK_PAGE_COUNT = 2;
-const GAS_LIMIT_PAGE_COUNT = 1;
-const PROP_KEY_ADDRESS_PAGE_COUNT = 1;
-const PROP_KEY_ID_PAGE_COUNT = 1;
-const PROP_KEY_SEQNUM_PAGE_COUNT = 1;
-const PAYER_PAGE_COUNT = 1;
-const AUTHORIZER_PAGE_COUNT = 1;
-const ACCEPT_PAGE_COUNT = 1;
-
-const PAGE_SIZE = (process.env.TEST_DEVICE && process.env.TEST_DEVICE == "nanox") ? 57: 34;
-
-function getArgumentPageCount(arg) {
-    if (arg.type == "Array") {
-        return getArgumentsPageCount(arg.value);
-    }
-
-    if (arg.type == "String") {
-        const count = Math.ceil(arg.value.length / PAGE_SIZE);
-        return count;
-    }
-
-    if (arg.type == "Optional" && arg.value != null) {
-        return getArgumentPageCount(arg.value);
-    }
-
-    return 1;
-}
-
-function getArgumentsPageCount(args) {
-    return args.reduce((count, arg) => count + getArgumentPageCount(arg), 0);
-}
-
-function getTransactionPageCount(tx) {
-    return (
-        CHAIN_ID_PAGE_COUNT +
-        REF_BLOCK_PAGE_COUNT +
-        getArgumentsPageCount(tx.arguments) +
-        GAS_LIMIT_PAGE_COUNT +
-        PROP_KEY_ADDRESS_PAGE_COUNT +
-        PROP_KEY_ID_PAGE_COUNT +
-        PROP_KEY_SEQNUM_PAGE_COUNT +
-        PAYER_PAGE_COUNT +
-        (AUTHORIZER_PAGE_COUNT * tx.authorizers.length) +
-        ACCEPT_PAGE_COUNT
-    );
-}
-
 function getKeyPath(sigAlgo, hashAlgo) {
     const scheme = sigAlgo | hashAlgo;
     const path = `m/44'/539'/${scheme}'/0/0`;
     return path;
 }
 
-async function transactionTest(testTitle, transactionTitle, txHexBlob, txExpectedPageCount, sigAlgo, hashAlgo) {
+async function transactionTest(testTitle, transactionTitle, txHexBlob, sigAlgo, hashAlgo) {
 
 	// e.g. test-transactions.js.basic-sign-transfer-flow-secp256k1-sha-256
 	testCombo(scriptName + "; " + testTitle);
@@ -191,17 +143,14 @@ const exampleAddKeyBlob        = "f90186f9015eb86e7472616e73616374696f6e28707562
 		{
 			title: "Transfer FLOW",
 			blob: exampleTransferBlob,
-			pageCount: (process.env.TEST_DEVICE && process.env.TEST_DEVICE == "nanox")?12:12,
 		},
 		{
 			title: "Create Account",
 			blob: exampleCreateAccountBlob,
-			pageCount: (process.env.TEST_DEVICE && process.env.TEST_DEVICE == "nanox")?16:20,
 		},
 		{
 			title: "Add Key",
 			blob: exampleAddKeyBlob,
-			pageCount: (process.env.TEST_DEVICE && process.env.TEST_DEVICE == "nanox")?13:15,
 		},
 	];
 
@@ -213,7 +162,6 @@ const exampleAddKeyBlob        = "f90186f9015eb86e7472616e73616374696f6e28707562
 					testTitle,
 					transactions[i].title,
 					transactions[i].blob, 
-					transactions[i].pageCount, 
 					sigAlgos[j], 
 					hashAlgos[k],
 				);
@@ -228,13 +176,11 @@ const exampleAddKeyBlob        = "f90186f9015eb86e7472616e73616374696f6e28707562
 
 	for (var i=0; i < transactions.length; ++i ) {
 		if (transactions[i].chainID == "Mainnet") {
-			const txExpectedPageCount = getTransactionPageCount(transactions[i].envelopeMessage);
 			var testTitle = `staking sign: ${transactions[i].title} - ${ECDSA_P256.name} / ${SHA3_256.name}`; // e.g. staking sign: TH.01 - Withdraw Unlocked FLOW - p256 / SHA3-256
 			await transactionTest(
 				testTitle,
 				transactions[i].title,
 				transactions[i].encodedTransactionEnvelopeHex,
-				txExpectedPageCount,
 				ECDSA_P256,
 				SHA3_256,
 			);
