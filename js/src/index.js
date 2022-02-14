@@ -154,20 +154,27 @@ export default class FlowApp {
     }, processErrorResponse);
   }
 
-  async getAddressAndPubKey(path) {
-    const serializedPath = serializePathv1(path);
-    console.log(serializedPath);
+  async getAddressAndPubKey(path, sigalgo, hashalgo) {
+    const serializedPathBuffer = serializePathv1(path);
+    console.log(serializedPathBuffer);
+
+    const sigHashBuffer = Buffer.from([sigalgo, hashalgo])
+    const data = serializedPathBuffer.concat(sigHashBuffer)
 
     return this.transport
-      .send(CLA, INS.GET_PUBKEY, P1_VALUES.ONLY_RETRIEVE, 0, serializedPath, [0x9000])
+      .send(CLA, INS.GET_PUBKEY, P1_VALUES.ONLY_RETRIEVE, 0, data, [0x9000])
       .then(processGetAddrResponse, processErrorResponse);
   }
 
-  async showAddressAndPubKey(path) {
-    const serializedPath = serializePathv1(path);
+  async showAddressAndPubKey(path, sigalgo, hashalgo) {
+    const serializedPathBuffer = serializePathv1(path);
+    console.log(serializedPathBuffer);
+
+    const sigHashBuffer = Buffer.from([sigalgo, hashalgo])
+    const data = serializedPathBuffer.concat(sigHashBuffer)
 
     return this.transport
-      .send(CLA, INS.GET_PUBKEY, P1_VALUES.SHOW_ADDRESS_IN_DEVICE, 0, serializedPath, [0x9000])
+      .send(CLA, INS.GET_PUBKEY, P1_VALUES.SHOW_ADDRESS_IN_DEVICE, 0, data, [0x9000])
       .then(processGetAddrResponse, processErrorResponse);
   }
 
