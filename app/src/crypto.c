@@ -21,8 +21,6 @@
 #include "zxformat.h"
 #include "zxerror.h"
 
-hd_path_t hdPath;
-
 #if defined(TARGET_NANOS) || defined(TARGET_NANOX)
 #include "cx.h"
 

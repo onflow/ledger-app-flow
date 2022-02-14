@@ -30,8 +30,12 @@
 #include "account.h"
 #include "zxmacros.h"
 #include "zxformat.h"
+#include "hdpath.h"
 
 __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+    hasPubkey = false;
+    show_address = show_address_none;
+
     //extract hdPath to hdPath global variable
     extractHDPath(rx, OFFSET_DATA);
     uint8_t requireConfirmation = G_io_apdu_buffer[OFFSET_P1];
@@ -43,6 +47,7 @@ __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx,
         zemu_log_stack("Public key extraction erorr");
         THROW(APDU_CODE_UNKNOWN);
     }
+    hasPubkey = true;
 
     //We prepare apdu response, as of now, it is pubkey and pubkey in hex ...
     STATIC_ASSERT(sizeof(G_io_apdu_buffer) > SECP256_PK_LEN + 2*SECP256_PK_LEN+1, "IO Buffer too small");
@@ -57,30 +62,10 @@ __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx,
     STATIC_ASSERT(GET_PUB_KEY_RESPONSE_LENGTH == 3*SECP256_PK_LEN, "Response length too small");
 
     if (requireConfirmation) {
-        account_slot_t slot;
-        zxerr_t err = slot_getSlot(MAIN_SLOT, (uint8_t *) &slot, sizeof(slot));
-
-        if (!(err == zxerr_no_data  || err == zxerr_ok)) {
+        loadAddressCompareHdPathFromSlot();
+        if (show_address == show_address_error || show_address == show_address_none) {
             zemu_log_stack("Unknown slot error");
-            THROW(APDU_CODE_UNKNOWN);
-        }
-
-        //Case 1 Empty slot 0 
-        if (err == zxerr_no_data) {
-            show_address = show_address_empty_slot;
-        }
-        else {
-            //Case 2 Slot 0 derivation path is not the same as APDU derivation path
-            STATIC_ASSERT(sizeof(slot.path.data) == sizeof(hdPath.data), "Incompatible derivation path types");
-            if (memcmp(slot.path.data, hdPath.data, sizeof(hdPath.data))) {
-                show_address = show_address_hdpaths_not_equal;            
-            }
-            //Case 3 Everything is OK
-            else {
-                STATIC_ASSERT(sizeof(address_to_display.data) == sizeof(slot.account.data), "Incompatible address types");
-                memcpy(address_to_display.data, slot.account.data, sizeof(address_to_display.data));
-                show_address = show_address_yes;
-            }
+            THROW(APDU_CODE_UNKNOWN);           
         }
 
         view_review_init(addr_getItem, addr_getNumItems, app_reply_address);
@@ -107,6 +92,8 @@ __Z_INLINE void handleSign(volatile uint32_t *flags, volatile uint32_t *tx, uint
         *tx += (error_msg_length);
         THROW(APDU_CODE_DATA_INVALID);
     }
+
+    
 
     CHECK_APP_CANARY()
     view_review_init(tx_getItem, tx_getNumItems, app_sign);

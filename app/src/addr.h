@@ -20,18 +20,8 @@
 extern "C" {
 #endif
 
-//Enum to determine if we should show address
-typedef enum {
-    show_address_no_pubkey,
-    show_address_yes,
-    show_address_empty_slot,
-    show_address_hdpaths_not_equal,
-    show_address_error,
-} show_addres_t;
-
-extern show_addres_t show_address;
+extern bool hasPubkey;
 extern uint8_t pubkey_to_display[SECP256_PK_LEN];
-extern flow_account_t address_to_display;
 
 /// Return the number of items in the address view
 zxerr_t addr_getNumItems(uint8_t *num_items);
