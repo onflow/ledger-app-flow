@@ -6,6 +6,7 @@
 #include "hdpath.h"
 #include "addr.h"
 #include "crypto.h"
+#include "account.h"
 
 __Z_INLINE void menuaddr_return() {
     view_idle_show(0, NULL);
