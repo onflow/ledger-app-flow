@@ -114,6 +114,23 @@ for(let i=0; i<testTxBlobs.length; i++) {
 	);	
 }
 
+//Now delete the slot so that the next test starts in a clean state
+const expectedAccountDelete = "0000000000000000";
+const expectedPathDelete = `m/0/0/0/0/0`;
+
+testStep(" - - -", "app.setSlot(); Delete slot 10");
+const setSlotPromise3 = app.setSlot(0, expectedAccountDelete, expectedPathDelete);
+device.review("Delete slot 0");
+const setSlotResponse3 = await setSlotPromise3;
+
+assert.equal(setSlotResponse3.returnCode, 0x9000);
+
+hexExpected = "331200001d0000000000000000000000000000000000000000000000000000000000";
+compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:28, unexpected:9999});
+hexExpected = "9000";
+compareInAPDU(transport, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
+noMoreAPDUs(transport);
+
 
 await transport.close()
 testEnd(scriptName);
