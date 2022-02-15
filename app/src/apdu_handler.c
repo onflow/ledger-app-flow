@@ -31,6 +31,7 @@
 #include "zxmacros.h"
 #include "zxformat.h"
 #include "hdpath.h"
+#include "parser_impl.h"
 
 __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     hasPubkey = false;
@@ -93,7 +94,14 @@ __Z_INLINE void handleSign(volatile uint32_t *flags, volatile uint32_t *tx, uint
         THROW(APDU_CODE_DATA_INVALID);
     }
 
-    
+    loadAddressCompareHdPathFromSlot();
+    //if we found matching hdPath on slot 0
+    if (show_address == show_address_yes) {
+        checkAddressUsedInTx();
+    }
+    else {
+        addressUsedInTx = 0;
+    }    
 
     CHECK_APP_CANARY()
     view_review_init(tx_getItem, tx_getNumItems, app_sign);

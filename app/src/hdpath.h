@@ -12,6 +12,7 @@ typedef enum {
 } show_address_t;
 extern show_address_t show_address;
 extern flow_account_t address_to_display;
+extern uint8_t addressUsedInTx;
 
 void loadHdPathAndAddressFromSlot();
 void loadAddressCompareHdPathFromSlot();

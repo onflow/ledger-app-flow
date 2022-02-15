@@ -5,6 +5,7 @@
 hd_path_t hdPath;
 show_address_t show_address;
 flow_account_t address_to_display;
+uint8_t addressUsedInTx;
 
 void loadAddressFromSlot(uint8_t hasHdPath) {
     account_slot_t slot;

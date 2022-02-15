@@ -22,6 +22,7 @@
 #include "parser_txdef.h"
 #include "coin.h"
 #include "zxformat.h"
+#include "hdpath.h"
 
 #if defined(TARGET_NANOX)
 // For some reason NanoX requires this function
@@ -491,6 +492,31 @@ parser_error_t parser_getItemAfterArguments(__Z_UNUSED const parser_context_t *c
         snprintf(outKey, outKeyLen, "Authorizer %d", displayIdx + 1);
         return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
                                       pageCount);
+    }
+
+    displayIdx -= parser_tx_obj.authorizers.authorizer_count;
+    switch(show_address) {
+        case show_address_yes:
+            if (addressUsedInTx) {
+                break;
+            }
+            else {
+                snprintf(outKey, outKeyLen, "Warning:");
+                snprintf(outVal, outValLen, "Your address not in transaction.");
+                return PARSER_OK;
+            }
+        case show_address_empty_slot:
+                snprintf(outKey, outKeyLen, "Warning:");
+                snprintf(outVal, outValLen, "No address stored on the device.");
+                return PARSER_OK;
+        case show_address_hdpaths_not_equal:
+                snprintf(outKey, outKeyLen, "Warning:");
+                snprintf(outVal, outValLen, "Different address stored on device.");
+                return PARSER_OK;
+        default:
+                snprintf(outKey, outKeyLen, "Warning:");
+                snprintf(outVal, outValLen, "Slot error.");
+                return PARSER_OK;
     }
 
     return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
