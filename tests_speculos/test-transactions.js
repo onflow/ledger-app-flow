@@ -1,71 +1,23 @@
 'use strict';
 
-import * as common from './common.js';
+import { testStart, testStep, testEnd, testCombo, compareInAPDU, compareOutAPDU, noMoreAPDUs, getScriptName, getSpeculosDefaultConf, humanTime } from "./speculos-common.js";
+import { getSpyTransport } from "./speculos-transport.js";
+import { ButtonsAndSnapshots } from "./speculos-buttons-and-snapshots.js";
 import { default as OnflowLedgerMod } from "@onflow/ledger";
 import { fileURLToPath } from 'url';
-import jsSHA from "jssha";
-import fs from "fs";
 import assert from 'assert/strict';
-
-//import {ec as EC} from "elliptic"; // SyntaxError: Named export 'ec' not found. The requested module 'elliptic' is a CommonJS module, which may not support all module.exports as named exports.
 import pkg from 'elliptic';
 const {ec: EC} = pkg;
+import fs from "fs";
+import jsSHA from "jssha";
 
-var scriptName = common.path.basename(fileURLToPath(import.meta.url));
+const scriptName = getScriptName(fileURLToPath(import.meta.url));
+testStart(scriptName);
 
-common.testStart(scriptName);
-
+const speculosConf = getSpeculosDefaultConf();
+const transport = await getSpyTransport(speculosConf);
 const FlowApp = OnflowLedgerMod.default;
-const transport = await common.getSpyTransport()
 const app = new FlowApp(transport);
-
-const CHAIN_ID_PAGE_COUNT = 1;
-const REF_BLOCK_PAGE_COUNT = 2;
-const GAS_LIMIT_PAGE_COUNT = 1;
-const PROP_KEY_ADDRESS_PAGE_COUNT = 1;
-const PROP_KEY_ID_PAGE_COUNT = 1;
-const PROP_KEY_SEQNUM_PAGE_COUNT = 1;
-const PAYER_PAGE_COUNT = 1;
-const AUTHORIZER_PAGE_COUNT = 1;
-const ACCEPT_PAGE_COUNT = 1;
-
-const PAGE_SIZE = (process.env.TEST_DEVICE && process.env.TEST_DEVICE == "nanox") ? 57: 34;
-
-function getArgumentPageCount(arg) {
-    if (arg.type == "Array") {
-        return getArgumentsPageCount(arg.value);
-    }
-
-    if (arg.type == "String") {
-        const count = Math.ceil(arg.value.length / PAGE_SIZE);
-        return count;
-    }
-
-    if (arg.type == "Optional" && arg.value != null) {
-        return getArgumentPageCount(arg.value);
-    }
-
-    return 1;
-}
-
-function getArgumentsPageCount(args) {
-    return args.reduce((count, arg) => count + getArgumentPageCount(arg), 0);
-}
-
-function getTransactionPageCount(tx) {
-    return (
-        CHAIN_ID_PAGE_COUNT +
-        REF_BLOCK_PAGE_COUNT +
-        getArgumentsPageCount(tx.arguments) +
-        GAS_LIMIT_PAGE_COUNT +
-        PROP_KEY_ADDRESS_PAGE_COUNT +
-        PROP_KEY_ID_PAGE_COUNT +
-        PROP_KEY_SEQNUM_PAGE_COUNT +
-        PAYER_PAGE_COUNT +
-        (AUTHORIZER_PAGE_COUNT * tx.authorizers.length) +
-        ACCEPT_PAGE_COUNT
-    );
-}
 
 function getKeyPath(sigAlgo, hashAlgo) {
     const scheme = sigAlgo | hashAlgo;
@@ -73,116 +25,100 @@ function getKeyPath(sigAlgo, hashAlgo) {
     return path;
 }
 
-async function transactionTest(testTitle, transactionTitle, txHexBlob, txExpectedPageCount, sigAlgo, hashAlgo) {
-
-	common.testCombo(scriptName + "; " + testTitle);
+async function transactionTest(testTitle, transactionTitle, txHexBlob, sigAlgo, hashAlgo) {
 
 	// e.g. test-transactions.js.basic-sign-transfer-flow-secp256k1-sha-256
-	var scriptNameCombo = (scriptName + "." + testTitle).replace(new RegExp("([:/ \-]+)","gm"),"-").toLowerCase(); 
+	testCombo(scriptName + "; " + testTitle);
+	const scriptNameCombo = (scriptName + "." + testTitle).replace(new RegExp("([:/ \-]+)","gm"),"-").toLowerCase(); 
 
-	const txBlob = Buffer.from(txHexBlob, "hex");
-	const path = getKeyPath(sigAlgo.code, hashAlgo.code);
+	const device = new ButtonsAndSnapshots(scriptNameCombo, speculosConf);
+	let hexExpected = "";
 
-	console.log(common.humanTime() + " // screen shot before sending first apdu command");
-	await common.curlScreenShot(scriptNameCombo);
+    await device.makeStartingScreenshot();
 
 	//getPubkey
-	common.testStep(" - - -", "await app.getAddressAndPubKey() // path=" + path);
+	const path = getKeyPath(sigAlgo.code, hashAlgo.code);
+
+	testStep(" - - -", "await app.getAddressAndPubKey() // path=" + path);
 	const getPubkeyResponse = await app.getAddressAndPubKey(path);
+
 	assert.equal(getPubkeyResponse.returnCode, 0x9000);
 	assert.equal(getPubkeyResponse.errorMessage, "No errors");
 	const pubkeyHex = getPubkeyResponse.publicKey.toString("hex")
-	console.log(common.humanTime() + " publicKeyHex=" + pubkeyHex);
+	console.log(humanTime() + " publicKeyHex=" + pubkeyHex);
 	
-	assert.equal(transport.hexApduCommandOut.length, 1)
-	var hexOutgoing = transport.hexApduCommandOut.shift();
-	var hexExpected = "3301000014xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-	common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, do_not_compare_path:20, unexpected:9999});
+	hexExpected = "3301000014xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+	compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, do_not_compare_path:20, unexpected:9999});
+	hexExpected = "04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be303464373438326262616666373832373033356435623233386466333138623130363034363733646336313338303837323365666264323366626334623966616433346134313538323864393234656337623833616330656464663232656631313562376332303365653339666230383035373264376535313737356565353462659000";
+	compareInAPDU(transport, hexExpected, "apdu response", {do_not_compare_publicKey:65, do_not_compare_publicKey_hex:130, returnCode:2, unexpected:9999});
+	noMoreAPDUs(transport)
 
-	assert.equal(transport.hexApduCommandIn.length, 1)
-	var hexIncomming = transport.hexApduCommandIn.shift();
-	var hexExpected = "04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be303464373438326262616666373832373033356435623233386466333138623130363034363733646336313338303837323365666264323366626334623966616433346134313538323864393234656337623833616330656464663232656631313562376332303365653339666230383035373264376535313737356565353462659000";
-	common.compare(hexIncomming, hexExpected, "apdu response", {do_not_compare_publicKey:65, do_not_compare_publicKey_hex:130, returnCode:2, unexpected:9999});
-	
 	//sign
-	common.testStep(" - - -", "app.sign() // path=" + path + " txBlob=" + txBlob.length + ":" + txHexBlob.substring(0, 16) + ".. AKA " + transactionTitle);
+	const txBlob = Buffer.from(txHexBlob, "hex");
+
+	testStep(" - - -", "app.sign() // path=" + path + " txBlob=" + txBlob.length + ":" + txHexBlob.substring(0, 16) + ".. AKA " + transactionTitle);
 	const signPromise =  app.sign(path, txBlob);
-	common.testStep("   +  ", "buttons");
-	//sign is multiAPDU operation. This is outside of what common.curlScreenShot can synchronize. We help by synchronizing with last APDU
+	//sign is multiAPDU operation. To help the snapshotter with synchronization we await last APDU beign sent
 	await transport.waitForAPDU(0x33, 0x02, 0x02);	
-	if (process.env.TEST_DEVICE && process.env.TEST_DEVICE == "nanox") {
-		await common.curlScreenShot(scriptNameCombo); common.curlButton('right', "; Please review");
-	}
-	for (let right=0; right < txExpectedPageCount; ++right ) {
-		await common.curlScreenShot(scriptNameCombo); common.curlButton('right', "");
-	}
-	await common.curlScreenShot(scriptNameCombo); common.curlButton('both', "; confirm; Approve");
-	await common.curlScreenShot(scriptNameCombo); console.log(common.humanTime() + " // back to main screen");
-	common.testStep(" - - -", "await signPromise")
+    device.review("Show address 1 - empty slot");
 	const signResponse = await signPromise;
+
 	assert.equal(signResponse.returnCode, 0x9000);
 	assert.equal(signResponse.errorMessage, "No errors");
 	const signatureDERHex = signResponse.signatureDER.toString("hex");
-	console.log(common.humanTime() + " signatureDERHex=" + signatureDERHex);
+	console.log(humanTime() + " signatureDERHex=" + signatureDERHex);
 
-    assert.ok(transport.hexApduCommandOut.length >= 2)
-    assert.ok(transport.hexApduCommandIn.length >= 2)
-	assert.equal(transport.hexApduCommandOut.length, transport.hexApduCommandIn.length)
-
-	//Compare the first APDU 
-	var hexOutgoing = transport.hexApduCommandOut.shift();
-	var hexExpected = "33020000142c0000801b020080010200800000000000000000";
-	common.compare(hexOutgoing, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, do_not_compare_path:20, unexpected:9999});
-	var hexIncomming = transport.hexApduCommandIn.shift();
-	var hexExpected = "9000";
-	common.compare(hexIncomming, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
+	//compare first APDU
+	hexExpected = "33020000142c0000801b020080010200800000000000000000";
+	compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, do_not_compare_path:20, unexpected:9999});
+	hexExpected = "9000";
+	compareInAPDU(transport, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
+	assert.equal(transport.hexApduCommandOut.length, transport.hexApduCommandIn.length);
 
     //compare other APDUs, let us calculate original txHexBlob
-	var txHexFromAPDUs = "";
+	let txHexFromAPDUs = "";
 	const outLen = transport.hexApduCommandOut.length;
-	for(var p = 0; p < outLen; p++) {
-		var p1 = ((p + 1 == outLen) ? "02" : "01")
-		var hexOutgoing = transport.hexApduCommandOut.shift();
+	for(let p = 0; p < outLen; p++) {
+		const p1 = ((p + 1 == outLen) ? "02" : "01")
+		const hexOutgoing = transport.hexApduCommandOut.shift();
         assert.equal(hexOutgoing.substring(0, 8), "3302"+p1+"00")
 		const chunkLen = parseInt(hexOutgoing.substring(8, 10), 16)
 		assert.equal(hexOutgoing.length, 10 + 2*chunkLen)
 		txHexFromAPDUs = txHexFromAPDUs.concat(hexOutgoing.substring(10, 10 + 2*chunkLen))
 
-		var hexIncomming = transport.hexApduCommandIn.shift();
 		if (p1 == "01") { // not last APDU
-			var hexExpected = "9000";
-			common.compare(hexIncomming, hexExpected, "apdu response", {returnCode:2, unexpected:9999});	
+			hexExpected = "9000";
+			compareInAPDU(transport, hexExpected, "apdu response", {returnCode:2, unexpected:9999});	
 		}
 		if (p1 == "02") { // last APDU
-		    assert.ok(hexIncomming.length >= 2*(65 + 2))			
-			var returnCodeLen = 2;
-			var signatureCompactLen = 65;
-			var signatureDERLen = (hexIncomming.length/2) - signatureCompactLen - returnCodeLen; // make this part variable length; just like the javascript does
-			var hexExpected = "01".repeat(signatureCompactLen) + "02".repeat(signatureDERLen) + "9000";
-			common.compare(hexIncomming, hexExpected, "apdu response", {do_not_compare_signatureCompact:signatureCompactLen, do_not_compare_signatureDER:signatureDERLen, returnCode:returnCodeLen, unexpected:9999});
+			const returnCodeLen = 2;
+			const signatureCompactLen = 65;
+			const signatureDERLen = transport.hexApduCommandIn[0].length / 2 - signatureCompactLen - returnCodeLen;
+			const hexExpected = "01".repeat(signatureCompactLen) + "02".repeat(signatureDERLen) + "9000";
+			compareInAPDU(transport, hexExpected, "apdu response", {do_not_compare_signatureCompact:signatureCompactLen, do_not_compare_signatureDER:signatureDERLen, returnCode:returnCodeLen, unexpected:9999});
 		}
 	}
-
 	//Verify that the APDU's contain the correct tx
 	assert.equal(txHexFromAPDUs, txHexBlob);
+	noMoreAPDUs(transport);
 
 	// Prepare digest by hashing transaction
-	common.testStep("   ?  ", "transaction signature verification against digest");
+	testStep("   ?  ", "transaction signature verification against digest");
 	let tag = Buffer.alloc(32);
 	tag.write("FLOW-V0.0-transaction");
 	const hasher = new jsSHA(hashAlgo.name, "UINT8ARRAY");
 	hasher.update(tag);
 	hasher.update(txBlob);
 	const digestHex = hasher.getHash("HEX");
-	console.log(common.humanTime() + " digestHex=" + digestHex); // e.g. 841058f2f41b3e15b3add2eb7d6b588f443577efeaa0a31e5915e770208f6f20
+	console.log(humanTime() + " digestHex=" + digestHex); // e.g. 841058f2f41b3e15b3add2eb7d6b588f443577efeaa0a31e5915e770208f6f20
 
 	// Verify transaction signature against digest
 	const ec = new EC(sigAlgo.name);
 	const signatureOk = ec.verify(digestHex, signatureDERHex, pubkeyHex, 'hex');
 	if (signatureOk) {
-		console.log(common.humanTime() + " transaction signature verification against digest PASSED");
+		console.log(humanTime() + " transaction signature verification against digest PASSED");
 	} else {
-		console.log(common.humanTime() + " transaction signature verification against digest FAILED");
+		console.log(humanTime() + " transaction signature verification against digest FAILED");
 		assert.ok(false)
 	}
 }
@@ -207,29 +143,25 @@ const exampleAddKeyBlob        = "f90186f9015eb86e7472616e73616374696f6e28707562
 		{
 			title: "Transfer FLOW",
 			blob: exampleTransferBlob,
-			pageCount: (process.env.TEST_DEVICE && process.env.TEST_DEVICE == "nanox")?12:12,
 		},
 		{
 			title: "Create Account",
 			blob: exampleCreateAccountBlob,
-			pageCount: (process.env.TEST_DEVICE && process.env.TEST_DEVICE == "nanox")?16:20,
 		},
 		{
 			title: "Add Key",
 			blob: exampleAddKeyBlob,
-			pageCount: (process.env.TEST_DEVICE && process.env.TEST_DEVICE == "nanox")?13:15,
 		},
 	];
 
-	for (var i=0; i < transactions.length; ++i ) {
-		for (var j=0; j < sigAlgos.length; ++j ) {
-			for (var k=0; k < hashAlgos.length; ++k ) {
-				var testTitle = `basic sign: ${transactions[i].title} - ${sigAlgos[j].name} / ${hashAlgos[k].name}`; // e.g. basic sign: Transfer FLOW - secp256k1 / SHA-256
+	for (let i=0; i < transactions.length; ++i ) {
+		for (let j=0; j < sigAlgos.length; ++j ) {
+			for (let k=0; k < hashAlgos.length; ++k ) {
+				const testTitle = `basic sign: ${transactions[i].title} - ${sigAlgos[j].name} / ${hashAlgos[k].name}`; // e.g. basic sign: Transfer FLOW - secp256k1 / SHA-256
 				await transactionTest(
 					testTitle,
 					transactions[i].title,
 					transactions[i].blob, 
-					transactions[i].pageCount, 
 					sigAlgos[j], 
 					hashAlgos[k],
 				);
@@ -244,13 +176,11 @@ const exampleAddKeyBlob        = "f90186f9015eb86e7472616e73616374696f6e28707562
 
 	for (var i=0; i < transactions.length; ++i ) {
 		if (transactions[i].chainID == "Mainnet") {
-			const txExpectedPageCount = getTransactionPageCount(transactions[i].envelopeMessage);
 			var testTitle = `staking sign: ${transactions[i].title} - ${ECDSA_P256.name} / ${SHA3_256.name}`; // e.g. staking sign: TH.01 - Withdraw Unlocked FLOW - p256 / SHA3-256
 			await transactionTest(
 				testTitle,
 				transactions[i].title,
 				transactions[i].encodedTransactionEnvelopeHex,
-				txExpectedPageCount,
 				ECDSA_P256,
 				SHA3_256,
 			);
@@ -259,4 +189,4 @@ const exampleAddKeyBlob        = "f90186f9015eb86e7472616e73616374696f6e28707562
 }
 
 await transport.close()
-common.testEnd(scriptName);
+testEnd(scriptName);

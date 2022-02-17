@@ -283,8 +283,8 @@ generate_test_vectors:
 # Note: This error did occur once: docker: Error response from daemon: driver failed programming external connectivity on endpoint speculos-port-5002 (082ea92d039f260880bc264a2f6086e14c42d698f24ff5acbba422baa9c60b29): Error starting userland proxy: listen tcp 0.0.0.0:41002: bind: address already in use.
 # Note: Since we do not need to use the VNC for the tests, then remove this option and hope the error never shows up again: --vnc-port $(3)
 define start_speculos_container
-	docker run --detach --name speculos-port-$(1) --rm -it -v $(CURDIR)/app:/speculos/app --publish $(1):$(1) --publish $(2):$(2) --publish $(3):$(3) speculos --model $(SPECULOS_MODEL_SWITCH) --sdk $(SPECULOS_SDK) --seed "equip will roof matter pink blind book anxiety banner elbow sun young" --display headless --apdu-port $(2) --api-port $(1) ./app/bin/app.elf ; rm -f ../speculos-port-$(1).log ; docker logs --follow speculos-port-$(1) 2>&1 | tee -a ../speculos-port-$(1).log > /dev/null 2>&1 &
-	@perl -e 'use Time::HiRes; $$t1=Time::HiRes::time(); while(1){ $$o=`cat ../speculos-port-$(1).log`; if($$o =~ m~Running on .*\:$(1)~s){ printf qq[# detected -- via log -- speculos listening after %f seconds; spy on emulated device via http://localhost:$(1)/\n], Time::HiRes::time() - $$t1; exit; } Time::HiRes::sleep(0.01); };'
+	docker run --detach --name speculos-port-$(1) --rm -it -v $(CURDIR)/app:/speculos/app --publish $(1):$(1) --publish $(2):$(2) --publish $(3):$(3) speculos --model $(SPECULOS_MODEL_SWITCH) --sdk $(SPECULOS_SDK) --seed "equip will roof matter pink blind book anxiety banner elbow sun young" --display headless --apdu-port $(2) --api-port $(1) ./app/bin/app.elf ; rm -f $(TESTS_SPECULOS_DIR)/speculos-port-$(1).log ; docker logs --follow speculos-port-$(1) 2>&1 | tee -a $(TESTS_SPECULOS_DIR)/speculos-port-$(1).log > /dev/null 2>&1 &
+	@perl -e 'use Time::HiRes; $$t1=Time::HiRes::time(); while(1){ $$o=`cat $(TESTS_SPECULOS_DIR)/speculos-port-$(1).log`; if($$o =~ m~Running on .*\:$(1)~s){ printf qq[# detected -- via log -- speculos listening after %f seconds; spy on emulated device via http://localhost:$(1)/\n], Time::HiRes::time() - $$t1; exit; } Time::HiRes::sleep(0.01); };'
 endef
 
 define stop_speculos_container
@@ -297,7 +297,7 @@ define run_announce
 endef
 
 define run_nodejs_test
-	@cd $(TESTS_SPECULOS_DIR) && TEST_SPECULOS_API_PORT=$(1) TEST_SPECULOS_APDU_PORT=$(2) TEST_DEVICE=$(TEST_DEVICE) node $(3) 2>&1 | tee -a ../../speculos-port-$(1).log 2>&1 | perl -lane '$$lines .= $$_ . "\n"; printf qq[%s\n], $$_ if(m~test(Start|Combo|Step|End)~); sub END{ die qq[ERROR: testEnd not detected; test failed?\n] if($$lines !~ m~testEnd~s); }'
+	@cd $(TESTS_SPECULOS_DIR) && TEST_SPECULOS_API_PORT=$(1) TEST_SPECULOS_APDU_PORT=$(2) TEST_DEVICE=$(TEST_DEVICE) node $(3) >>speculos-port-$(1).log 2>&1 && echo COMPLETED $(3)
 endef
 
 .PHONY: speculos_port_5001_test_internal
@@ -313,33 +313,23 @@ speculos_port_5001_test_internal:
 	$(call run_nodejs_test,5001,40001,test-basic-show-address-secp256r1.js)
 	$(call run_nodejs_test,5001,40001,test-basic-show-address-expert.js)
 	$(call run_nodejs_test,5001,40001,test-menu.js)
-	@echo "# ALL TESTS COMPLETED!" | tee -a ../speculos-port-5001.log
+	@echo "# ALL TESTS COMPLETED!" | tee -a $(TESTS_SPECULOS_DIR)/speculos-port-5001.log
 
 .PHONY: speculos_port_5002_test_internal
 speculos_port_5002_test_internal:
 	$(call run_announce,$@)
 	$(call run_nodejs_test,5002,40002,test-transactions.js)
-	@echo "# ALL TESTS COMPLETED!" | tee -a ../speculos-port-5002.log
+	@echo "# ALL TESTS COMPLETED!" | tee -a $(TESTS_SPECULOS_DIR)/speculos-port-5002.log
 
 .PHONY: speculos_port_5001_test
 speculos_port_5001_test:
 	$(call run_announce,$@)
-	@make --no-print-directory speculos_port_5001_start 
-	@make --no-print-directory speculos_port_5001_test_internal 
-	@make --no-print-directory speculos_port_5001_stop 
-	$(call run_announce,note: logs: cat ../speculos-port-5001.log)
-	@cat ../speculos-port-5001.log
+	$(MAKE) --no-print-directory speculos_port_5001_start && ($(MAKE) --no-print-directory speculos_port_5001_test_internal; ret=$$?;$(MAKE) --no-print-directory speculos_port_5001_stop;$(call run_announce,note: logs: cat $(TESTS_SPECULOS_DIR)/speculos-port-5001.log);cat $(TESTS_SPECULOS_DIR)/speculos-port-5001.log; exit $$ret)
 
 .PHONY: speculos_port_5002_test
 speculos_port_5002_test:
 	$(call run_announce,$@)
-	@make --no-print-directory speculos_port_5002_start 
-	@make --no-print-directory speculos_port_5002_test_internal 
-	@make --no-print-directory speculos_port_5002_stop 
-	$(call run_announce,note: logs: cat ../speculos-port-5002.log)
-	@# todo: only output the last part of the log for the test that failed if it failed
-	@# todo: figure out how to run both (or more) tests in parallel, e.g. via something like tmux?
-	@cat ../speculos-port-5002.log
+	$(MAKE) --no-print-directory speculos_port_5002_start && ($(MAKE) --no-print-directory speculos_port_5002_test_internal; ret=$$?;$(MAKE) --no-print-directory speculos_port_5002_stop;$(call run_announce,note: logs: cat $(TESTS_SPECULOS_DIR)/speculos-port-5002.log);cat $(TESTS_SPECULOS_DIR)/speculos-port-5002.log; exit $$ret)
 
 .PHONY: rust_test
 rust_test:
