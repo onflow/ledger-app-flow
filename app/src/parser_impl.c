@@ -919,9 +919,8 @@ void checkAddressUsedInTx() {
         if (i == authCount) ctx = &parser_tx_obj.proposalKeyAddress.ctx;
         if (i < authCount) ctx = &parser_tx_obj.authorizers.authorizer[i].ctx;
 
-        //Address has 8 bytes
-        STATIC_ASSERT(sizeof(address_to_display) == 8, "Incorrect address length");
-        if (ctx->bufferLen == 8) {
+        STATIC_ASSERT(sizeof(address_to_display) == ACCOUNT_SIZE, "Incorrect address length");
+        if (ctx->bufferLen == ACCOUNT_SIZE) {
             if(!MEMCMP(ctx->buffer, &address_to_display, sizeof(address_to_display))) {
                 addressUsedInTx = 1;
                 break;
