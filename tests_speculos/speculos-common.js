@@ -1,4 +1,4 @@
-import { spawnSync } from 'child_process';
+import { execSync  } from 'child_process';
 import { basename } from 'path';
 
 // see https://stackoverflow.com/questions/9763441/milliseconds-to-time-in-javascript
@@ -31,12 +31,10 @@ function syncBackTicks(command) {
 	if (process.env.TEST_DEBUG >= 1) {
 		console.log(humanTime() + " syncBackTicks() // command: " + command);
 	}
-	const curl_bash = spawnSync( 'bash', [ '-c', command ] );
-	const output = curl_bash.stdout.toString().trim();
+	const curl_bash = execSync( command );
+	const output = curl_bash.toString().trim();
 	if (process.env.TEST_DEBUG >= 1) {
-		if (output != '') {
-			console.log(output);
-		}
+		console.log(humanTime() + " syncBackTicks() // command: " + output);
 	}
 	return output;
 }
@@ -44,10 +42,10 @@ function syncBackTicks(command) {
 function testStart(scriptName) { // e.g. test-basic-slot-status-set.js
 	console.log(humanTime() + " " + "vv".repeat(63) + " testStart() // " + scriptName);
 	console.log(humanTime() + " // re-run with TEST_PNG_RE_GEN_FOR=" + scriptName + " to regenerate PNGs, TEST_IGNORE_SHA256_SUMS=1 to ignore all PNGs, TEST_DEBUG=1 for extra debug output");
-	syncBackTicks('rm ' + scriptName + '.*.png.new.png');
+	syncBackTicks('rm -f ' + scriptName + '.*.png.new.png');
 	if (process.env.TEST_PNG_RE_GEN_FOR && (scriptName.substring(0, process.env.TEST_PNG_RE_GEN_FOR.length) == process.env.TEST_PNG_RE_GEN_FOR)) {
 		console.log(humanTime() + " curlScreenShot() // TEST_PNG_RE_GEN_FOR detected; deleting PNGs for this test");
-		syncBackTicks('rm ' + scriptName + '.*.png');
+		syncBackTicks('rm -f ' + scriptName + '.*.png');
 	}
 }
 
