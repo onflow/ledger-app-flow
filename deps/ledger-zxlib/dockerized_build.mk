@@ -297,8 +297,14 @@ define run_announce
 endef
 
 define run_nodejs_test
-	@cd $(TESTS_SPECULOS_DIR) && TEST_SPECULOS_API_PORT=$(1) TEST_SPECULOS_APDU_PORT=$(2) TEST_DEVICE=$(TEST_DEVICE) node $(3) >>speculos-port-$(1).log 2>&1 && echo COMPLETED $(3)
+	@cd $(TESTS_SPECULOS_DIR) \
+	&& { { { \
+          TEST_SPECULOS_API_PORT=$(1) TEST_SPECULOS_APDU_PORT=$(2) TEST_DEVICE=$(TEST_DEVICE) node $(3) 2>&1; echo $$? >&3; \
+        } | tee -a speculos-port-$(1).log >&4; } 3>&1 | { read xs; exit $$xs; } } 4>&1
 endef
+
+#{ { { { echo "node" 2>&1; sleep 5; false; } ; echo $? >&3; } | tee -a test.test >&4; } 3>&1 | { read xs;exit $xs; } } 4>&1
+
 
 .PHONY: speculos_port_5001_test_internal
 speculos_port_5001_test_internal:
