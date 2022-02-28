@@ -43,6 +43,7 @@ class ButtonsAndSnapshots {
 
 	async curlScreenShot(lastButton = "") {
 		const test_device = this.isNanoX ? "nanox":"nanos"; 
+		const originalScreenshotSHA = this.pngSha256Previous;
 		// e.g. test-transactions.staking-sign-ts.02-transfer-top-shot-moment-p256-sha3-256/nanos.01.png
 		const png = this.scriptName.replace(".js", "") + "/" + test_device + "." + this.pngNum.toString(10).padStart(2, '0') + ".png"
 		console.log(humanTime() + " curlScreenShot() // " + png + ".new.png");
@@ -69,7 +70,7 @@ class ButtonsAndSnapshots {
 				loops += 1;
 				generateNewScreenshotFromNextCapture = 0
 				if (loops < 20) {
-					if (loops == 15 && lastButton!="") {
+					if (loops == 15 && lastButton != "" && sha256Array[0] == originalScreenshotSHA) {
 						await sleep(100);
 						console.log(humanTime() + " Retrying last button press: " +lastButton);
 						this.curlButton(lastButton, " Retry last button press.");

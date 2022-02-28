@@ -16,11 +16,12 @@
 #pragma once
 
 #include <stdint.h>
-#include "crypto.h"
-#include "tx.h"
-#include "apdu_codes.h"
 #include <os_io_seproxyhal.h>
 #include "coin.h"
+#include "apdu_codes.h"
+#include "hdpath.h"
+#include "crypto.h"
+#include "tx.h"
 
 #define GET_PUB_KEY_RESPONSE_LENGTH (3 * SECP256_PK_LEN)
 

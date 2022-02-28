@@ -24,6 +24,7 @@
 #include <app_mode.h>
 #include "parser.h"
 #include "utils/common.h"
+#include "hdpath.h"
 
 using ::testing::TestWithParam;
 
@@ -43,6 +44,10 @@ void check_testcase(const testcase_t &testcase) {
     }
 
     app_mode_set_expert(tc.expert);
+
+    show_address = show_address_empty_slot;
+    
+
 
     err = parser_parse(&ctx, tc.blob.data(), tc.blob.size());
     if (tc.valid) {

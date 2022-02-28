@@ -21,6 +21,7 @@
 #include "parser_txdef.h"
 #include "app_mode.h"
 #include "rlp.h"
+#include "hdpath.h"
 
 parser_tx_t parser_tx_obj;
 
@@ -768,141 +769,162 @@ parser_error_t _countArgumentOptionalItems(const flow_argument_list_t *v, uint8_
 
 parser_error_t _getNumItems(__Z_UNUSED const parser_context_t *c, const parser_tx_t *v, uint8_t *numItems) {
     uint8_t argArrayLength = 0;
+
+    int warningItems  = (show_address == show_address_yes && addressUsedInTx) ? 0 : 1;
+
     switch (v->script.type) {
         case SCRIPT_TOKEN_TRANSFER:
-            *numItems = 10 + v->authorizers.authorizer_count;
+            *numItems = 10 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_CREATE_ACCOUNT:
             //array length is checked while we are parsing it        
             CHECK_PARSER_ERR(_countArgumentItems(&v->arguments, 0, UINT8_MAX, &argArrayLength))
-            *numItems = 8 + argArrayLength + v->authorizers.authorizer_count;
+            *numItems = 8 + argArrayLength + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_ADD_NEW_KEY:
-            *numItems = 9 + v->authorizers.authorizer_count;
+            *numItems = 9 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_TH01_WITHDRAW_UNLOCKED_TOKENS:
-            *numItems = 9 + v->authorizers.authorizer_count;
+            *numItems = 9 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_TH02_DEPOSIT_UNLOCKED_TOKENS:
-            *numItems = 9 + v->authorizers.authorizer_count;
+            *numItems = 9 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_TH06_REGISTER_NODE:
-            *numItems = 14 + v->authorizers.authorizer_count;
+            *numItems = 14 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_TH08_STAKE_NEW_TOKENS:
-            *numItems = 9 + v->authorizers.authorizer_count;
+            *numItems = 9 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_TH09_RESTAKE_UNSTAKED_TOKENS:
-            *numItems = 9 + v->authorizers.authorizer_count;
+            *numItems = 9 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_TH10_RESTAKE_REWARDED_TOKENS:
-            *numItems = 9 + v->authorizers.authorizer_count;
+            *numItems = 9 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_TH11_UNSTAKE_TOKENS:
-            *numItems = 9 + v->authorizers.authorizer_count;
+            *numItems = 9 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_TH12_UNSTAKE_ALL_TOKENS:
-            *numItems = 8 + v->authorizers.authorizer_count;
+            *numItems = 8 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_TH13_WITHDRAW_UNSTAKED_TOKENS:
-            *numItems = 9 + v->authorizers.authorizer_count;
+            *numItems = 9 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_TH14_WITHDRAW_REWARDED_TOKENS:
-            *numItems = 9 + v->authorizers.authorizer_count;
+            *numItems = 9 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_TH16_REGISTER_OPERATOR_NODE:
-            *numItems = 11 + v->authorizers.authorizer_count;
+            *numItems = 11 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_TH17_REGISTER_DELEGATOR:
-            *numItems = 10 + v->authorizers.authorizer_count;
+            *numItems = 10 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_TH19_DELEGATE_NEW_TOKENS:
-            *numItems = 9 + v->authorizers.authorizer_count;
+            *numItems = 9 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_TH20_RESTAKE_UNSTAKED_DELEGATED_TOKENS:
-            *numItems = 9 + v->authorizers.authorizer_count;
+            *numItems = 9 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_TH21_RESTAKE_REWARDED_DELEGATED_TOKENS:
-            *numItems = 9 + v->authorizers.authorizer_count;
+            *numItems = 9 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_TH22_UNSTAKE_DELEGATED_TOKENS:
-            *numItems = 9 + v->authorizers.authorizer_count;
+            *numItems = 9 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_TH23_WITHDRAW_UNSTAKED_DELEGATED_TOKENS:
-            *numItems = 9 + v->authorizers.authorizer_count;
+            *numItems = 9 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_TH24_WITHDRAW_REWARDED_DELEGATED_TOKENS:
-            *numItems = 9 + v->authorizers.authorizer_count;
+            *numItems = 9 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_TH25_UPDATE_NETWORKING_ADDRESS:
-            *numItems = 9 + v->authorizers.authorizer_count;
+            *numItems = 9 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_SCO01_SETUP_STAKING_COLLECTION:
-            *numItems = 8 + v->authorizers.authorizer_count;
+            *numItems = 8 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_SCO02_REGISTER_DELEGATOR:
-            *numItems = 10 + v->authorizers.authorizer_count;
+            *numItems = 10 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_SCO03_REGISTER_NODE:
             //array length is checked while we are parsing it
             CHECK_PARSER_ERR(_countArgumentOptionalItems(&v->arguments, 6, UINT8_MAX, &argArrayLength)); 
-            *numItems = 14 + argArrayLength + v->authorizers.authorizer_count;
+            *numItems = 14 + argArrayLength + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_SCO04_CREATE_MACHINE_ACCOUNT:
             //array length is checked while we are parsing it
             CHECK_PARSER_ERR(_countArgumentItems(&v->arguments, 1, UINT8_MAX, &argArrayLength)) 
-            *numItems = 9 + argArrayLength + v->authorizers.authorizer_count;
+            *numItems = 9 + argArrayLength + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_SCO05_REQUEST_UNSTAKING:
-            *numItems = 11 + v->authorizers.authorizer_count;
+            *numItems = 11 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_SCO06_STAKE_NEW_TOKENS:
-            *numItems = 11 + v->authorizers.authorizer_count;
+            *numItems = 11 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_SCO07_STAKE_REWARD_TOKENS:
-            *numItems = 11 + v->authorizers.authorizer_count;
+            *numItems = 11 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_SCO08_STAKE_UNSTAKED_TOKENS:
-            *numItems = 11 + v->authorizers.authorizer_count;
+            *numItems = 11 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_SCO09_UNSTAKE_ALL:
-            *numItems = 9 + v->authorizers.authorizer_count;
+            *numItems = 9 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_SCO10_WITHDRAW_REWARD_TOKENS:
-            *numItems = 11 + v->authorizers.authorizer_count;
+            *numItems = 11 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_SCO11_WITHDRAW_UNSTAKED_TOKENS:
-            *numItems = 11 + v->authorizers.authorizer_count;
+            *numItems = 11 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_SCO12_CLOSE_STAKE:
-            *numItems = 10 + v->authorizers.authorizer_count;
+            *numItems = 10 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_SCO13_TRANSFER_NODE:
-            *numItems = 10 + v->authorizers.authorizer_count;
+            *numItems = 10 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_SCO14_TRANSFER_DELEGATOR:
-            *numItems = 11 + v->authorizers.authorizer_count;
+            *numItems = 11 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_SCO15_WITHDRAW_FROM_MACHINE_ACCOUNT:
-            *numItems = 10 + v->authorizers.authorizer_count;
+            *numItems = 10 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_SCO16_UPDATE_NETWORKING_ADDRESS:
-            *numItems = 10 + v->authorizers.authorizer_count;
+            *numItems = 10 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_FUSD01_SETUP_FUSD_VAULT:
-            *numItems = 8 + v->authorizers.authorizer_count;
+            *numItems = 8 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_FUSD02_TRANSFER_FUSD:
-            *numItems = 10 + v->authorizers.authorizer_count;
+            *numItems = 10 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_TS01_SET_UP_TOPSHOT_COLLECTION:
-            *numItems = 8 + v->authorizers.authorizer_count;
+            *numItems = 8 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_TS02_TRANSFER_TOP_SHOT_MOMENT:
-            *numItems = 10 + v->authorizers.authorizer_count;
+            *numItems = 10 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_UNKNOWN:
         default:
             return PARSER_UNEXPECTED_SCRIPT;
+    }
+}
+
+void checkAddressUsedInTx() {
+    addressUsedInTx = 0;
+    int authCount = parser_tx_obj.authorizers.authorizer_count;
+    for(uint8_t i=0; i<authCount+2; i++) { //+2 for proposer and payer
+        parser_context_t *ctx = &parser_tx_obj.payer.ctx;
+        if (i == authCount) ctx = &parser_tx_obj.proposalKeyAddress.ctx;
+        if (i < authCount) ctx = &parser_tx_obj.authorizers.authorizer[i].ctx;
+
+        STATIC_ASSERT(sizeof(address_to_display) == ACCOUNT_SIZE, "Incorrect address length");
+        if (ctx->bufferLen == ACCOUNT_SIZE) {
+            if(!MEMCMP(ctx->buffer, &address_to_display, sizeof(address_to_display))) {
+                addressUsedInTx = 1;
+                break;
+            }
+        }
     }
 }

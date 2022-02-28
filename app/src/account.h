@@ -52,6 +52,10 @@ zxerr_t slot_parseSlot(uint8_t *buffer, uint16_t bufferLen);
 
 void app_slot_setSlot();
 
+void loadHdPathAndAddressFromSlot();
+
+void loadAddressCompareHdPathFromSlot();
+
 #ifdef __cplusplus
 }
 #endif

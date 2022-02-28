@@ -425,5 +425,7 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
         addTo(answer, "{} | Authorizer {} : {}", item++, i + 1, tcd.authorizers[i]);
     }
 
+    addTo(answer, "{} | Warning: : No address stored on the device.", item++);
+
     return answer;
 }
