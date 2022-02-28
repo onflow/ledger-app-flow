@@ -502,7 +502,7 @@ parser_error_t parser_getItemAfterArguments(__Z_UNUSED const parser_context_t *c
             }
             else {
                 snprintf(outKey, outKeyLen, "Warning:");
-                snprintf(outVal, outValLen, "Your address not in transaction.");
+                snprintf(outVal, outValLen, "Incorrect address in transaction.");
                 return PARSER_OK;
             }
         case show_address_empty_slot:
