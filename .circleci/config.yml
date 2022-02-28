@@ -17,7 +17,7 @@ jobs:
 
   speculos_nanos_tests:
     machine:
-      image: ubuntu-1604:201903-01
+      image: ubuntu-2004:202201-02
       # see https://circleci.com/docs/2.0/docker-layer-caching/
       docker_layer_caching: true
     environment:
@@ -74,7 +74,7 @@ jobs:
 
   speculos_nanox_tests:
     machine:
-      image: ubuntu-1604:201903-01
+      image: ubuntu-2004:202201-02
       # see https://circleci.com/docs/2.0/docker-layer-caching/
       docker_layer_caching: true
     environment:
@@ -149,23 +149,6 @@ jobs:
             make -C build
       - run: ./run-fuzz-crashes.py
 
-  build_package:
-    docker:
-      - image: zondax/builder-bolos:latest
-    environment:
-      - BOLOS_SDK=/home/zondax/project/deps/nanos-secure-sdk
-      - BOLOS_ENV_IGNORE=/opt/bolos
-    steps:
-      - checkout
-      - run: git submodule update --init --recursive
-      - run:
-          name: Build
-          command: |
-            source /home/zondax/.cargo/env
-            cd /home/zondax/project
-            make
-      - run: /home/zondax/go/bin/ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete $(/home/zondax/project/app/pkg/zxtool.sh version) /home/zondax/project/app/pkg/zxtool.sh
-
 workflows:
   version: 2
 
@@ -174,12 +157,4 @@ workflows:
       - cpp_unit_tests
       - speculos_nanos_tests
       - speculos_nanox_tests
-      - build_package:
-          requires:
-            - cpp_unit_tests
-            - speculos_nanos_tests
-            - speculos_nanox_tests
-          filters:
-            branches:
-              only:
-                - master
+

@@ -68,9 +68,8 @@ const ux_menu_entry_t menu_main[] = {
 #else
      NULL,
 #endif
-     0, &C_icon_app, "Developed by:", "Zondax.ch", 33, 12},
+     0, &C_icon_app, "License: ", "Apache 2.0", 33, 12},
 
-    {NULL, NULL, 0, &C_icon_app, "License: ", "Apache 2.0", 33, 12},
     {NULL, os_exit, 0, &C_icon_dashboard, "Quit", NULL, 50, 29},
     UX_MENU_END
 };

@@ -75,6 +75,18 @@ await device.enterMenuElementAndReview(showAddressMenuItem, "Review updated addr
 //unset expert mode
 await device.toggleExpertMode("Turn OFF");
 
+//just move through the menu
+await device.curlButtonAndScreenshot("right", "Move through menu 1 -> 2");
+await device.curlButtonAndScreenshot("right", "Move through menu 2 -> 3");
+await device.curlButtonAndScreenshot("right", "Move through menu 3 -> 4");
+await device.curlButtonAndScreenshot("right", "Move through menu 4 -> 5");
+await device.curlButtonAndScreenshot("right", "Move through menu 5 -> 6");
+await device.curlButtonAndScreenshot("left", "Move through menu 6 -> 5");
+await device.curlButtonAndScreenshot("left", "Move through menu 5 -> 4");
+await device.curlButtonAndScreenshot("left", "Move through menu 4 -> 3");
+await device.curlButtonAndScreenshot("left", "Move through menu 3 -> 2");
+await device.curlButtonAndScreenshot("left", "Move through menu 2 -> 1");
+
 //screen shot should not change so do not: common.curlScreenShot(scriptName);
 await transport.close()
 testEnd(scriptName);
