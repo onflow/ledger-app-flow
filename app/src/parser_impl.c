@@ -480,6 +480,13 @@ parser_error_t _matchScriptType(uint8_t scriptHash[32], script_type_e *scriptTyp
 
         {SCRIPT_TS02_TRANSFER_TOP_SHOT_MOMENT, TEMPLATE_HASH_TS02_TRANSFER_TOP_SHOT_MOMENT_TESTNET},
         {SCRIPT_TS02_TRANSFER_TOP_SHOT_MOMENT, TEMPLATE_HASH_TS02_TRANSFER_TOP_SHOT_MOMENT_MAINNET},
+
+        {SCRIPT_USDC01_SETUP_USDC_VAULT, TEMPLATE_HASH_USDC01_SETUP_USDC_VAULT_TESTNET},
+        {SCRIPT_USDC01_SETUP_USDC_VAULT, TEMPLATE_HASH_USDC01_SETUP_USDC_VAULT_MAINNET},
+
+        {SCRIPT_USDC02_TRANSFER_USDC, TEMPLATE_HASH_USDC02_TRANSFER_USDC_TESTNET},
+        {SCRIPT_USDC02_TRANSFER_USDC, TEMPLATE_HASH_USDC02_TRANSFER_USDC_MAINNET},
+
         // sentinel, do not remove
         {0, NULL}
     };
@@ -903,6 +910,12 @@ parser_error_t _getNumItems(__Z_UNUSED const parser_context_t *c, const parser_t
             *numItems = 8 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_TS02_TRANSFER_TOP_SHOT_MOMENT:
+            *numItems = 10 + v->authorizers.authorizer_count + warningItems;
+            return PARSER_OK;
+        case SCRIPT_USDC01_SETUP_USDC_VAULT:
+            *numItems = 8 + v->authorizers.authorizer_count + warningItems;
+            return PARSER_OK;
+        case SCRIPT_USDC02_TRANSFER_USDC:
             *numItems = 10 + v->authorizers.authorizer_count + warningItems;
             return PARSER_OK;
         case SCRIPT_UNKNOWN:

@@ -408,6 +408,18 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             addMultiStringArgumentTo(answer, "Address", item++, tcd.arguments[1]["value"]);
             break;
         }
+        case SCRIPT_USDC01_SETUP_USDC_VAULT: {
+            addTo(answer, "{} | Type : Setup USDC Vault", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            break;
+        }
+        case SCRIPT_USDC02_TRANSFER_USDC: {
+            addTo(answer, "{} | Type : Transfer USDC", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
+            addMultiStringArgumentTo(answer, "Recipient", item++, tcd.arguments[1]["value"]);
+            break;
+        }
         default:
             addTo(answer, "{} | Type : ERROR", item++);
             break;

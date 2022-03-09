@@ -1867,6 +1867,64 @@ parser_error_t parser_getItemTransferTopShotMoment(const parser_context_t *ctx,
 }
 
 
+//USDC.01
+parser_error_t parser_getItemSetupUSDCVault(const parser_context_t *ctx,
+                                       uint16_t displayIdx,
+                                       char *outKey, uint16_t outKeyLen,
+                                       char *outVal, uint16_t outValLen,
+                                       uint8_t pageIdx, uint8_t *pageCount) {
+    *pageCount = 1;
+    switch (displayIdx) {
+        case 0:
+            snprintf(outKey, outKeyLen, "Type");
+            snprintf(outVal, outValLen, "Setup USDC Vault");
+            return PARSER_OK;
+        case 1:
+            snprintf(outKey, outKeyLen, "ChainID");
+            return parser_printChainID(&parser_tx_obj.payer,
+                                       outVal, outValLen, pageIdx, pageCount);
+        default:
+            break;
+    }
+    displayIdx -= 2;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
+}
+
+//USDC.02
+parser_error_t parser_getItemTransferUSDC(const parser_context_t *ctx,
+                                       uint16_t displayIdx,
+                                       char *outKey, uint16_t outKeyLen,
+                                       char *outVal, uint16_t outValLen,
+                                       uint8_t pageIdx, uint8_t *pageCount) {
+    *pageCount = 1;
+    switch (displayIdx) {
+        case 0:
+            snprintf(outKey, outKeyLen, "Type");
+            snprintf(outVal, outValLen, "Transfer USDC");
+            return PARSER_OK;
+        case 1:
+            snprintf(outKey, outKeyLen, "ChainID");
+            return parser_printChainID(&parser_tx_obj.payer,
+                                       outVal, outValLen, pageIdx, pageCount);
+        case 2:
+            snprintf(outKey, outKeyLen, "Amount");
+            return parser_printArgument(&parser_tx_obj.arguments, 0,
+                                        "UFix64", JSMN_STRING,
+                                        outVal, outValLen, pageIdx, pageCount);
+        case 3:
+            snprintf(outKey, outKeyLen, "Recipient");
+            return parser_printArgument(&parser_tx_obj.arguments, 1,
+                                        "Address", JSMN_STRING,
+                                        outVal, outValLen, pageIdx, pageCount);
+        default:
+            break;
+    }
+    displayIdx -= 4;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
+}
+
+
+
 parser_error_t parser_getItem(const parser_context_t *ctx,
                               uint16_t displayIdx,
                               char *outKey, uint16_t outKeyLen,
@@ -2015,6 +2073,12 @@ parser_error_t parser_getItem(const parser_context_t *ctx,
                                                                  outValLen, pageIdx, pageCount);
         case SCRIPT_TS02_TRANSFER_TOP_SHOT_MOMENT:
             return parser_getItemTransferTopShotMoment(ctx, displayIdx, outKey, outKeyLen, outVal, 
+                                                                 outValLen, pageIdx, pageCount);
+        case SCRIPT_USDC01_SETUP_USDC_VAULT:
+            return parser_getItemSetupUSDCVault(ctx, displayIdx, outKey, outKeyLen, outVal, 
+                                                                 outValLen, pageIdx, pageCount);
+        case SCRIPT_USDC02_TRANSFER_USDC:
+            return parser_getItemTransferUSDC(ctx, displayIdx, outKey, outKeyLen, outVal, 
                                                                  outValLen, pageIdx, pageCount);
     }
 
