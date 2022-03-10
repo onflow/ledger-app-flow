@@ -1242,6 +1242,45 @@
       ],
       "network": "mainnet",
       "hash": "09d5ad21bf70dfe4f8d800db9e61a77f2f64837ae0e818c3cd67e9cea837a1cf"
+    },
+    {
+      "id": "USDC.01",
+      "name": "Setup USDC Vault",
+      "source": "import FungibleToken from 0xf233dcee88fe0abe\nimport FiatToken from 0xb19436aae4d94622\n\ntransaction {\n\n    prepare(signer: AuthAccount) {\n\n        // Return early if the account already stores a FiatToken Vault\n        if signer.borrow\u003c\u0026FiatToken.Vault\u003e(from: FiatToken.VaultStoragePath) != nil {\n            return\n        }\n\n        // Create a new ExampleToken Vault and put it in storage\n        signer.save(\n            \u003c-FiatToken.createEmptyVault(),\n            to: FiatToken.VaultStoragePath\n        )\n\n        // Create a public capability to the Vault that only exposes\n        // the deposit function through the Receiver interface\n        signer.link\u003c\u0026FiatToken.Vault{FungibleToken.Receiver}\u003e(\n            FiatToken.VaultReceiverPubPath,\n            target: FiatToken.VaultStoragePath\n        )\n\n        // Create a public capability to the Vault that only exposes\n        // the UUID() function through the VaultUUID interface\n        signer.link\u003c\u0026FiatToken.Vault{FiatToken.ResourceId}\u003e(\n            FiatToken.VaultUUIDPubPath,\n            target: FiatToken.VaultStoragePath\n        )\n\n        // Create a public capability to the Vault that only exposes\n        // the balance field through the Balance interface\n        signer.link\u003c\u0026FiatToken.Vault{FungibleToken.Balance}\u003e(\n            FiatToken.VaultBalancePubPath,\n            target: FiatToken.VaultStoragePath\n        )\n\n    }\n}\n",
+      "arguments": [],
+      "network": "mainnet",
+      "hash": "887673892a2e2c12337394570dfa30c5669e93f537ae426690f402799514a9a1"
+    },
+    {
+      "id": "USDC.02",
+      "name": "Transfer USDC",
+      "source": "import FungibleToken from 0xf233dcee88fe0abe\nimport FiatToken from 0xb19436aae4d94622\n\ntransaction(amount: UFix64, to: Address) {\n\n    // The Vault resource that holds the tokens that are being transferred\n    let sentVault: @FungibleToken.Vault\n\n    prepare(signer: AuthAccount) {\n\n        // Get a reference to the signer's stored vault\n        let vaultRef = signer.borrow\u003c\u0026FiatToken.Vault\u003e(from: FiatToken.VaultStoragePath)\n            ?? panic(\"Could not borrow reference to the owner's Vault!\")\n\n        // Withdraw tokens from the signer's stored vault\n        self.sentVault \u003c- vaultRef.withdraw(amount: amount)\n    }\n\n    execute {\n\n        // Get the recipient's public account object\n        let recipient = getAccount(to)\n\n        // Get a reference to the recipient's Receiver\n        let receiverRef = recipient.getCapability(FiatToken.VaultReceiverPubPath)\n            .borrow\u003c\u0026{FungibleToken.Receiver}\u003e()\n            ?? panic(\"Could not borrow receiver reference to the recipient's Vault\")\n\n        // Deposit the withdrawn tokens in the recipient's receiver\n        receiverRef.deposit(from: \u003c-self.sentVault)\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount",
+          "sampleValues": [
+            {
+              "type": "UFix64",
+              "value": "42"
+            }
+          ]
+        },
+        {
+          "type": "Address",
+          "name": "recipient",
+          "label": "Recipient",
+          "sampleValues": [
+            {
+              "type": "Address",
+              "value": "0xe467b9dd11fa00df"
+            }
+          ]
+        }
+      ],
+      "network": "mainnet",
+      "hash": "7ff4d9f53ba5eebda556d0ead0ca13911bc8996e2c91c5147f8787d10a324483"
     }
   ]
 }

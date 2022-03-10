@@ -1204,7 +1204,7 @@
       "network": "testnet",
       "hash": "f22ca4b350a79c724f6471d5a6a7a0efa7ba9aeebb7fed2843a3ddd6e42c2e1c"
     },
-        {
+    {
       "id": "TS.01",
       "name": "Set up Top Shot Collection",
       "source": "import TopShot from 0x877931736ee77cff\n\n// This transaction sets up an account to use Top Shot\n// by storing an empty moment collection and creating\n// a public capability for it\n\ntransaction {\n\n    prepare(acct: AuthAccount) {\n\n        // First, check to see if a moment collection already exists\n        if acct.borrow\u003c\u0026TopShot.Collection\u003e(from: /storage/MomentCollection) == nil {\n\n            // create a new TopShot Collection\n            let collection \u003c- TopShot.createEmptyCollection() as! @TopShot.Collection\n\n            // Put the new Collection in storage\n            acct.save(\u003c-collection, to: /storage/MomentCollection)\n\n            // create a public capability for the collection\n            acct.link\u003c\u0026{TopShot.MomentCollectionPublic}\u003e(/public/MomentCollection, target: /storage/MomentCollection)\n        }\n    }\n}",
@@ -1242,6 +1242,46 @@
       ],
       "network": "testnet",
       "hash": "1ec9aea0b51409610f882f5ae4278567da675542bb378eb999f05b7c4f12f7d8"
+    },
+    {
+      "id": "USDC.01",
+      "name": "Setup USDC Vault",
+      "source": "import FungibleToken from 0x9a0766d93b6608b7\nimport FiatToken from 0x1ab3c177460e1e4a\n\ntransaction {\n\n    prepare(signer: AuthAccount) {\n\n        // Return early if the account already stores a FiatToken Vault\n        if signer.borrow\u003c\u0026FiatToken.Vault\u003e(from: FiatToken.VaultStoragePath) != nil {\n            return\n        }\n\n        // Create a new ExampleToken Vault and put it in storage\n        signer.save(\n            \u003c-FiatToken.createEmptyVault(),\n            to: FiatToken.VaultStoragePath\n        )\n\n        // Create a public capability to the Vault that only exposes\n        // the deposit function through the Receiver interface\n        signer.link\u003c\u0026FiatToken.Vault{FungibleToken.Receiver}\u003e(\n            FiatToken.VaultReceiverPubPath,\n            target: FiatToken.VaultStoragePath\n        )\n\n        // Create a public capability to the Vault that only exposes\n        // the UUID() function through the VaultUUID interface\n        signer.link\u003c\u0026FiatToken.Vault{FiatToken.ResourceId}\u003e(\n            FiatToken.VaultUUIDPubPath,\n            target: FiatToken.VaultStoragePath\n        )\n\n        // Create a public capability to the Vault that only exposes\n        // the balance field through the Balance interface\n        signer.link\u003c\u0026FiatToken.Vault{FungibleToken.Balance}\u003e(\n            FiatToken.VaultBalancePubPath,\n            target: FiatToken.VaultStoragePath\n        )\n\n    }\n}\n",
+      "arguments": [],
+      "network": "testnet",
+      "hash": "2defee818c0c003ca519f83517f4c7bcf9dd8664a562ec80959cb6146428f971"
+    },
+    {
+      "id": "USDC.02",
+      "name": "Transfer USDC",
+      "source": "import FungibleToken from 0x9a0766d93b6608b7\nimport FiatToken from 0x1ab3c177460e1e4a\n\ntransaction(amount: UFix64, to: Address) {\n\n    // The Vault resource that holds the tokens that are being transferred\n    let sentVault: @FungibleToken.Vault\n\n    prepare(signer: AuthAccount) {\n\n        // Get a reference to the signer's stored vault\n        let vaultRef = signer.borrow\u003c\u0026FiatToken.Vault\u003e(from: FiatToken.VaultStoragePath)\n            ?? panic(\"Could not borrow reference to the owner's Vault!\")\n\n        // Withdraw tokens from the signer's stored vault\n        self.sentVault \u003c- vaultRef.withdraw(amount: amount)\n    }\n\n    execute {\n\n        // Get the recipient's public account object\n        let recipient = getAccount(to)\n\n        // Get a reference to the recipient's Receiver\n        let receiverRef = recipient.getCapability(FiatToken.VaultReceiverPubPath)\n            .borrow\u003c\u0026{FungibleToken.Receiver}\u003e()\n            ?? panic(\"Could not borrow receiver reference to the recipient's Vault\")\n\n        // Deposit the withdrawn tokens in the recipient's receiver\n        receiverRef.deposit(from: \u003c-self.sentVault)\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount",
+          "sampleValues": [
+            {
+              "type": "UFix64",
+              "value": "42"
+            }
+          ]
+        },
+        {
+          "type": "Address",
+          "name": "recipient",
+          "label": "Recipient",
+          "sampleValues": [
+            {
+              "type": "Address",
+              "value": "0x8c5303eaa26202d6"
+            }
+          ]
+        }
+      ],
+      "network": "testnet",
+      "hash": "512485ec3f8e007853b0ea2a22fb2b9f7e2fa55fd9819171c5d013282efee60a"
     }
   ]
 }
+
