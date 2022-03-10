@@ -71,6 +71,13 @@ jobs:
             nvm use 16.10.0
             # todo: turn the voluminous and detailed log output into a CircleCI artifact which can be downloaded if necessary, otherwise ~ 20k log lines takes many minutes to output on the CircleCI web UI
             TEST_DEBUG=1 make speculos_port_5002_test
+      - run:
+          # todo: consider upgrading CircleCI to allow parallel jobs, and splitting this into a separate CircleCI jobs which run in parallel on separate speculos container instances
+          name: Run speculos port 5003 tests - backward compatinbility tests
+          command: |
+            source /opt/circleci/.nvm/nvm.sh
+            nvm use 16.10.0
+            make speculos_port_5003_test
 
   speculos_nanox_tests:
     machine:
@@ -126,7 +133,6 @@ jobs:
           command: |
             source /opt/circleci/.nvm/nvm.sh
             nvm use 16.10.0
-            # todo: turn the voluminous and detailed log output into a CircleCI artifact which can be downloaded if necessary, otherwise ~ 20k log lines takes many minutes to output on the CircleCI web UI
             TEST_DEBUG=1 TARGET_DEVICE=NANO_X  make speculos_port_5002_test
 
   test_fuzz_crash_fixes:

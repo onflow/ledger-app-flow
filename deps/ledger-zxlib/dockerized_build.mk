@@ -257,12 +257,17 @@ speculos_install: speculos_install_js_link
 .PHONY: speculos_port_5001_start
 speculos_port_5001_start:
 	$(call run_announce,$@)
-	$(call start_speculos_container,5001,40001,41001)
+	$(call start_speculos_container,5001,40001,41001,/app/bin)
 
 .PHONY: speculos_port_5002_start
 speculos_port_5002_start:
 	$(call run_announce,$@)
-	$(call start_speculos_container,5002,40002,41002)
+	$(call start_speculos_container,5002,40002,41002,/app/bin)
+
+.PHONY: speculos_port_5003_start
+speculos_port_5003_start:
+	$(call run_announce,$@)
+	$(call start_speculos_container,5003,40003,41003,/tests_speculos/backward_compatibility_test_biniaries/0-9-12/)
 
 .PHONY: speculos_port_5001_stop
 speculos_port_5001_stop:
@@ -274,6 +279,11 @@ speculos_port_5002_stop:
 	$(call run_announce,$@)
 	$(call stop_speculos_container,5002)
 
+.PHONY: speculos_port_5003_stop
+speculos_port_5003_stop:
+	$(call run_announce,$@)
+	$(call stop_speculos_container,5003)
+
 ########################## TEST Section ###############################
 
 .PHONY: generate_test_vectors
@@ -283,7 +293,7 @@ generate_test_vectors:
 # Note: This error did occur once: docker: Error response from daemon: driver failed programming external connectivity on endpoint speculos-port-5002 (082ea92d039f260880bc264a2f6086e14c42d698f24ff5acbba422baa9c60b29): Error starting userland proxy: listen tcp 0.0.0.0:41002: bind: address already in use.
 # Note: Since we do not need to use the VNC for the tests, then remove this option and hope the error never shows up again: --vnc-port $(3)
 define start_speculos_container
-	docker run --detach --name speculos-port-$(1) --rm -it -v $(CURDIR)/app:/speculos/app --publish $(1):$(1) --publish $(2):$(2) --publish $(3):$(3) speculos --model $(SPECULOS_MODEL_SWITCH) --sdk $(SPECULOS_SDK) --seed "equip will roof matter pink blind book anxiety banner elbow sun young" --display headless --apdu-port $(2) --api-port $(1) ./app/bin/app.elf ; rm -f $(TESTS_SPECULOS_DIR)/speculos-port-$(1).log ; docker logs --follow speculos-port-$(1) 2>&1 | tee -a $(TESTS_SPECULOS_DIR)/speculos-port-$(1).log > /dev/null 2>&1 &
+	docker run --detach --name speculos-port-$(1) --rm -it -v $(CURDIR)$(4):/speculos/app/bin --publish $(1):$(1) --publish $(2):$(2) --publish $(3):$(3) speculos --model $(SPECULOS_MODEL_SWITCH) --sdk $(SPECULOS_SDK) --seed "equip will roof matter pink blind book anxiety banner elbow sun young" --display headless --apdu-port $(2) --api-port $(1) ./app/bin/app.elf ; rm -f $(TESTS_SPECULOS_DIR)/speculos-port-$(1).log ; docker logs --follow speculos-port-$(1) 2>&1 | tee -a $(TESTS_SPECULOS_DIR)/speculos-port-$(1).log > /dev/null 2>&1 &
 	@perl -e 'use Time::HiRes; $$t1=Time::HiRes::time(); while(1){ $$o=`cat $(TESTS_SPECULOS_DIR)/speculos-port-$(1).log`; if($$o =~ m~Running on .*\:$(1)~s){ printf qq[# detected -- via log -- speculos listening after %f seconds; spy on emulated device via http://localhost:$(1)/\n], Time::HiRes::time() - $$t1; exit; } Time::HiRes::sleep(0.01); };'
 endef
 
@@ -328,6 +338,12 @@ speculos_port_5002_test_internal:
 	$(call run_nodejs_test,5002,40002,test-transactions.js)
 	@echo "# ALL TESTS COMPLETED!" | tee -a $(TESTS_SPECULOS_DIR)/speculos-port-5002.log
 
+.PHONY: speculos_port_5003_test_internal
+speculos_port_5003_test_internal:
+	$(call run_announce,$@)
+	$(call run_nodejs_test,5003,40003,test-backward-compatibility-0-9-12.js)	
+	@echo "# ALL TESTS COMPLETED!" | tee -a $(TESTS_SPECULOS_DIR)/speculos-port-5003.log
+
 .PHONY: speculos_port_5001_test
 speculos_port_5001_test:
 	$(call run_announce,$@)
@@ -337,6 +353,11 @@ speculos_port_5001_test:
 speculos_port_5002_test:
 	$(call run_announce,$@)
 	$(MAKE) --no-print-directory speculos_port_5002_start && ($(MAKE) --no-print-directory speculos_port_5002_test_internal; ret=$$?;$(MAKE) --no-print-directory speculos_port_5002_stop;$(call run_announce,note: logs: cat $(TESTS_SPECULOS_DIR)/speculos-port-5002.log);cat $(TESTS_SPECULOS_DIR)/speculos-port-5002.log; exit $$ret)
+
+.PHONY: speculos_port_5003_test
+speculos_port_5003_test:
+	$(call run_announce,$@)
+	$(MAKE) --no-print-directory speculos_port_5003_start && ($(MAKE) --no-print-directory speculos_port_5003_test_internal; ret=$$?;$(MAKE) --no-print-directory speculos_port_5003_stop;$(call run_announce,note: logs: cat $(TESTS_SPECULOS_DIR)/speculos-port-5003.log);cat $(TESTS_SPECULOS_DIR)/speculos-port-5003.log; exit $$ret)
 
 .PHONY: rust_test
 rust_test:
