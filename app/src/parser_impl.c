@@ -777,7 +777,7 @@ parser_error_t _countArgumentOptionalItems(const flow_argument_list_t *v, uint8_
 parser_error_t _getNumItems(__Z_UNUSED const parser_context_t *c, const parser_tx_t *v, uint8_t *numItems) {
     uint8_t argArrayLength = 0;
 
-    int warningItems  = (show_address == show_address_yes && addressUsedInTx) ? 0 : 1;
+    int warningItems  = (show_address == SHOW_ADDRESS_YES && addressUsedInTx) ? 0 : 1;
 
     switch (v->script.type) {
         case SCRIPT_TOKEN_TRANSFER:

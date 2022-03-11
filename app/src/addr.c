@@ -45,7 +45,7 @@ zxerr_t addr_getItem_internal(int8_t *displayIdx,
     }
 
     //this indicates error in pubkey derivation (possible only when in menu_handler - in apdu_handler we throw)
-    SCREEN(!hasPubkey && (show_address == show_address_yes)) {
+    SCREEN(!hasPubkey && (show_address == SHOW_ADDRESS_YES)) {
         snprintf(outKey, outKeyLen, "Error");
         pageString(outVal, outValLen, " deriving public  key.", pageIdx, pageCount);
         return zxerr_ok;
@@ -53,19 +53,19 @@ zxerr_t addr_getItem_internal(int8_t *displayIdx,
 
     SCREEN(true) {
         switch(show_address) {
-            case show_address_error:
+            case SHOW_ADDRESS_ERROR:
                 snprintf(outKey, outKeyLen, "Error reading");
                 pageString(outVal, outValLen, "account data.", pageIdx, pageCount);
                 return zxerr_ok;
-            case show_address_empty_slot:
+            case SHOW_ADDRESS_EMPTY_SLOT:
                 snprintf(outKey, outKeyLen, "Account data");
                 pageString(outVal, outValLen, "not saved on the device.", pageIdx, pageCount);
                 return zxerr_ok;
-            case show_address_hdpaths_not_equal:
+            case SHOW_ADDRESS_HDPATHS_NOT_EQUAL:
                 snprintf(outKey, outKeyLen, "Address:");
                 pageString(outVal, outValLen, "Other path is saved on the device.", pageIdx, pageCount);
                 return zxerr_ok;
-            case show_address_yes:
+            case SHOW_ADDRESS_YES:
                 snprintf(outKey, outKeyLen, "Address:");
                 pageHexString(outVal, outValLen, address_to_display.data, sizeof(address_to_display.data), pageIdx, pageCount);
                 return zxerr_ok;
@@ -74,13 +74,13 @@ zxerr_t addr_getItem_internal(int8_t *displayIdx,
         }
     }
 
-    SCREEN(show_address == show_address_yes) {
+    SCREEN(show_address == SHOW_ADDRESS_YES) {
         snprintf(outKey, outKeyLen, "Verify if this");
         snprintf(outVal, outValLen, " public key was   added to");
         return zxerr_ok;
     }
 
-    SCREEN(show_address == show_address_yes) {
+    SCREEN(show_address == SHOW_ADDRESS_YES) {
         array_to_hexstr(outKey, outKeyLen, address_to_display.data, sizeof(address_to_display.data)); 
         #if defined(TARGET_NANOX)
             snprintf(outVal, outValLen, " using any Flow blockchain explorer.");

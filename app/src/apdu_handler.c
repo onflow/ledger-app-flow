@@ -35,7 +35,7 @@
 
 __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     hasPubkey = false;
-    show_address = show_address_none;
+    show_address = SHOW_ADDRESS_NONE;
 
     //extract hdPath to hdPath global variable
     extractHDPath(rx, OFFSET_DATA);
@@ -64,7 +64,7 @@ __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx,
 
     if (requireConfirmation) {
         loadAddressCompareHdPathFromSlot();
-        if (show_address == show_address_error || show_address == show_address_none) {
+        if (show_address == SHOW_ADDRESS_ERROR || show_address == SHOW_ADDRESS_NONE) {
             zemu_log_stack("Unknown slot error");
             THROW(APDU_CODE_UNKNOWN);           
         }
@@ -94,11 +94,11 @@ __Z_INLINE void handleSign(volatile uint32_t *flags, volatile uint32_t *tx, uint
         THROW(APDU_CODE_DATA_INVALID);
     }
 
-    show_address = show_address_none;
+    show_address = SHOW_ADDRESS_NONE;
     loadAddressCompareHdPathFromSlot();    
 
     //if we found matching hdPath on slot 0
-    if (show_address == show_address_yes) {
+    if (show_address == SHOW_ADDRESS_YES) {
         checkAddressUsedInTx();
     }
     else {

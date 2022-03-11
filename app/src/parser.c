@@ -496,7 +496,7 @@ parser_error_t parser_getItemAfterArguments(__Z_UNUSED const parser_context_t *c
 
     displayIdx -= parser_tx_obj.authorizers.authorizer_count;
     switch(show_address) {
-        case show_address_yes:
+        case SHOW_ADDRESS_YES:
             if (addressUsedInTx) {
                 break;
             }
@@ -505,11 +505,11 @@ parser_error_t parser_getItemAfterArguments(__Z_UNUSED const parser_context_t *c
                 snprintf(outVal, outValLen, "Incorrect address in transaction.");
                 return PARSER_OK;
             }
-        case show_address_empty_slot:
+        case SHOW_ADDRESS_EMPTY_SLOT:
                 snprintf(outKey, outKeyLen, "Warning:");
                 snprintf(outVal, outValLen, "No address stored on the device.");
                 return PARSER_OK;
-        case show_address_hdpaths_not_equal:
+        case SHOW_ADDRESS_HDPATHS_NOT_EQUAL:
                 snprintf(outKey, outKeyLen, "Warning:");
                 snprintf(outVal, outValLen, "Different address stored on device.");
                 return PARSER_OK;
