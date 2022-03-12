@@ -1,6 +1,6 @@
 'use strict';
 
-import { testStart, testStep, testEnd, compareInAPDU, compareOutAPDU, noMoreAPDUs, getScriptName, getSpeculosDefaultConf } from "./speculos-common.js";
+import { testStart, testStep, testEnd, compareInAPDU, compareOutAPDU, noMoreAPDUs, compareGetVersionAPDUs ,getScriptName, getSpeculosDefaultConf } from "./speculos-common.js";
 import { getSpyTransport } from "./speculos-transport.js";
 import { ButtonsAndSnapshots } from "./speculos-buttons-and-snapshots.js";
 import { default as OnflowLedgerMod } from "@onflow/ledger";
@@ -32,8 +32,9 @@ const signResponse = await app.sign(path, invalidMessage);
 assert.equal(signResponse.returnCode, 0x6984);
 assert.equal(signResponse.errorMessage, "Data is invalid");
 
-hexExpected = "33020000142c0000801b020080010200800000000000000000";
-compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, path:20, unexpected:9999});
+compareGetVersionAPDUs(transport);
+hexExpected = "33020000162c0000801b0200800102008000000000000000000000";
+compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, path:20, options:2, unexpected:9999});
 hexExpected = "9000";
 compareInAPDU(transport, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 hexExpected = "33020200051234567890";

@@ -1,6 +1,6 @@
 'use strict';
 
-import { testStart, testStep, testEnd, compareInAPDU, compareOutAPDU, noMoreAPDUs, getScriptName, getSpeculosDefaultConf } from "./speculos-common.js";
+import { testStart, testStep, testEnd, compareInAPDU, compareOutAPDU, noMoreAPDUs, compareGetVersionAPDUs, getScriptName, getSpeculosDefaultConf } from "./speculos-common.js";
 import { getSpyTransport } from "./speculos-transport.js";
 import { ButtonsAndSnapshots } from "./speculos-buttons-and-snapshots.js";
 import { default as OnflowLedgerMod } from "@onflow/ledger";
@@ -49,8 +49,9 @@ const setSlotResponse = await setSlotPromise
 
 assert.equal(setSlotResponse.returnCode, 0x9000);
 
-hexExpected = "331200001d0ae467b9dd11fa00df2c0000801b020080010200800000000000000000";
-compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:28, unexpected:9999});
+compareGetVersionAPDUs(transport);
+hexExpected = "331200001f0ae467b9dd11fa00df2c0000801b0200800102008000000000000000000000";
+compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:30, unexpected:9999});
 hexExpected = "9000";
 compareInAPDU(transport, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 noMoreAPDUs(transport);
@@ -78,11 +79,19 @@ const getSlotResponse = await app.getSlot(expectedSlot);
 assert.equal(getSlotResponse.returnCode, 0x9000);
 assert.equal(getSlotResponse.account, expectedAccount);
 assert.equal(getSlotResponse.path, expectedPath);
+console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+console.log(getSlotResponse);
+console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+assert.equal(getSlotResponse.options, 0);
 
 hexExpected = "33110000010a";
 compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, unexpected:9999});
-hexExpected = "e467b9dd11fa00df2c0000801b0200800102008000000000000000009000";
-compareInAPDU(transport, hexExpected, "apdu response", {account:8, path:20, returnCode:2, unexpected:9999});
+hexExpected = "e467b9dd11fa00df2c0000801b02008001020080000000000000000000009000";
+compareInAPDU(transport, hexExpected, "apdu response", {account:8, path:20, options:2, returnCode:2, unexpected:9999});
 noMoreAPDUs(transport);
 
 //getSlot for an empty slot
@@ -110,8 +119,9 @@ const setSlotResponse2 = await setSlotPromise2;
 
 assert.equal(setSlotResponse2.returnCode, 0x9000);
 
-hexExpected = "331200001d0ae467b9dd11fa00de2c0000801b020080010200800000000001000000";
-compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:28, unexpected:9999});
+compareGetVersionAPDUs(transport);
+hexExpected = "331200001f0ae467b9dd11fa00de2c0000801b0200800102008000000000010000000000";
+compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:30, unexpected:9999});
 hexExpected = "9000";
 compareInAPDU(transport, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 noMoreAPDUs(transport);
@@ -139,11 +149,12 @@ const getSlotResponse3 = await app.getSlot(expectedSlot);
 assert.equal(getSlotResponse3.returnCode, 0x9000);
 assert.equal(getSlotResponse3.account, expectedAccount2);
 assert.equal(getSlotResponse3.path, expectedPath2);
+assert.equal(getSlotResponse3.options, 0);
 
 hexExpected = "33110000010a";
 compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, unexpected:9999});
-hexExpected = "e467b9dd11fa00de2c0000801b0200800102008000000000010000009000";
-compareInAPDU(transport, hexExpected, "apdu response", {account:8, path:20, returnCode:2, unexpected:9999});
+hexExpected = "e467b9dd11fa00de2c0000801b02008001020080000000000100000000009000";
+compareInAPDU(transport, hexExpected, "apdu response", {account:8, path:20, options:2, returnCode:2, unexpected:9999});
 noMoreAPDUs(transport);
 
 //Now delete the slot so that the next test starts in a clean state
@@ -157,8 +168,9 @@ const setSlotResponse3 = await setSlotPromise3;
 
 assert.equal(setSlotResponse3.returnCode, 0x9000);
 
-hexExpected = "331200001d0a00000000000000000000000000000000000000000000000000000000";
-compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:28, unexpected:9999});
+compareGetVersionAPDUs(transport);
+hexExpected = "331200001f0a000000000000000000000000000000000000000000000000000000000000";
+compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:30, unexpected:9999});
 hexExpected = "9000";
 compareInAPDU(transport, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 noMoreAPDUs(transport);

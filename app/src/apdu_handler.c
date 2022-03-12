@@ -38,7 +38,7 @@ __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx,
     show_address = SHOW_ADDRESS_NONE;
 
     //extract hdPath to hdPath global variable
-    extractHDPath(rx, OFFSET_DATA);
+    extractHDPathAndCryptoOptions(rx, OFFSET_DATA);
     uint8_t requireConfirmation = G_io_apdu_buffer[OFFSET_P1];
 
     //extract pubkey to pubkey_to_display global variable
@@ -152,7 +152,7 @@ __Z_INLINE void handleGetSlot(__Z_UNUSED volatile uint32_t *flags, volatile uint
 }
 
 __Z_INLINE void handleSetSlot(volatile uint32_t *flags, __Z_UNUSED volatile uint32_t *tx, uint32_t rx) {
-    if (rx != 5 + 1 + 8 + 20) {
+    if (rx != 5 + 1 + 8 + 20 + 2) {
         THROW(APDU_CODE_DATA_INVALID);
     }
 

@@ -25,9 +25,10 @@ extern "C" {
 
 #define SLOT_COUNT              64
 
-typedef struct {
+typedef struct __attribute__((__packed__)) {
     flow_account_t account;
     hd_path_t path;
+    uint16_t options;
 } account_slot_t;
 
 typedef struct {

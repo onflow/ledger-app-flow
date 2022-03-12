@@ -25,12 +25,12 @@ extern "C" {
 #include <stddef.h>
 
 #define HDPATH_LEN_DEFAULT   5
-typedef struct {
+typedef struct __attribute__((__packed__)) {
     uint32_t data[HDPATH_LEN_DEFAULT];
 } hd_path_t;
 
 #define ACCOUNT_SIZE       8
-typedef struct {
+typedef struct __attribute__((__packed__)) {
     uint8_t data[ACCOUNT_SIZE];
 } flow_account_t;
 

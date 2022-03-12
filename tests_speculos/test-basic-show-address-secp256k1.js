@@ -1,6 +1,6 @@
 'use strict';
 
-import { testStart, testStep, testEnd, compareInAPDU, compareOutAPDU, noMoreAPDUs, getScriptName, getSpeculosDefaultConf } from "./speculos-common.js";
+import { testStart, testStep, testEnd, compareInAPDU, compareOutAPDU, noMoreAPDUs, compareGetVersionAPDUs, getScriptName, getSpeculosDefaultConf } from "./speculos-common.js";
 import { getSpyTransport } from "./speculos-transport.js";
 import { ButtonsAndSnapshots } from "./speculos-buttons-and-snapshots.js";
 import { default as OnflowLedgerMod } from "@onflow/ledger";
@@ -34,8 +34,9 @@ assert.equal(showPubkeyResponse.errorMessage, "No errors");
 assert.equal(showPubkeyResponse.address.toString(), expected_pk);
 assert.equal(showPubkeyResponse.publicKey.toString('hex'), expected_pk);
 
-hexExpected = "3301010014xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, do_not_compare_path:20, unexpected:9999});
+compareGetVersionAPDUs(transport);
+hexExpected = "3301010016xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0000";
+compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, do_not_compare_path:20, options:2, unexpected:9999});
 hexExpected = "04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be303464373438326262616666373832373033356435623233386466333138623130363034363733646336313338303837323365666264323366626334623966616433346134313538323864393234656337623833616330656464663232656631313562376332303365653339666230383035373264376535313737356565353462659000";
 compareInAPDU(transport, hexExpected, "apdu response", {publicKey:65, publicKey_hex:130, returnCode:2, unexpected:9999});
 noMoreAPDUs(transport);
@@ -52,8 +53,9 @@ device.review("Set slot 0");
 const setSlotResponse = await setSlotPromise;
 assert.equal(setSlotResponse.returnCode, 0x9000);
 
-hexExpected = "331200001d00e467b9dd11fa00de2c0000801b020080010200800000000001000000";
-compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:28, unexpected:9999});
+compareGetVersionAPDUs(transport);
+hexExpected = "331200001f00e467b9dd11fa00de2c0000801b0200800102008000000000010000000000";
+compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:30, unexpected:9999});
 hexExpected = "9000";
 compareInAPDU(transport, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 noMoreAPDUs(transport);
@@ -68,8 +70,9 @@ assert.equal(showPubkeyResponse2.errorMessage, "No errors");
 assert.equal(showPubkeyResponse2.address.toString(), expected_pk);
 assert.equal(showPubkeyResponse2.publicKey.toString('hex'), expected_pk);
 
-hexExpected = "3301010014xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, do_not_compare_path:20, unexpected:9999});
+compareGetVersionAPDUs(transport);
+hexExpected = "3301010016xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0000";
+compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, do_not_compare_path:20, options:2, unexpected:9999});
 hexExpected = "04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad34a415828d924ec7b83ac0eddf22ef115b7c203ee39fb080572d7e51775ee54be303464373438326262616666373832373033356435623233386466333138623130363034363733646336313338303837323365666264323366626334623966616433346134313538323864393234656337623833616330656464663232656631313562376332303365653339666230383035373264376535313737356565353462659000";
 compareInAPDU(transport, hexExpected, "apdu response", {publicKey:65, publicKey_hex:130, returnCode:2, unexpected:9999});
 noMoreAPDUs(transport);
@@ -85,8 +88,9 @@ const expected_pk2 = "04d525023d85460e62b82e69a1e60fadaa81338cdb4112d84fe0188512
 assert.equal(showPubkeyResponse3.address.toString(), expected_pk2);
 assert.equal(showPubkeyResponse3.publicKey.toString('hex'), expected_pk2);
 
-hexExpected = "3301010014xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, do_not_compare_path:20, unexpected:9999});
+compareGetVersionAPDUs(transport);
+hexExpected = "3301010016xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0000";
+compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, do_not_compare_path:20, options:2, unexpected:9999});
 hexExpected = "04d525023d85460e62b82e69a1e60fadaa81338cdb4112d84fe018851283ae53727dd0233c273cb396eb477404e3125971aef36e35b52a8930b48ffe6c03ba604b303464353235303233643835343630653632623832653639613165363066616461613831333338636462343131326438346665303138383531323833616535333732376464303233336332373363623339366562343737343034653331323539373161656633366533356235326138393330623438666665366330336261363034629000";
 compareInAPDU(transport, hexExpected, "apdu response", {publicKey:65, publicKey_hex:130, returnCode:2, unexpected:9999});
 noMoreAPDUs(transport);
@@ -100,8 +104,9 @@ device.review("Delete slot");
 const setSlotResponse3 = await setSlotPromise3;
 assert.equal(setSlotResponse3.returnCode, 0x9000);
 
-hexExpected = "331200001d0000000000000000000000000000000000000000000000000000000000";
-compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:28, unexpected:9999});
+compareGetVersionAPDUs(transport);
+hexExpected = "331200001f00000000000000000000000000000000000000000000000000000000000000";
+compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:30, unexpected:9999});
 hexExpected = "9000";
 compareInAPDU(transport, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 noMoreAPDUs(transport);

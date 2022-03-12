@@ -2,7 +2,11 @@ import {CLA, errorCodeToString, INS, PAYLOAD_TYPE, processErrorResponse} from ".
 
 const HARDENED = 0x80000000;
 
-export function serializePathv1(path) {
+//version 0
+//we serialize just 20 bytes of hdpath
+//version 1
+//we serialize two additional bytes from curveHashOption
+export function serializePathv1(path, version, curveHashOption) {
   if (typeof path !== "string") {
     throw new Error("Path should be a string (e.g \"m/44'/1'/5'/0/3\")");
   }
@@ -17,7 +21,10 @@ export function serializePathv1(path) {
     throw new Error("Invalid path. (e.g \"m/44'/1'/5'/0/3\")");
   }
 
-  const buf = Buffer.alloc(20);
+  const buf = (version === 0) ? Buffer.alloc(20): Buffer.alloc(22);
+  if (version > 0) {
+    buf.writeUInt16LE(curveHashOption, 20);
+  }
 
   for (let i = 1; i < pathArray.length; i += 1) {
     let value = 0;
@@ -44,6 +51,7 @@ export function serializePathv1(path) {
 
   return buf;
 }
+
 
 function printBIP44Item(v) {
   let hardened = v >= 0x8000000;

@@ -7,6 +7,7 @@ extern "C" {
 #include "coin.h"
 
 extern hd_path_t hdPath;
+extern uint16_t cryptoOptions;
 
 typedef enum {
     SHOW_ADDRESS_NONE = 0, //result undefined

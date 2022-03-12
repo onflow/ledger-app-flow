@@ -1,6 +1,6 @@
 'use strict';
 
-import { testStart, testStep, testEnd, compareInAPDU, compareOutAPDU, noMoreAPDUs, getScriptName, getSpeculosDefaultConf } from "./speculos-common.js";
+import { testStart, testStep, testEnd, compareInAPDU, compareOutAPDU, compareGetVersionAPDUs, noMoreAPDUs, getScriptName, getSpeculosDefaultConf } from "./speculos-common.js";
 import { getSpyTransport } from "./speculos-transport.js";
 import { ButtonsAndSnapshots } from "./speculos-buttons-and-snapshots.js";
 import { transactionTest } from "./speculos-transaction.js";
@@ -76,6 +76,7 @@ for (let i=0; i < sigAlgos.length; ++i ) {
         assert.equal(getPubkeyResponse.address.toString(), expected_pk[i][j]);
         assert.equal(getPubkeyResponse.publicKey.toString('hex'), expected_pk[i][j]);
         
+        compareGetVersionAPDUs(transport);
         hexExpected = "3301000014xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
         compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, do_not_compare_path:20, unexpected:9999});
         hexExpected = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx9000";
@@ -91,10 +92,47 @@ for (let i=0; i < sigAlgos.length; ++i ) {
             device,
             exampleAddKeyBlob, 
             sigAlgos[i],
-            hashAlgos[j]
+            hashAlgos[j],
+            12
         ); 
     }
 }
+
+
+//Test setSlot
+const expectedSlot = 10;
+const expectedAccount = "e467b9dd11fa00df";
+const expectedPath = `m/44'/539'/513'/0/0`;
+testStep(" - - -", "app.setSlot()");
+const setSlotPromise1 = app.setSlot(10, expectedAccount, expectedPath);
+device.review("Set slot 10");
+const setSlotResponse1 = await setSlotPromise1;
+
+assert.equal(setSlotResponse1.returnCode, 0x9000);
+
+compareGetVersionAPDUs(transport);
+hexExpected = "331200001d0ae467b9dd11fa00df2c0000801b020080010200800000000000000000";
+compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:28, unexpected:9999});
+hexExpected = "9000";
+compareInAPDU(transport, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
+noMoreAPDUs(transport);
+
+
+//Test getSlot
+testStep(" - - -", "await app.getSlot(); Get slot 10 back");
+const getSlotResponse2 = await app.getSlot(expectedSlot);
+
+assert.equal(getSlotResponse2.returnCode, 0x9000);
+assert.equal(getSlotResponse2.account, expectedAccount);
+assert.equal(getSlotResponse2.path, expectedPath);
+
+hexExpected = "33110000010a";
+compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, unexpected:9999});
+hexExpected = "e467b9dd11fa00df2c0000801b0200800102008000000000000000009000";
+compareInAPDU(transport, hexExpected, "apdu response", {account:8, path:20, returnCode:2, unexpected:9999});
+noMoreAPDUs(transport);
+
+
 
 await transport.close()
 testEnd(scriptName);

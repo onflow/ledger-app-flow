@@ -26,6 +26,7 @@ import {
   P1_VALUES,
   PKLEN,
   processErrorResponse,
+  compareVersion,
 } from "./common";
 
 function processGetAddrResponse(response) {
@@ -93,7 +94,11 @@ export default class FlowApp {
   }
 
   async signGetChunks(path, message) {
-    return FlowApp.prepareChunks(serializePathv1(path), message);
+    const getVersionResponse = await this.getVersion();
+    const pathSerializationVersion = (compareVersion(getVersionResponse, 0, 9, 12) <= 0) ? 0 : 1;
+
+    const serializedPath = serializePathv1(path, pathSerializationVersion, 0);
+    return FlowApp.prepareChunks(serializedPath, message);
   }
 
   async getVersion() {
@@ -155,8 +160,10 @@ export default class FlowApp {
   }
 
   async getAddressAndPubKey(path) {
-    const serializedPath = serializePathv1(path);
-    console.log(serializedPath);
+    const getVersionResponse = await this.getVersion();
+    const pathSerializationVersion = (compareVersion(getVersionResponse, 0, 9, 12) <= 0) ? 0 : 1;
+
+    const serializedPath = serializePathv1(path, pathSerializationVersion, 0);
 
     return this.transport
       .send(CLA, INS.GET_PUBKEY, P1_VALUES.ONLY_RETRIEVE, 0, serializedPath, [0x9000])
@@ -164,7 +171,10 @@ export default class FlowApp {
   }
 
   async showAddressAndPubKey(path) {
-    const serializedPath = serializePathv1(path);
+    const getVersionResponse = await this.getVersion();
+    const pathSerializationVersion = (compareVersion(getVersionResponse, 0, 9, 12) <= 0) ? 0 : 1;
+
+    const serializedPath = serializePathv1(path, pathSerializationVersion, 0);
 
     return this.transport
       .send(CLA, INS.GET_PUBKEY, P1_VALUES.SHOW_ADDRESS_IN_DEVICE, 0, serializedPath, [0x9000])
@@ -177,7 +187,7 @@ export default class FlowApp {
 
   async sign(path, message) {
     return this.signGetChunks(path, message).then((chunks) => {
-      return this.signSendChunk(1, chunks.length, chunks[0]).then(async (response) => {
+        return this.signSendChunk(1, chunks.length, chunks[0]).then(async (response) => {
         let result = {
           returnCode: response.returnCode,
           errorMessage: response.errorMessage,
@@ -227,7 +237,10 @@ export default class FlowApp {
 
     const payload = Buffer.from([slotIdx]);
     return this.transport.send(CLA, INS.GET_SLOT, 0, 0, payload).then((response) => {
-      console.log(response);
+      console.log("????????????????????????????????");
+      console.log("????????????????????????????????");
+      console.log("????????????????????????????????");
+      console.log(response.toString("hex"));
 
       const errorCodeData = response.slice(-2);
       const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
@@ -239,7 +252,8 @@ export default class FlowApp {
         errorMessage: errorCodeToString(returnCode),
         slotIdx: slotIdx,
         account: response.slice(0, 8).toString("hex"),
-        path: pathStr
+        path: pathStr,
+        options: response.length >= 32 ? response.readInt16LE(28) : null, //ledger app versions <0.9.12 do not return options
       };
     }, processErrorResponse);
   }
@@ -254,7 +268,11 @@ export default class FlowApp {
 
     const serializedSlotIdx = Buffer.from([slotIdx]);
     const serializedAccount = Buffer.from(account, "hex");
-    const serializedPath = serializePathv1(path);
+  
+    const getVersionResponse = await this.getVersion();
+    const pathSerializationVersion = (compareVersion(getVersionResponse, 0, 9, 12) <= 0) ? 0 : 1;
+
+    const serializedPath = serializePathv1(path, pathSerializationVersion, 0);
 
     if (serializedAccount.length !== 8) {
       return {
@@ -263,12 +281,7 @@ export default class FlowApp {
       };
     }
 
-    console.log(serializedSlotIdx)
-    console.log(serializedAccount)
-    console.log(serializedPath)
-
     const payload = Buffer.concat([ serializedSlotIdx, serializedAccount, serializedPath]);
-    console.log(payload)
 
     return this.transport.send(CLA, INS.SET_SLOT, 0, 0, payload).then((response) => {
       const errorCodeData = response.slice(-2);

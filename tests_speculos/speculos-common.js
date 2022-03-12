@@ -123,6 +123,14 @@ function noMoreAPDUs(transport) {
 	}
 }
 
+function compareGetVersionAPDUs(transport) {
+	let hexExpected = "3300000000";
+	compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, unexpected:9999});
+	hexExpected = "00xxxxxx00xxxxxxxx9000"; 
+	compareInAPDU(transport, hexExpected, "apdu response", {testMode:1, do_not_compare_major:1, do_not_compare_minor:1, do_not_compare_patch:1, deviceLocked:1, do_not_compare_targetId:4, returnCode:2, unexpected:9999});
+}
+
+
 
 function timeout(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms));
@@ -145,4 +153,4 @@ function getSpeculosDefaultConf() {
 	};
 }
 
-export {testStart, testCombo, testStep, testEnd, compareInAPDU, compareOutAPDU, noMoreAPDUs, humanTime, sleep, getScriptName, syncBackTicks, getSpeculosDefaultConf};
+export {testStart, testCombo, testStep, testEnd, compareInAPDU, compareOutAPDU, noMoreAPDUs, compareGetVersionAPDUs, humanTime, sleep, getScriptName, syncBackTicks, getSpeculosDefaultConf};

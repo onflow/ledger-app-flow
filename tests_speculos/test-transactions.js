@@ -61,7 +61,8 @@ const exampleAddKeyBlob        = "f90186f9015eb86e7472616e73616374696f6e28707562
 					device,
 					transactions[i].blob, 
 					sigAlgos[j],
-					hashAlgos[k]
+					hashAlgos[k],
+					13
 				);
 			}
 		}
@@ -86,7 +87,8 @@ const exampleAddKeyBlob        = "f90186f9015eb86e7472616e73616374696f6e28707562
 				device,
 				transactions[i].encodedTransactionEnvelopeHex,
 				ECDSA_P256,
-				SHA3_256
+				SHA3_256,
+				13
 			);
 		}
 	}

@@ -1,6 +1,6 @@
 'use strict';
 
-import { testStart, testStep, testEnd, compareInAPDU, compareOutAPDU, noMoreAPDUs, getScriptName, getSpeculosDefaultConf } from "./speculos-common.js";
+import { testStart, testStep, testEnd, compareInAPDU, compareOutAPDU, noMoreAPDUs, compareGetVersionAPDUs ,getScriptName, getSpeculosDefaultConf } from "./speculos-common.js";
 import { getSpyTransport } from "./speculos-transport.js";
 import { ButtonsAndSnapshots } from "./speculos-buttons-and-snapshots.js";
 import { default as OnflowLedgerMod } from "@onflow/ledger";
@@ -38,8 +38,9 @@ const setSlotResponse = await setSlotPromise
 
 assert.equal(setSlotResponse.returnCode, 0x9000);
 
-hexExpected = "331200001d00e467b9dd11fa00de2c0000801b020080010200800000000000000000";
-compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:28, unexpected:9999});
+compareGetVersionAPDUs(transport);
+hexExpected = "331200001f00e467b9dd11fa00de2c0000801b0200800102008000000000000000000000";
+compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:30, unexpected:9999});
 hexExpected = "9000";
 compareInAPDU(transport, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 noMoreAPDUs(transport);
@@ -59,8 +60,9 @@ device.review("Update slot 0");
 const setSlotResponse2 = await setSlotPromise2
 assert.equal(setSlotResponse2.returnCode, 0x9000);
 
-hexExpected = "331200001d00f3f7b9dd11fa00de2c0000801b020080010300800000000001000000";
-compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:28, unexpected:9999});
+compareGetVersionAPDUs(transport);
+hexExpected = "331200001f00f3f7b9dd11fa00de2c0000801b0200800103008000000000010000000000";
+compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:30, unexpected:9999});
 hexExpected = "9000";
 compareInAPDU(transport, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 noMoreAPDUs(transport);

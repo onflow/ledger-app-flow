@@ -83,6 +83,7 @@ m/`0x8000002c`/`0x8000????`/ `0x8000 0301` / `[item3]` / `[item4]`
 
 Path hardening in item3 and item4 is optional
 
+
 ---
 
 ## Account Slots
@@ -93,10 +94,13 @@ Only a 1:1 account/path relation can be stored per slot.
 
 Each slot has the following structure
 
-| Field   | Type    |                    |
-| ------- | ------- | ------------------ |
-| Account | byte(8) | Account Identifier |
-| Path    | u32 (5) | Derivation Path    |
+| Field   | Type    |                       |
+| ------- | ------- | --------------------- |
+| Account | byte(8) | Account Identifier    |
+| Path    | u32 (5) | Derivation Path       |
+| Options | byte(2) | Empty                 |
+
+
 
 ---
 
@@ -143,6 +147,7 @@ Each slot has the following structure
 | Path[2] | byte (4) | Derivation Path Data      | ?                  |
 | Path[3] | byte (4) | Derivation Path Data      | ?                  |
 | Path[4] | byte (4) | Derivation Path Data      | ?                  |
+| Options | byte (2) | Empty                     |                    |
 
 #### Response
 
@@ -182,6 +187,7 @@ All other packets/chunks contain data chunks that are described below
 | Path[2] | byte (4) | Derivation Path Data | ?        |
 | Path[3] | byte (4) | Derivation Path Data | ?        |
 | Path[4] | byte (4) | Derivation Path Data | ?        |
+| Options | byte (2) | Empty                |          |
 
 ##### Other Chunks/Packets
 
@@ -248,6 +254,7 @@ Data is defined as:
 | Path[2] | byte (4) | Derivation Path Data | ?                  |
 | Path[3] | byte (4) | Derivation Path Data | ?                  |
 | Path[4] | byte (4) | Derivation Path Data | ?                  |
+| Options | byte (2) | Empty                |                    |
 
 Note:
 Setting the slot to all zeros, will remove the data, otherwise,
@@ -271,3 +278,4 @@ the slot needs to have a valid derivation path
 | Path[2] | byte (4) | Derivation Path Data   | ?        |
 | Path[3] | byte (4) | Derivation Path Data   | ?        |
 | Path[4] | byte (4) | Derivation Path Data   | ?        |
+| Options | byte (2) | Empty                  |          |
