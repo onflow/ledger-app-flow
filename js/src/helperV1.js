@@ -116,3 +116,9 @@ export async function signSendChunkv1(app, chunkIdx, chunkNum, chunk) {
       };
     }, processErrorResponse);
 }
+
+export function validateCryptoOptions(cryptoOptions) {
+  if (typeof cryptoOptions !== "number" || !Number.isInteger(cryptoOptions) || cryptoOptions<0 || cryptoOptions>=65536) {
+    throw new Error("CryptoOptions should be an integer that fits into 16bits.");
+  }
+}

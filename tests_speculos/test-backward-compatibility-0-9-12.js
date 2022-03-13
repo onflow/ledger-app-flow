@@ -21,11 +21,11 @@ const device = new ButtonsAndSnapshots(scriptName, speculosConf);
 
 let hexExpected = "";
 
-const ECDSA_SECP256K1 = { name: "secp256k1", code: 0x0200 };
-const ECDSA_P256 = { name: "p256", code: 0x0300 };
+const ECDSA_SECP256K1 = { name: "secp256k1", code: FlowApp.Signature.SECP256K1, pathCode: 0x0200};
+const ECDSA_P256 = { name: "p256", code: FlowApp.Signature.P256, pathCode: 0x0300};
 
-const SHA2_256 = { name: "SHA-256", code: 0x01};
-const SHA3_256 = { name: "SHA3-256", code: 0x03};
+const SHA2_256 = { name: "SHA-256", code: FlowApp.Hash.SHA2_256, pathCode: 0x01};
+const SHA3_256 = { name: "SHA3-256", code: FlowApp.Hash.SHA3_256 ,pathCode: 0x03};
 
 const sigAlgos = [ECDSA_SECP256K1, ECDSA_P256];
 const hashAlgos = [SHA2_256, SHA3_256];
@@ -66,10 +66,11 @@ noMoreAPDUs(transport);
 for (let i=0; i < sigAlgos.length; ++i ) {
     for (let j=0; j < hashAlgos.length; ++j ) {
         //Test pubkey derivation
-        const path = `m/44'/539'/${sigAlgos[i].code | hashAlgos[j].code}'/0/0`;
+        const path = `m/44'/539'/${sigAlgos[i].pathCode | hashAlgos[j].pathCode}'/0/0`;
         testStep(" - - -", "await app.getAddressAndPubKey() // path=" + path);
+        const options = sigAlgos[i].code | hashAlgos[j].code;
 
-        const getPubkeyResponse = await app.getAddressAndPubKey(path);
+        const getPubkeyResponse = await app.getAddressAndPubKey(path, options);
         assert.equal(getPubkeyResponse.returnCode, 0x9000);
         assert.equal(getPubkeyResponse.errorMessage, "No errors");
         
@@ -104,7 +105,7 @@ const expectedSlot = 10;
 const expectedAccount = "e467b9dd11fa00df";
 const expectedPath = `m/44'/539'/513'/0/0`;
 testStep(" - - -", "app.setSlot()");
-const setSlotPromise1 = app.setSlot(10, expectedAccount, expectedPath);
+const setSlotPromise1 = app.setSlot(10, expectedAccount, expectedPath, 0);
 device.review("Set slot 10");
 const setSlotResponse1 = await setSlotPromise1;
 

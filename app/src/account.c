@@ -255,9 +255,10 @@ void loadAddressFromSlot(uint8_t hasHdPath) {
         show_address = SHOW_ADDRESS_EMPTY_SLOT;
     } 
     else {
-        //Case 2 Slot 0 derivation path is not the same as APDU derivation path
+        //Case 2 Slot 0 derivation path is not the same as APDU derivation path (including curve)
         STATIC_ASSERT(sizeof(slot.path.data) == sizeof(hdPath.data), "Incompatible derivation path types");
-        if (hasHdPath && memcmp(slot.path.data, hdPath.data, sizeof(hdPath.data))) {
+        if (hasHdPath && ( memcmp(slot.path.data, hdPath.data, sizeof(hdPath.data)) 
+                           || ((slot.options & 0xFF00) != (cryptoOptions & 0xFF00)))) { //curve portion of cryptoOptions
             show_address = SHOW_ADDRESS_HDPATHS_NOT_EQUAL;
         }
         else {
@@ -270,6 +271,7 @@ void loadAddressFromSlot(uint8_t hasHdPath) {
             if (!hasHdPath) {
                 STATIC_ASSERT(sizeof(hdPath.data) == sizeof(slot.path.data), "Incompatible derivation path types");
                 memcpy(hdPath.data, slot.path.data, sizeof(hdPath.data));
+                cryptoOptions = slot.options;
             }
         }
     }

@@ -43,7 +43,7 @@ __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx,
 
     //extract pubkey to pubkey_to_display global variable
     MEMZERO(pubkey_to_display, sizeof(pubkey_to_display));
-    zxerr_t err = crypto_extractPublicKey(hdPath, pubkey_to_display, sizeof(pubkey_to_display));
+    zxerr_t err = crypto_extractPublicKey(hdPath, cryptoOptions, pubkey_to_display, sizeof(pubkey_to_display));
     if (err !=  zxerr_ok) {
         zemu_log_stack("Public key extraction erorr");
         THROW(APDU_CODE_UNKNOWN);

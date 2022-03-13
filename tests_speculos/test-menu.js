@@ -27,19 +27,19 @@ await device.enterMenuElementAndReview(showAddressMenuItem, "Review address from
 
 //We set slot 0
 const account = "e467b9dd11fa00de"; //this is not a proper account but the app does not test it
-const scheme = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
-const path = `m/44'/539'/${scheme}'/0/0`;
+const options = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
+const path = `m/44'/539'/${0x201}'/0/0`;
 const slot = 0
 
 testStep(" - - -", "app.setSlot() //  Set slot 0");
-const setSlotPromise = app.setSlot(slot, account, path);
+const setSlotPromise = app.setSlot(slot, account, path, options);
 device.review("Set slot 0");
 const setSlotResponse = await setSlotPromise
 
 assert.equal(setSlotResponse.returnCode, 0x9000);
 
 compareGetVersionAPDUs(transport);
-hexExpected = "331200001f00e467b9dd11fa00de2c0000801b0200800102008000000000000000000000";
+hexExpected = "331200001f00e467b9dd11fa00de2c0000801b0200800102008000000000000000000103";
 compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:30, unexpected:9999});
 hexExpected = "9000";
 compareInAPDU(transport, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
@@ -51,17 +51,17 @@ await device.enterMenuElementAndReview(showAddressMenuItem, "Review address from
 
 //We set slot 0 to something else
 const account2 = "f3f7b9dd11fa00de"; //this is not a proper account but the app does not test it
-const scheme2 = FlowApp.Signature.P256 | FlowApp.Hash.SHA2_256;
-const path2 = `m/44'/539'/${scheme2}'/0/1`;
+const options2 = FlowApp.Signature.P256 | FlowApp.Hash.SHA2_256;
+const path2 = `m/44'/539'/${0x301}'/0/1`;
 
 testStep(" - - -", "app.setSlot() //  Update slot 0");
-const setSlotPromise2 = app.setSlot(slot, account2, path2);
+const setSlotPromise2 = app.setSlot(slot, account2, path2, options2);
 device.review("Update slot 0");
-const setSlotResponse2 = await setSlotPromise2
+const setSlotResponse2 = await setSlotPromise2;
 assert.equal(setSlotResponse2.returnCode, 0x9000);
 
 compareGetVersionAPDUs(transport);
-hexExpected = "331200001f00f3f7b9dd11fa00de2c0000801b0200800103008000000000010000000000";
+hexExpected = "331200001f00f3f7b9dd11fa00de2c0000801b0200800103008000000000010000000102";
 compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, slot:1, slotBytes:30, unexpected:9999});
 hexExpected = "9000";
 compareInAPDU(transport, hexExpected, "apdu response", {returnCode:2, unexpected:9999});

@@ -17,11 +17,11 @@ const FlowApp = OnflowLedgerMod.default;
 const app = new FlowApp(transport);
 
 //Now we test the transactions
-const ECDSA_SECP256K1 = { name: "secp256k1", code: FlowApp.Signature.SECP256K1 };
-const ECDSA_P256 = { name: "p256", code: FlowApp.Signature.P256 };
+const ECDSA_SECP256K1 = { name: "secp256k1", code: FlowApp.Signature.SECP256K1, pathCode: 0x200 };
+const ECDSA_P256 = { name: "p256", code: FlowApp.Signature.P256, pathCode: 0x300};
 
-const SHA2_256 = { name: "SHA-256", code: FlowApp.Hash.SHA2_256};
-const SHA3_256 = { name: "SHA3-256", code: FlowApp.Hash.SHA3_256};
+const SHA2_256 = { name: "SHA-256", code: FlowApp.Hash.SHA2_256, pathCode: 0x01};
+const SHA3_256 = { name: "SHA3-256", code: FlowApp.Hash.SHA3_256, pathCode: 0x03};
 
 const sigAlgos = [ECDSA_SECP256K1, ECDSA_P256];
 const hashAlgos = [SHA2_256, SHA3_256];
