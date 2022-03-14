@@ -54,17 +54,18 @@ size_t z_strlen(const char *buffer, size_t maxSize);
 
 zxerr_t z_str3join(char *buffer, size_t bufferSize, const char *prefix, const char *suffix);
 
-__Z_INLINE void bip32_to_str(char *s, uint32_t max, const uint32_t *path, uint8_t pathLen) {
+//returns 0 in case of error, otherwise returns the length of the string.
+__Z_INLINE uint32_t bip32_to_str(char *s, uint32_t max, const uint32_t *path, uint8_t pathLen) {
     MEMZERO(s, max);
 
     if (pathLen == 0) {
         snprintf(s, max, "EMPTY PATH");
-        return;
+        return 0;
     }
 
     if (pathLen > 5) {
         snprintf(s, max, "ERROR");
-        return;
+        return 0;
     }
 
     uint32_t offset = 0;
@@ -77,7 +78,7 @@ __Z_INLINE void bip32_to_str(char *s, uint32_t max, const uint32_t *path, uint8_
         written = strlen(s + offset);
         if (written == 0 || written >= max - offset) {
             snprintf(s, max, "ERROR");
-            return;
+            return 0;
         }
         offset += written;
 
@@ -86,7 +87,7 @@ __Z_INLINE void bip32_to_str(char *s, uint32_t max, const uint32_t *path, uint8_
             written = strlen(s + offset);
             if (written == 0 || written >= max - offset) {
                 snprintf(s, max, "ERROR");
-                return;
+                return 0;
             }
             offset += written;
         }
@@ -96,15 +97,70 @@ __Z_INLINE void bip32_to_str(char *s, uint32_t max, const uint32_t *path, uint8_
             written = strlen(s + offset);
             if (written == 0 || written >= max - offset) {
                 snprintf(s, max, "ERROR");
-                return;
+                return 0;
             }
             offset += written;
         }
     }
+
+    return offset;
 }
 
-__Z_INLINE void bip44_to_str(char *s, uint32_t max, const uint32_t path[5]) {
-    bip32_to_str(s, max, path, 5);
+__Z_INLINE uint32_t bip44_to_str(char *s, uint32_t max, const uint32_t path[5]) {
+    return bip32_to_str(s, max, path, 5);
+};
+
+#define SECP256R1_STRING " SECP256R1"
+#define SECP256K1_STRING " SECP256K1"
+#define SHA2_256_STRING " SHA-256"
+#define SHA3_256_STRING " SHA3-256"
+
+__Z_INLINE uint32_t addOptionsToPath(char *s, uint32_t max, uint16_t options) {
+    uint32_t written = strlen(s);
+    uint8_t curve = (options >> 8);
+    uint8_t hash = options & 0xFF;
+
+    if (curve != 0) {
+        if (written + sizeof(SECP256R1_STRING) > max || written + sizeof(SECP256K1_STRING) > max) {
+            snprintf(s, max, "ERROR1");
+            return 0;
+        }
+        switch(curve) {
+            case 0x02:
+                snprintf(s+written, max, SECP256R1_STRING);
+                written += sizeof(SECP256R1_STRING) - 1;
+                break;
+            case 0x03:
+                snprintf(s+written, max, SECP256K1_STRING);
+                written += sizeof(SECP256R1_STRING) - 1;
+                break;
+            default:
+                snprintf(s, max, "ERROR2");
+                return 0;
+        }
+    }
+
+    if (hash != 0) {
+        if (written + sizeof(SHA2_256_STRING) > max || written + sizeof(SHA3_256_STRING) > max) {
+            snprintf(s, max, "ERROR3");
+            return 0;
+        }
+        switch(hash) {
+            case 0x01:
+                snprintf(s+written, max, SHA2_256_STRING);
+                written += sizeof(SHA2_256_STRING) - 1;
+                break;
+            case 0x03:
+                break;
+                snprintf(s+written, max, SHA3_256_STRING);
+                written += sizeof(SHA3_256_STRING) - 1;
+                break;
+            default:
+                snprintf(s, max, "ERROR3");
+                return 0;
+        }
+    }
+    return written;
 }
 
 __Z_INLINE int8_t str_to_int8(const char *start, const char *end, char *error) {

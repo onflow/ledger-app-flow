@@ -92,8 +92,11 @@ zxerr_t addr_getItem_internal(int8_t *displayIdx,
 
     SCREEN(app_mode_expert() && hasPubkey) {
         snprintf(outKey, outKeyLen, "Your Path");
-        char buffer[300];
-        bip32_to_str(buffer, sizeof(buffer), hdPath.data, HDPATH_LEN_DEFAULT);
+        char buffer[100];
+        uint8_t len = bip32_to_str(buffer, sizeof(buffer), hdPath.data, HDPATH_LEN_DEFAULT);
+        if (len != 0) {
+            addOptionsToPath(buffer, sizeof(buffer), cryptoOptions & 0xFF00); //show hash only
+        }
         pageString(outVal, outValLen, buffer, pageIdx, pageCount);
         return zxerr_ok;
     }

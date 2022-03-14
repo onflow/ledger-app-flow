@@ -43,6 +43,27 @@ hexExpected = "04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc4b9fad
 compareInAPDU(transport, hexExpected, "apdu response", {publicKey:65, publicKey_hex:130, returnCode:2, unexpected:9999});
 noMoreAPDUs(transport);
 
+//show pubkey
+const options2 = FlowApp.Signature.P256 | FlowApp.Hash.SHA3_256;
+const expected_pk2 = "04e6736d9f4952a92aced4fb4f6a9bdf23c5db7057a8325d2303167df8fbc9a8e9c08e9c520881bc48fb23b8ae53d1efa8b24dda6555937ab049f557c65228857e";
+
+testStep(" - - -", "app.showAddressAndPubKey() // path=" + path);
+const showPubkeyPromise2 = app.showAddressAndPubKey(path, options2);
+device.review("Show address expert mode - empty slot");
+const showPubkeyResponse2 = await showPubkeyPromise2;
+assert.equal(showPubkeyResponse2.returnCode, 0x9000);
+assert.equal(showPubkeyResponse2.errorMessage, "No errors");
+assert.equal(showPubkeyResponse2.address.toString(), expected_pk2);
+assert.equal(showPubkeyResponse2.publicKey.toString('hex'), expected_pk2);
+
+compareGetVersionAPDUs(transport);
+hexExpected = "3301010016xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx0302";
+compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, do_not_compare_path:20, options:2, unexpected:9999});
+hexExpected = "04e6736d9f4952a92aced4fb4f6a9bdf23c5db7057a8325d2303167df8fbc9a8e9c08e9c520881bc48fb23b8ae53d1efa8b24dda6555937ab049f557c65228857e303465363733366439663439353261393261636564346662346636613962646632336335646237303537613833323564323330333136376466386662633961386539633038653963353230383831626334386662323362386165353364316566613862323464646136353535393337616230343966353537633635323238383537659000";
+compareInAPDU(transport, hexExpected, "apdu response", {publicKey:65, publicKey_hex:130, returnCode:2, unexpected:9999});
+noMoreAPDUs(transport);
+
+
 //undo expert mode
 await device.toggleExpertMode("Turn OFF");
 
