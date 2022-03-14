@@ -104,7 +104,7 @@ noMoreAPDUs(transport)
 //setSlot 10 - update slot
 const expectedAccount2 = "e467b9dd11fa00de"; //this is not a proper account but the app does not test it
 const expectedPath2 = `m/44'/539'/${0x201}'/0/1`;
-const options2 = FlowApp.Signature.P256 | FlowApp.Hash.SHA3_256;;
+const options2 = FlowApp.Signature.P256 | FlowApp.Hash.SHA3_256;
 
 testStep(" - - -", "app.setSlot() // expectedSlot=" + expectedSlot + " expectedAccount2=" + expectedAccount2 + " expectedPath2=" + expectedPath2 + "; Set slot 10");
 const setSlotPromise2 = app.setSlot(expectedSlot, expectedAccount2, expectedPath2, options2);

@@ -112,17 +112,17 @@ __Z_INLINE uint32_t bip44_to_str(char *s, uint32_t max, const uint32_t path[5]) 
 
 #define SECP256R1_STRING " SECP256R1"
 #define SECP256K1_STRING " SECP256K1"
-#define SHA2_256_STRING " SHA-256"
-#define SHA3_256_STRING " SHA3-256"
+#define SHA2_256_STRING " SHA-2"
+#define SHA3_256_STRING " SHA-3"
 
-__Z_INLINE uint32_t addOptionsToPath(char *s, uint32_t max, uint16_t options) {
+__Z_INLINE uint32_t add_options_to_path(char *s, uint32_t max, uint16_t options) {
     uint32_t written = strlen(s);
     uint8_t curve = (options >> 8);
     uint8_t hash = options & 0xFF;
 
     if (curve != 0) {
         if (written + sizeof(SECP256R1_STRING) > max || written + sizeof(SECP256K1_STRING) > max) {
-            snprintf(s, max, "ERROR1");
+            snprintf(s, max, "ERROR");
             return 0;
         }
         switch(curve) {
@@ -135,14 +135,14 @@ __Z_INLINE uint32_t addOptionsToPath(char *s, uint32_t max, uint16_t options) {
                 written += sizeof(SECP256R1_STRING) - 1;
                 break;
             default:
-                snprintf(s, max, "ERROR2");
+                snprintf(s, max, "ERROR");
                 return 0;
         }
     }
 
     if (hash != 0) {
         if (written + sizeof(SHA2_256_STRING) > max || written + sizeof(SHA3_256_STRING) > max) {
-            snprintf(s, max, "ERROR3");
+            snprintf(s, max, "ERROR");
             return 0;
         }
         switch(hash) {
@@ -151,16 +151,23 @@ __Z_INLINE uint32_t addOptionsToPath(char *s, uint32_t max, uint16_t options) {
                 written += sizeof(SHA2_256_STRING) - 1;
                 break;
             case 0x03:
-                break;
                 snprintf(s+written, max, SHA3_256_STRING);
                 written += sizeof(SHA3_256_STRING) - 1;
                 break;
             default:
-                snprintf(s, max, "ERROR3");
+                snprintf(s, max, "ERROR");
                 return 0;
         }
     }
     return written;
+}
+
+__Z_INLINE void path_options_to_string(char *s, uint32_t max, const uint32_t *path, uint8_t pathLen, uint16_t cryptoOptions) {
+    uint32_t len = bip32_to_str(s, max, path, pathLen);
+    if (len != 0) {
+        add_options_to_path(s, max, cryptoOptions); 
+    }                    
+
 }
 
 __Z_INLINE int8_t str_to_int8(const char *start, const char *end, char *error) {

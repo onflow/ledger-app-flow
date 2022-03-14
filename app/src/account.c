@@ -80,7 +80,7 @@ zxerr_t slot_getItem(int8_t displayIdx,
                 case 2: {
                     char bufferUI[130];
                     snprintf(outKey, outKeyLen, "Path");
-                    bip32_to_str(bufferUI, sizeof(bufferUI), tmp_slot.path.data, HDPATH_LEN_DEFAULT);
+                    path_options_to_string(bufferUI, sizeof(bufferUI), tmp_slot.path.data, HDPATH_LEN_DEFAULT, tmp_slot.options);
                     pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
                     return zxerr_ok;
                 }
@@ -104,7 +104,7 @@ zxerr_t slot_getItem(int8_t displayIdx,
                 case 2: {
                     char bufferUI[130];
                     snprintf(outKey, outKeyLen, "Old Path");
-                    bip32_to_str(bufferUI, sizeof(bufferUI), oldSlot->path.data, HDPATH_LEN_DEFAULT);
+                    path_options_to_string(bufferUI, sizeof(bufferUI), oldSlot->path.data, HDPATH_LEN_DEFAULT, oldSlot->options);
                     pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
                     return zxerr_ok;
                 }
@@ -116,7 +116,7 @@ zxerr_t slot_getItem(int8_t displayIdx,
                 case 4: {
                     char bufferUI[130];
                     snprintf(outKey, outKeyLen, "New Path");
-                    bip32_to_str(bufferUI, sizeof(bufferUI), tmp_slot.path.data, HDPATH_LEN_DEFAULT);
+                    path_options_to_string(bufferUI, sizeof(bufferUI), tmp_slot.path.data, HDPATH_LEN_DEFAULT, tmp_slot.options);
                     pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
                     return zxerr_ok;
                 }
@@ -141,7 +141,7 @@ zxerr_t slot_getItem(int8_t displayIdx,
                 case 2: {
                     char bufferUI[130];
                     snprintf(outKey, outKeyLen, "Old Path");
-                    bip32_to_str(bufferUI, sizeof(bufferUI), oldSlot->path.data, HDPATH_LEN_DEFAULT);
+                    path_options_to_string(bufferUI, sizeof(bufferUI), oldSlot->path.data, HDPATH_LEN_DEFAULT, oldSlot->options);
                     pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
                     return zxerr_ok;
                 }
