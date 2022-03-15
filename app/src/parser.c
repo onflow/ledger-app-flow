@@ -23,6 +23,7 @@
 #include "coin.h"
 #include "zxformat.h"
 #include "hdpath.h"
+#include "app_mode.h"
 
 #if defined(TARGET_NANOX)
 // For some reason NanoX requires this function
@@ -493,8 +494,17 @@ parser_error_t parser_getItemAfterArguments(__Z_UNUSED const parser_context_t *c
         return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
                                       pageCount);
     }
-
     displayIdx -= parser_tx_obj.authorizers.authorizer_count;
+
+    if (app_mode_expert() && displayIdx == 0) {
+        snprintf(outKey, outKeyLen, "Your Path");
+        char buffer[100];
+        path_options_to_string(buffer, sizeof(buffer), hdPath.data, HDPATH_LEN_DEFAULT, cryptoOptions); 
+        pageString(outVal, outValLen, buffer, pageIdx, pageCount);
+        return PARSER_OK;
+    }
+    displayIdx--;
+
     switch(show_address) {
         case SHOW_ADDRESS_YES:
             if (addressUsedInTx) {
