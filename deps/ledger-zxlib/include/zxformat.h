@@ -120,6 +120,15 @@ __Z_INLINE uint32_t add_options_to_path(char *s, uint32_t max, uint16_t options)
     uint8_t curve = (options >> 8);
     uint8_t hash = options & 0xFF;
 
+    //For better UI if path is short, we add one or two spaces
+    if (written < 17 && max >= 18) {
+        for(;written <= 17; written++) {
+            s[written] = ' ';
+        }
+        s[written] = 0;
+        written--;
+    }
+
     if (curve != 0) {
         if (written + sizeof(SECP256R1_STRING) > max || written + sizeof(SECP256K1_STRING) > max) {
             snprintf(s, max, "ERROR");
