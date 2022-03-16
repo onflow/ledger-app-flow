@@ -496,39 +496,44 @@ parser_error_t parser_getItemAfterArguments(__Z_UNUSED const parser_context_t *c
     }
     displayIdx -= parser_tx_obj.authorizers.authorizer_count;
 
-    if (app_mode_expert() && displayIdx == 0) {
+    if (app_mode_expert() && displayIdx-- == 0) {
         snprintf(outKey, outKeyLen, "Your Path");
         char buffer[100];
         path_options_to_string(buffer, sizeof(buffer), hdPath.data, HDPATH_LEN_DEFAULT, cryptoOptions); 
         pageString(outVal, outValLen, buffer, pageIdx, pageCount);
         return PARSER_OK;
     }
-    displayIdx--;
 
     switch(show_address) {
         case SHOW_ADDRESS_YES:
-            if (addressUsedInTx) {
-                break;
-            }
-            else {
+        case SHOW_ADDRESS_YES_HASH_MISMATCH:
+            if (!addressUsedInTx && displayIdx-- == 0) {
                 snprintf(outKey, outKeyLen, "Warning:");
                 snprintf(outVal, outValLen, "Incorrect address in transaction.");
                 return PARSER_OK;
             }
+            break;
         case SHOW_ADDRESS_EMPTY_SLOT:
+            if (displayIdx-- == 0) {
                 snprintf(outKey, outKeyLen, "Warning:");
                 snprintf(outVal, outValLen, "No address stored on the device.");
                 return PARSER_OK;
+            }
+            break; 
         case SHOW_ADDRESS_HDPATHS_NOT_EQUAL:
+            if (displayIdx-- == 0) {
                 snprintf(outKey, outKeyLen, "Warning:");
                 snprintf(outVal, outValLen, "Different address stored on device.");
                 return PARSER_OK;
+            }
+            break; 
         default:
+            if (displayIdx-- == 0) {
                 snprintf(outKey, outKeyLen, "Warning:");
                 snprintf(outVal, outValLen, "Slot error.");
                 return PARSER_OK;
+            }
     }
-
     return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
 }
 

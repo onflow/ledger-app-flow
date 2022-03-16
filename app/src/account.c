@@ -265,7 +265,12 @@ void loadAddressFromSlot(uint8_t hasHdPath) {
             //Case 3 Everything is OK
             STATIC_ASSERT(sizeof(address_to_display.data) == sizeof(slot.account.data), "Incompatible address types");
             memcpy(address_to_display.data, slot.account.data, sizeof(address_to_display.data));
-            show_address = SHOW_ADDRESS_YES;
+            if (hasHdPath && ((slot.options & 0x00FF) != (cryptoOptions & 0x00FF))) {
+                show_address = SHOW_ADDRESS_YES_HASH_MISMATCH;
+            }
+            else {
+                show_address = SHOW_ADDRESS_YES;
+            }
 
             //load hdPath from slot if necessary
             if (!hasHdPath) {

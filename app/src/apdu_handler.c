@@ -98,7 +98,7 @@ __Z_INLINE void handleSign(volatile uint32_t *flags, volatile uint32_t *tx, uint
     loadAddressCompareHdPathFromSlot();    
 
     //if we found matching hdPath on slot 0
-    if (show_address == SHOW_ADDRESS_YES) {
+    if (show_address == SHOW_ADDRESS_YES || show_address == SHOW_ADDRESS_YES_HASH_MISMATCH) {
         checkAddressUsedInTx();
     }
     else {
