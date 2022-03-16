@@ -512,6 +512,15 @@ parser_error_t parser_getItemAfterArguments(__Z_UNUSED const parser_context_t *c
                 snprintf(outVal, outValLen, "Incorrect address in transaction.");
                 return PARSER_OK;
             }
+            if (show_address == SHOW_ADDRESS_YES_HASH_MISMATCH && displayIdx-- == 0) {
+                snprintf(outKey, outKeyLen, "Warning:");
+                #if defined(TARGET_NANOX)
+                pageString(outVal, outValLen, "Specified hash algorithm does not match stored value.", pageIdx, pageCount);
+                #else
+                pageString(outVal, outValLen, " Specified hash   algorithm does  not match stored value.", pageIdx, pageCount);
+                #endif
+                return PARSER_OK;
+            }
             break;
         case SHOW_ADDRESS_EMPTY_SLOT:
             if (displayIdx-- == 0) {

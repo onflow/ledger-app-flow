@@ -21,6 +21,7 @@ let hexExpected = "";
 
 const ECDSA_P256 = { name: "p256", code: FlowApp.Signature.P256, pathCode:0x300 };
 const SHA3_256 = { name: "SHA3-256", code: FlowApp.Hash.SHA3_256, pathCode:0x3};
+const SHA2_256 = { name: "SHA-256", code: FlowApp.Hash.SHA2_256, pathCode: 0x01};
 
 const options = ECDSA_P256.code | SHA3_256.code;
 const pathCode = ECDSA_P256.pathCode | SHA3_256.pathCode;
@@ -117,6 +118,21 @@ for(let i=0; i<testTxBlobs.length; i++) {
 		path
 	);	
 }
+
+
+//sign the Tx again - correct path - wrong hash
+testStep(" - - -", "Testing tx with correct hdpath, address in tx");
+await transactionTest(
+	app,
+	transport,
+	device,
+	exampleTxBlob, 
+	ECDSA_P256,
+	SHA2_256,
+	13,
+	path
+);
+
 
 //Now delete the slot so that the next test starts in a clean state
 const expectedAccountDelete = "0000000000000000";

@@ -777,9 +777,12 @@ parser_error_t _countArgumentOptionalItems(const flow_argument_list_t *v, uint8_
 parser_error_t _getNumItems(__Z_UNUSED const parser_context_t *c, const parser_tx_t *v, uint8_t *numItems) {
     uint8_t argArrayLength = 0;
 
+    uint8_t show_address_yes = (show_address == SHOW_ADDRESS_YES || show_address == SHOW_ADDRESS_YES_HASH_MISMATCH);
     uint8_t extraItems = v->authorizers.authorizer_count;
-    extraItems += (show_address == SHOW_ADDRESS_YES && addressUsedInTx) ? 0 : 1;
-    extraItems += (app_mode_expert()) ? 1 : 0;
+    extraItems += (show_address_yes && !addressUsedInTx) ? 1 : 0;
+    extraItems += (show_address == SHOW_ADDRESS_YES_HASH_MISMATCH) ? 1 : 0;
+    extraItems += show_address_yes ? 0 : 1;
+    extraItems += app_mode_expert() ? 1 : 0;
 
     switch (v->script.type) {
         case SCRIPT_TOKEN_TRANSFER:
