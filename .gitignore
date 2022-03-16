@@ -8,6 +8,7 @@
 *.ko
 *.obj
 *.elf
+!/tests_speculos/backward_compatibility_test_biniaries/*/*.elf
 
 # Linker output
 *.ilk
@@ -94,3 +95,4 @@ node_modules/.yarn-integrity
 /tests_speculos/yarn.lock
 /tests_speculos/speculos-port*.log
 *.new.png
+
