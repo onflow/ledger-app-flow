@@ -56,7 +56,7 @@ __Z_INLINE cx_curve_t get_cx_curve(const uint16_t options) {
     }
 }
 
-zxerr_t crypto_extractPublicKey(const hd_path_t path, const uint16_t options,uint8_t *pubKey, uint16_t pubKeyLen) {
+zxerr_t crypto_extractPublicKey(const hd_path_t path, const uint16_t options, uint8_t *pubKey, uint16_t pubKeyLen) {
     zemu_log_stack("crypto_extractPublicKey");
     MEMZERO(pubKey, pubKeyLen);
 

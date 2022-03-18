@@ -52,7 +52,6 @@ export function serializePathv1(path, version, curveHashOption) {
   return buf;
 }
 
-
 function printBIP44Item(v) {
   let hardened = v >= 0x8000000;
   return `${v & 0x7FFFFFFF}${hardened ? "'" : ""}`;

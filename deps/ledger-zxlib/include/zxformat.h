@@ -114,6 +114,7 @@ __Z_INLINE uint32_t bip44_to_str(char *s, uint32_t max, const uint32_t path[5]) 
 #define SECP256K1_STRING " SECP256K1"
 #define SHA2_256_STRING " SHA-2"
 #define SHA3_256_STRING " SHA-3"
+#define DESIRED_HD_PATH_LENGTH 17
 
 __Z_INLINE uint32_t add_options_to_path(char *s, uint32_t max, uint16_t options) {
     uint32_t written = strlen(s);
@@ -121,8 +122,8 @@ __Z_INLINE uint32_t add_options_to_path(char *s, uint32_t max, uint16_t options)
     uint8_t hash = options & 0xFF;
 
     //For better UI if path is short, we add one or two spaces
-    if (written < 17 && max >= 18) {
-        for(;written <= 17; written++) {
+    if (written < DESIRED_HD_PATH_LENGTH && max >= DESIRED_HD_PATH_LENGTH+1) {
+        for(;written <= DESIRED_HD_PATH_LENGTH; written++) {
             s[written] = ' ';
         }
         s[written] = 0;
@@ -176,7 +177,6 @@ __Z_INLINE void path_options_to_string(char *s, uint32_t max, const uint32_t *pa
     if (len != 0) {
         add_options_to_path(s, max, cryptoOptions); 
     }                    
-
 }
 
 __Z_INLINE int8_t str_to_int8(const char *start, const char *end, char *error) {
