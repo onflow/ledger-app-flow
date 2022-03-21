@@ -85,7 +85,7 @@ Each slot has the following structure
 | ------- | ------- | --------------------- |
 | Account | byte(8) | Account Identifier    |
 | Path    | u32 (5) | Derivation Path       |
-| Options | byte(2) | Crypto oprions (LE)   |
+| Options | byte(2) | Crypto options (LE)   |
 
 
 
@@ -174,7 +174,7 @@ All other packets/chunks contain data chunks that are described below
 | Path[2] | byte (4) | Derivation Path Data | ?        |
 | Path[3] | byte (4) | Derivation Path Data | ?        |
 | Path[4] | byte (4) | Derivation Path Data | ?        |
-| Options | byte (2) | Crypto options (LE)  | ?          |
+| Options | byte (2) | Crypto options (LE)  | ?        |
 
 ##### Other Chunks/Packets
 

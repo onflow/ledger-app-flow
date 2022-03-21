@@ -65,7 +65,6 @@ export function printBIP44Path(pathBytes) {
   let pathValues = [0, 0, 0, 0, 0];
   for (let i = 0; i < 5; i += 1) {
     pathValues[i] = pathBytes.readUInt32LE(4 * i);
-    console.log(pathValues[i]);
   }
 
   return `m/${

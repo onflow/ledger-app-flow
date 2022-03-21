@@ -118,7 +118,7 @@ __Z_INLINE uint32_t bip44_to_str(char *s, uint32_t max, const uint32_t path[5]) 
 
 __Z_INLINE uint32_t add_options_to_path(char *s, uint32_t max, uint16_t options) {
     uint32_t written = strlen(s);
-    uint8_t curve = (options >> 8);
+    uint8_t curve = (options >> 8) & 0xFF;
     uint8_t hash = options & 0xFF;
 
     //For better UI if path is short, we add one or two spaces
@@ -142,7 +142,7 @@ __Z_INLINE uint32_t add_options_to_path(char *s, uint32_t max, uint16_t options)
                 break;
             case 0x03:
                 snprintf(s+written, max, SECP256K1_STRING);
-                written += sizeof(SECP256R1_STRING) - 1;
+                written += sizeof(SECP256K1_STRING) - 1;
                 break;
             default:
                 snprintf(s, max, "ERROR");
