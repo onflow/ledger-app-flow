@@ -25,9 +25,8 @@
 #include "cx.h"
 
 
-__Z_INLINE digest_type_e get_hash_type(const hd_path_t path) {
-    _Static_assert(HDPATH_LEN_DEFAULT >= 3, "Invalid HDPATH_LEN_DEFAULT");
-    const uint8_t hash_type = (uint8_t) (path.data[2] & 0xFF);
+__Z_INLINE digest_type_e get_hash_type(const uint16_t options) {
+    const uint8_t hash_type = (uint8_t) (options & 0xFF);
     switch(hash_type) {
         case 0x01:
             zemu_log_stack("path: sha2_256");
@@ -41,28 +40,27 @@ __Z_INLINE digest_type_e get_hash_type(const hd_path_t path) {
     }
 }
 
-__Z_INLINE cx_curve_t get_cx_curve(const hd_path_t path) {
-    _Static_assert(HDPATH_LEN_DEFAULT >= 3, "Invalid HDPATH_LEN_DEFAULT");
-    const uint8_t curve_code = (uint8_t) ((path.data[2] >> 8) & 0xFF);
+__Z_INLINE cx_curve_t get_cx_curve(const uint16_t options) {
+    const uint8_t curve_code = (uint8_t) ((options >> 8) & 0xFF);
     switch(curve_code) {
         case 0x02: {
-            zemu_log_stack("curve: secp256k1");
-            return CX_CURVE_SECP256K1;
-        }
-        case 0x03: {
             zemu_log_stack("curve: secp256r1");
             return CX_CURVE_SECP256R1;
+        }
+        case 0x03: {
+            zemu_log_stack("curve: secp256k1");
+            return CX_CURVE_SECP256K1;
         }
         default:
             return CX_CURVE_NONE;
     }
 }
 
-zxerr_t crypto_extractPublicKey(const hd_path_t path, uint8_t *pubKey, uint16_t pubKeyLen) {
+zxerr_t crypto_extractPublicKey(const hd_path_t path, const uint16_t options, uint8_t *pubKey, uint16_t pubKeyLen) {
     zemu_log_stack("crypto_extractPublicKey");
     MEMZERO(pubKey, pubKeyLen);
 
-    cx_curve_t curve = get_cx_curve(path);
+    cx_curve_t curve = get_cx_curve(options);
     if (curve!=CX_CURVE_SECP256K1 && curve!=CX_CURVE_SECP256R1 ) {
         zemu_log_stack("extractPublicKey: invalid_crypto_settings");
         return zxerr_invalid_crypto_settings;
@@ -151,16 +149,16 @@ zxerr_t digest_message(const uint8_t *message, uint16_t messageLen, digest_type_
     }
 }
 
-zxerr_t crypto_sign(const hd_path_t path, const uint8_t *message, uint16_t messageLen, uint8_t *buffer, uint16_t bufferSize,  uint16_t *sigSize) {    
+zxerr_t crypto_sign(const hd_path_t path, const uint16_t options, const uint8_t *message, uint16_t messageLen, uint8_t *buffer, uint16_t bufferSize,  uint16_t *sigSize) {    
     zemu_log_stack("crypto_sign");
 
-    cx_curve_t curve = get_cx_curve(path);
+    cx_curve_t curve = get_cx_curve(options);
     if (curve!=CX_CURVE_SECP256K1 && curve!=CX_CURVE_SECP256R1 ) {
         zemu_log_stack("crypto_sign: invalid_crypto_settings");
         return zxerr_invalid_crypto_settings;
     }
 
-    const digest_type_e cx_hash_kind = get_hash_type(path);
+    const digest_type_e cx_hash_kind = get_hash_type(options);
     
     uint8_t messageDigest[32];
     uint16_t messageDigestSize = 0;

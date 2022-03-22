@@ -80,7 +80,7 @@ zxerr_t slot_getItem(int8_t displayIdx,
                 case 2: {
                     char bufferUI[130];
                     snprintf(outKey, outKeyLen, "Path");
-                    bip32_to_str(bufferUI, sizeof(bufferUI), tmp_slot.path.data, HDPATH_LEN_DEFAULT);
+                    path_options_to_string(bufferUI, sizeof(bufferUI), tmp_slot.path.data, HDPATH_LEN_DEFAULT, tmp_slot.options);
                     pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
                     return zxerr_ok;
                 }
@@ -104,7 +104,7 @@ zxerr_t slot_getItem(int8_t displayIdx,
                 case 2: {
                     char bufferUI[130];
                     snprintf(outKey, outKeyLen, "Old Path");
-                    bip32_to_str(bufferUI, sizeof(bufferUI), oldSlot->path.data, HDPATH_LEN_DEFAULT);
+                    path_options_to_string(bufferUI, sizeof(bufferUI), oldSlot->path.data, HDPATH_LEN_DEFAULT, oldSlot->options);
                     pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
                     return zxerr_ok;
                 }
@@ -116,7 +116,7 @@ zxerr_t slot_getItem(int8_t displayIdx,
                 case 4: {
                     char bufferUI[130];
                     snprintf(outKey, outKeyLen, "New Path");
-                    bip32_to_str(bufferUI, sizeof(bufferUI), tmp_slot.path.data, HDPATH_LEN_DEFAULT);
+                    path_options_to_string(bufferUI, sizeof(bufferUI), tmp_slot.path.data, HDPATH_LEN_DEFAULT, tmp_slot.options);
                     pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
                     return zxerr_ok;
                 }
@@ -141,7 +141,7 @@ zxerr_t slot_getItem(int8_t displayIdx,
                 case 2: {
                     char bufferUI[130];
                     snprintf(outKey, outKeyLen, "Old Path");
-                    bip32_to_str(bufferUI, sizeof(bufferUI), oldSlot->path.data, HDPATH_LEN_DEFAULT);
+                    path_options_to_string(bufferUI, sizeof(bufferUI), oldSlot->path.data, HDPATH_LEN_DEFAULT, oldSlot->options);
                     pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
                     return zxerr_ok;
                 }
@@ -246,30 +246,37 @@ void loadAddressFromSlot(uint8_t hasHdPath) {
     zxerr_t err = slot_getSlot(MAIN_SLOT, (uint8_t *) &slot, sizeof(slot));
 
     if (!(err == zxerr_no_data  || err == zxerr_ok)) {
-        show_address = show_address_error;
+        show_address = SHOW_ADDRESS_ERROR;
         return;
     }
 
     //Case 1 Empty slot 0 
     if (err == zxerr_no_data) {
-        show_address = show_address_empty_slot;
+        show_address = SHOW_ADDRESS_EMPTY_SLOT;
     } 
     else {
-        //Case 2 Slot 0 derivation path is not the same as APDU derivation path
+        //Case 2 Slot 0 derivation path is not the same as APDU derivation path (including curve)
         STATIC_ASSERT(sizeof(slot.path.data) == sizeof(hdPath.data), "Incompatible derivation path types");
-        if (hasHdPath && memcmp(slot.path.data, hdPath.data, sizeof(hdPath.data))) {
-            show_address = show_address_hdpaths_not_equal;
+        if (hasHdPath && ( memcmp(slot.path.data, hdPath.data, sizeof(hdPath.data)) 
+                           || ((slot.options & 0xFF00) != (cryptoOptions & 0xFF00)))) { //curve portion of cryptoOptions
+            show_address = SHOW_ADDRESS_HDPATHS_NOT_EQUAL;
         }
         else {
             //Case 3 Everything is OK
             STATIC_ASSERT(sizeof(address_to_display.data) == sizeof(slot.account.data), "Incompatible address types");
             memcpy(address_to_display.data, slot.account.data, sizeof(address_to_display.data));
-            show_address = show_address_yes;
+            if (hasHdPath && ((slot.options & 0x00FF) != (cryptoOptions & 0x00FF))) {
+                show_address = SHOW_ADDRESS_YES_HASH_MISMATCH;
+            }
+            else {
+                show_address = SHOW_ADDRESS_YES;
+            }
 
             //load hdPath from slot if necessary
             if (!hasHdPath) {
                 STATIC_ASSERT(sizeof(hdPath.data) == sizeof(slot.path.data), "Incompatible derivation path types");
                 memcpy(hdPath.data, slot.path.data, sizeof(hdPath.data));
+                cryptoOptions = slot.options;
             }
         }
     }

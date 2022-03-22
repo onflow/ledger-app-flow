@@ -37,6 +37,8 @@ zxerr_t addr_getItem_internal(int8_t *displayIdx,
 
     #define SCREEN(condition) if ((condition) && ((*displayIdx)--==0) && pageCount && (*pageCount = 1))
 
+    uint8_t show_address_yes = (show_address == SHOW_ADDRESS_YES || show_address == SHOW_ADDRESS_YES_HASH_MISMATCH);
+
     SCREEN(hasPubkey) {
         snprintf(outKey, outKeyLen, "Pub Key");
         // +1 is to skip 0x04 prefix that indicates uncompresed key 
@@ -45,7 +47,7 @@ zxerr_t addr_getItem_internal(int8_t *displayIdx,
     }
 
     //this indicates error in pubkey derivation (possible only when in menu_handler - in apdu_handler we throw)
-    SCREEN(!hasPubkey && (show_address == show_address_yes)) {
+    SCREEN(!hasPubkey && show_address_yes) {
         snprintf(outKey, outKeyLen, "Error");
         pageString(outVal, outValLen, " deriving public  key.", pageIdx, pageCount);
         return zxerr_ok;
@@ -53,19 +55,20 @@ zxerr_t addr_getItem_internal(int8_t *displayIdx,
 
     SCREEN(true) {
         switch(show_address) {
-            case show_address_error:
+            case SHOW_ADDRESS_ERROR:
                 snprintf(outKey, outKeyLen, "Error reading");
                 pageString(outVal, outValLen, "account data.", pageIdx, pageCount);
                 return zxerr_ok;
-            case show_address_empty_slot:
+            case SHOW_ADDRESS_EMPTY_SLOT:
                 snprintf(outKey, outKeyLen, "Account data");
                 pageString(outVal, outValLen, "not saved on the device.", pageIdx, pageCount);
                 return zxerr_ok;
-            case show_address_hdpaths_not_equal:
+            case SHOW_ADDRESS_HDPATHS_NOT_EQUAL:
                 snprintf(outKey, outKeyLen, "Address:");
                 pageString(outVal, outValLen, "Other path is saved on the device.", pageIdx, pageCount);
                 return zxerr_ok;
-            case show_address_yes:
+            case SHOW_ADDRESS_YES:
+            case SHOW_ADDRESS_YES_HASH_MISMATCH:
                 snprintf(outKey, outKeyLen, "Address:");
                 pageHexString(outVal, outValLen, address_to_display.data, sizeof(address_to_display.data), pageIdx, pageCount);
                 return zxerr_ok;
@@ -74,13 +77,13 @@ zxerr_t addr_getItem_internal(int8_t *displayIdx,
         }
     }
 
-    SCREEN(show_address == show_address_yes) {
+    SCREEN(show_address_yes) {
         snprintf(outKey, outKeyLen, "Verify if this");
         snprintf(outVal, outValLen, " public key was   added to");
         return zxerr_ok;
     }
 
-    SCREEN(show_address == show_address_yes) {
+    SCREEN(show_address_yes) {
         array_to_hexstr(outKey, outKeyLen, address_to_display.data, sizeof(address_to_display.data)); 
         #if defined(TARGET_NANOX)
             snprintf(outVal, outValLen, " using any Flow blockchain explorer.");
@@ -92,8 +95,8 @@ zxerr_t addr_getItem_internal(int8_t *displayIdx,
 
     SCREEN(app_mode_expert() && hasPubkey) {
         snprintf(outKey, outKeyLen, "Your Path");
-        char buffer[300];
-        bip32_to_str(buffer, sizeof(buffer), hdPath.data, HDPATH_LEN_DEFAULT);
+        char buffer[100];
+        path_options_to_string(buffer, sizeof(buffer), hdPath.data, HDPATH_LEN_DEFAULT, cryptoOptions & 0xFF00); //show curve only
         pageString(outVal, outValLen, buffer, pageIdx, pageCount);
         return zxerr_ok;
     }

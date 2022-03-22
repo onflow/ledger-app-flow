@@ -35,15 +35,15 @@
 
 __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     hasPubkey = false;
-    show_address = show_address_none;
+    show_address = SHOW_ADDRESS_NONE;
 
     //extract hdPath to hdPath global variable
-    extractHDPath(rx, OFFSET_DATA);
+    extractHDPathAndCryptoOptions(rx, OFFSET_DATA);
     uint8_t requireConfirmation = G_io_apdu_buffer[OFFSET_P1];
 
     //extract pubkey to pubkey_to_display global variable
     MEMZERO(pubkey_to_display, sizeof(pubkey_to_display));
-    zxerr_t err = crypto_extractPublicKey(hdPath, pubkey_to_display, sizeof(pubkey_to_display));
+    zxerr_t err = crypto_extractPublicKey(hdPath, cryptoOptions, pubkey_to_display, sizeof(pubkey_to_display));
     if (err !=  zxerr_ok) {
         zemu_log_stack("Public key extraction erorr");
         THROW(APDU_CODE_UNKNOWN);
@@ -64,7 +64,7 @@ __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx,
 
     if (requireConfirmation) {
         loadAddressCompareHdPathFromSlot();
-        if (show_address == show_address_error || show_address == show_address_none) {
+        if (show_address == SHOW_ADDRESS_ERROR || show_address == SHOW_ADDRESS_NONE) {
             zemu_log_stack("Unknown slot error");
             THROW(APDU_CODE_UNKNOWN);           
         }
@@ -94,11 +94,11 @@ __Z_INLINE void handleSign(volatile uint32_t *flags, volatile uint32_t *tx, uint
         THROW(APDU_CODE_DATA_INVALID);
     }
 
-    show_address = show_address_none;
+    show_address = SHOW_ADDRESS_NONE;
     loadAddressCompareHdPathFromSlot();    
 
     //if we found matching hdPath on slot 0
-    if (show_address == show_address_yes) {
+    if (show_address == SHOW_ADDRESS_YES || show_address == SHOW_ADDRESS_YES_HASH_MISMATCH) {
         checkAddressUsedInTx();
     }
     else {
@@ -152,7 +152,7 @@ __Z_INLINE void handleGetSlot(__Z_UNUSED volatile uint32_t *flags, volatile uint
 }
 
 __Z_INLINE void handleSetSlot(volatile uint32_t *flags, __Z_UNUSED volatile uint32_t *tx, uint32_t rx) {
-    if (rx != 5 + 1 + 8 + 20) {
+    if (rx != 5 + 1 + 8 + 20 + 2) {
         THROW(APDU_CODE_DATA_INVALID);
     }
 

@@ -23,6 +23,7 @@
 #include "coin.h"
 #include "zxformat.h"
 #include "hdpath.h"
+#include "app_mode.h"
 
 #if defined(TARGET_NANOX)
 // For some reason NanoX requires this function
@@ -493,32 +494,55 @@ parser_error_t parser_getItemAfterArguments(__Z_UNUSED const parser_context_t *c
         return parser_printAuthorizer(&parser_tx_obj.authorizers.authorizer[displayIdx], outVal, outValLen, pageIdx,
                                       pageCount);
     }
-
     displayIdx -= parser_tx_obj.authorizers.authorizer_count;
+
+    if (app_mode_expert() && displayIdx-- == 0) {
+        snprintf(outKey, outKeyLen, "Your Path");
+        char buffer[100];
+        path_options_to_string(buffer, sizeof(buffer), hdPath.data, HDPATH_LEN_DEFAULT, cryptoOptions); 
+        pageString(outVal, outValLen, buffer, pageIdx, pageCount);
+        return PARSER_OK;
+    }
+
     switch(show_address) {
-        case show_address_yes:
-            if (addressUsedInTx) {
-                break;
-            }
-            else {
+        case SHOW_ADDRESS_YES:
+        case SHOW_ADDRESS_YES_HASH_MISMATCH:
+            if (!addressUsedInTx && displayIdx-- == 0) {
                 snprintf(outKey, outKeyLen, "Warning:");
                 snprintf(outVal, outValLen, "Incorrect address in transaction.");
                 return PARSER_OK;
             }
-        case show_address_empty_slot:
+            if (show_address == SHOW_ADDRESS_YES_HASH_MISMATCH && displayIdx-- == 0) {
+                snprintf(outKey, outKeyLen, "Warning:");
+                #if defined(TARGET_NANOX)
+                pageString(outVal, outValLen, "Specified hash algorithm does not match stored value.", pageIdx, pageCount);
+                #else
+                pageString(outVal, outValLen, " Specified hash   algorithm does  not match stored value.", pageIdx, pageCount);
+                #endif
+                return PARSER_OK;
+            }
+            break;
+        case SHOW_ADDRESS_EMPTY_SLOT:
+            if (displayIdx-- == 0) {
                 snprintf(outKey, outKeyLen, "Warning:");
                 snprintf(outVal, outValLen, "No address stored on the device.");
                 return PARSER_OK;
-        case show_address_hdpaths_not_equal:
+            }
+            break; 
+        case SHOW_ADDRESS_HDPATHS_NOT_EQUAL:
+            if (displayIdx-- == 0) {
                 snprintf(outKey, outKeyLen, "Warning:");
                 snprintf(outVal, outValLen, "Different address stored on device.");
                 return PARSER_OK;
+            }
+            break; 
         default:
+            if (displayIdx-- == 0) {
                 snprintf(outKey, outKeyLen, "Warning:");
                 snprintf(outVal, outValLen, "Slot error.");
                 return PARSER_OK;
+            }
     }
-
     return PARSER_DISPLAY_IDX_OUT_OF_RANGE;
 }
 

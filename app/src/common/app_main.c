@@ -91,8 +91,8 @@ unsigned short io_exchange_al(unsigned char channel, unsigned short tx_len) {
     return 0;
 }
 
-void extractHDPath(uint32_t rx, uint32_t offset) {
-    if ((rx - offset) < sizeof(hdPath.data)) {
+void extractHDPathAndCryptoOptions(uint32_t rx, uint32_t offset) {
+    if ((rx - offset) < sizeof(hdPath.data) + sizeof(cryptoOptions)) {
         THROW(APDU_CODE_WRONG_LENGTH);
     }
 
@@ -107,6 +107,8 @@ void extractHDPath(uint32_t rx, uint32_t offset) {
     if (!mainnet && !testnet) {
         THROW(APDU_CODE_DATA_INVALID);
     }
+
+    MEMCPY(&cryptoOptions, G_io_apdu_buffer + offset + sizeof(hdPath.data), sizeof(cryptoOptions));
 }
 
 bool process_chunk(__Z_UNUSED volatile uint32_t *tx, uint32_t rx) {
@@ -125,7 +127,7 @@ bool process_chunk(__Z_UNUSED volatile uint32_t *tx, uint32_t rx) {
         case 0:
             tx_initialize();
             tx_reset();
-            extractHDPath(rx, OFFSET_DATA);
+            extractHDPathAndCryptoOptions(rx, OFFSET_DATA);
             return false;
         case 1:
             added = tx_append(&(G_io_apdu_buffer[OFFSET_DATA]), rx - OFFSET_DATA);

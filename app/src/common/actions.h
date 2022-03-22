@@ -30,7 +30,7 @@ __Z_INLINE void app_sign() {
     const uint16_t messageLength = get_signable_length();
 
     uint16_t replyLen = 0;
-    zxerr_t err = crypto_sign(hdPath, message, messageLength, G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 3, &replyLen);
+    zxerr_t err = crypto_sign(hdPath, cryptoOptions, message, messageLength, G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 3, &replyLen);
 
     if (err != zxerr_ok || replyLen == 0) {
         set_code(G_io_apdu_buffer, 0, APDU_CODE_SIGN_VERIFY_ERROR);

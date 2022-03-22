@@ -2,7 +2,11 @@ import {CLA, errorCodeToString, INS, PAYLOAD_TYPE, processErrorResponse} from ".
 
 const HARDENED = 0x80000000;
 
-export function serializePathv1(path) {
+//version 0
+//we serialize just 20 bytes of hdpath
+//version 1
+//we serialize two additional bytes from curveHashOption
+export function serializePathv1(path, version, curveHashOption) {
   if (typeof path !== "string") {
     throw new Error("Path should be a string (e.g \"m/44'/1'/5'/0/3\")");
   }
@@ -17,7 +21,10 @@ export function serializePathv1(path) {
     throw new Error("Invalid path. (e.g \"m/44'/1'/5'/0/3\")");
   }
 
-  const buf = Buffer.alloc(20);
+  const buf = (version === 0) ? Buffer.alloc(20): Buffer.alloc(22);
+  if (version > 0) {
+    buf.writeUInt16LE(curveHashOption, 20);
+  }
 
   for (let i = 1; i < pathArray.length; i += 1) {
     let value = 0;
@@ -58,7 +65,6 @@ export function printBIP44Path(pathBytes) {
   let pathValues = [0, 0, 0, 0, 0];
   for (let i = 0; i < 5; i += 1) {
     pathValues[i] = pathBytes.readUInt32LE(4 * i);
-    console.log(pathValues[i]);
   }
 
   return `m/${
@@ -107,4 +113,10 @@ export async function signSendChunkv1(app, chunkIdx, chunkNum, chunk) {
         errorMessage: errorMessage,
       };
     }, processErrorResponse);
+}
+
+export function validateCryptoOptions(cryptoOptions) {
+  if (typeof cryptoOptions !== "number" || !Number.isInteger(cryptoOptions) || cryptoOptions<0 || cryptoOptions>=65536) {
+    throw new Error("CryptoOptions should be an integer that fits into 16bits.");
+  }
 }

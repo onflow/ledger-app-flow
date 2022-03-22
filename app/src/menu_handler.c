@@ -14,14 +14,14 @@ __Z_INLINE void menuaddr_return() {
 
 void handleMenuShowAddress() {
     hasPubkey = false;
-    show_address = show_address_none;
+    show_address = SHOW_ADDRESS_NONE;
 
     loadHdPathAndAddressFromSlot();
 
-    if (show_address == show_address_yes) {
+    if (show_address == SHOW_ADDRESS_YES) {
         //extract pubkey to pubkey_to_display global variable
         MEMZERO(pubkey_to_display, sizeof(pubkey_to_display));
-        zxerr_t err = crypto_extractPublicKey(hdPath, pubkey_to_display, sizeof(pubkey_to_display));
+        zxerr_t err = crypto_extractPublicKey(hdPath, cryptoOptions, pubkey_to_display, sizeof(pubkey_to_display));
         if (err ==  zxerr_ok) {
             hasPubkey = true;
         }

@@ -45,7 +45,7 @@ void check_testcase(const testcase_t &testcase) {
 
     app_mode_set_expert(tc.expert);
 
-    show_address = show_address_empty_slot;
+    show_address = SHOW_ADDRESS_EMPTY_SLOT;
     
 
 
