@@ -72,15 +72,17 @@ export default class FlowApp {
     this.transport = transport;
   }
 
-  static prepareChunks(serializedPathBuffer, message) {
+  static prepareChunks(serializedPathBuffer, message, sigalgo, hashalgo) {
     const chunks = [];
 
-    // First chunk (only path)
-    chunks.push(serializedPathBuffer);
+    const pathAndCryptoOpts = Buffer.concat([ serializedPathBuffer, Buffer.from([hashalgo, sigalgo]) ])
 
-    const messageBuffer = Buffer.from(message);
+    // First chunk (only path + crypto opts)
+    chunks.push(pathAndCryptoOpts);
 
-    const buffer = Buffer.concat([messageBuffer]);
+    const messageBuffer = Buffer.from(message)
+
+    const buffer = Buffer.concat([messageBuffer])
     for (let i = 0; i < buffer.length; i += CHUNK_SIZE) {
       let end = i + CHUNK_SIZE;
       if (i > buffer.length) {
@@ -92,8 +94,8 @@ export default class FlowApp {
     return chunks;
   }
 
-  async signGetChunks(path, message) {
-    return FlowApp.prepareChunks(serializePathv1(path), message);
+  async signGetChunks(path, message, sigalgo, hashalgo) {
+    return FlowApp.prepareChunks(serializePathv1(path), message, sigalgo, hashalgo);
   }
 
   async getVersion() {
@@ -158,8 +160,7 @@ export default class FlowApp {
     const serializedPathBuffer = serializePathv1(path);
     console.log(serializedPathBuffer);
 
-    const sigHashBuffer = Buffer.from([sigalgo, hashalgo])
-    const data = serializedPathBuffer.concat(sigHashBuffer)
+    const data = Buffer.concat([ serializedPathBuffer, Buffer.from([hashalgo, sigalgo]) ])
 
     return this.transport
       .send(CLA, INS.GET_PUBKEY, P1_VALUES.ONLY_RETRIEVE, 0, data, [0x9000])
@@ -170,8 +171,7 @@ export default class FlowApp {
     const serializedPathBuffer = serializePathv1(path);
     console.log(serializedPathBuffer);
 
-    const sigHashBuffer = Buffer.from([sigalgo, hashalgo])
-    const data = serializedPathBuffer.concat(sigHashBuffer)
+    const data = Buffer.concat([ serializedPathBuffer, Buffer.from([hashalgo, sigalgo]) ])
 
     return this.transport
       .send(CLA, INS.GET_PUBKEY, P1_VALUES.SHOW_ADDRESS_IN_DEVICE, 0, data, [0x9000])
@@ -182,8 +182,8 @@ export default class FlowApp {
     return signSendChunkv1(this, chunkIdx, chunkNum, chunk);
   }
 
-  async sign(path, message) {
-    return this.signGetChunks(path, message).then((chunks) => {
+  async sign(path, message, sigalgo, hashalgo) {
+    return this.signGetChunks(path, message, sigalgo, hashalgo).then((chunks) => {
       return this.signSendChunk(1, chunks.length, chunks[0]).then(async (response) => {
         let result = {
           returnCode: response.returnCode,
