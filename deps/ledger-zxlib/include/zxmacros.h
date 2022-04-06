@@ -45,13 +45,13 @@ void handle_stack_overflow();
 
 #define NV_ALIGN __attribute__ ((aligned(64)))
 
-#if defined (TARGET_NANOS) || defined(TARGET_NANOX)
+#if defined (TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 
 #include "bolos_target.h"
 #include "os.h"
 #include "cx.h"
 
-#if defined(TARGET_NANOX)
+#if defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 #include "ux.h"
 #define NV_CONST const
 #define NV_VOLATILE volatile
@@ -134,7 +134,7 @@ void zemu_log_stack(char *ctx);
 __Z_INLINE void zemu_log(char *buf)
 {
 #if defined(ZEMU_LOGGING)
-    #if defined (TARGET_NANOS) || defined(TARGET_NANOX)
+    #if defined (TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2)
     asm volatile (
     "movs r0, #0x04\n"
     "movs r1, %0\n"

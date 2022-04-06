@@ -39,7 +39,7 @@ size_t asciify_ext(const char *utf8_in, char *ascii_only_out) {
 
 void handle_stack_overflow() {
     zemu_log("!!!!!!!!!!!!!!!!!!!!!! CANARY TRIGGERED!!! STACK OVERFLOW DETECTED\n");
-#if defined (TARGET_NANOS) || defined(TARGET_NANOX)
+#if defined (TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2)
     io_seproxyhal_se_reset();
 #else
     while (1);
@@ -47,14 +47,14 @@ void handle_stack_overflow() {
 }
 
 void check_app_canary() {
-#if defined (TARGET_NANOS) || defined(TARGET_NANOX)
+#if defined (TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2)
     if (app_stack_canary != APP_STACK_CANARY_MAGIC) handle_stack_overflow();
 #endif
 }
 
 void zemu_log_stack(char *ctx) {
 #if defined(ZEMU_LOGGING)
-#if defined (TARGET_NANOS) || defined(TARGET_NANOX)
+#if defined (TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 #define STACK_SHIFT 20
     void* p = NULL;
     char buf[70];

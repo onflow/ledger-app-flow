@@ -27,7 +27,7 @@ zbuffer_t zbuffer_internal;
 #define CANARY_EXPECTED 0x987def82u
 
 zbuffer_error_e zb_get(uint8_t **buffer) {
-#if defined (TARGET_NANOS) || defined(TARGET_NANOX)
+#if defined (TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2)
     *buffer = NULL;
     if (zbuffer_internal.size == 0 || zbuffer_internal.ptr == NULL) {
         return zb_not_allocated;
@@ -38,7 +38,7 @@ zbuffer_error_e zb_get(uint8_t **buffer) {
 }
 
 zbuffer_error_e zb_init() {
-#if defined (TARGET_NANOS) || defined(TARGET_NANOX)
+#if defined (TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2)
     zbuffer_internal.size = 0;
     zbuffer_internal.ptr = NULL;
 #endif
@@ -46,7 +46,7 @@ zbuffer_error_e zb_init() {
 }
 
 zbuffer_error_e zb_allocate(uint16_t size) {
-#if defined (TARGET_NANOS) || defined(TARGET_NANOX)
+#if defined (TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2)
     if (size % 4 != 0) {
         size += size % 4;
     }
@@ -60,7 +60,7 @@ zbuffer_error_e zb_allocate(uint16_t size) {
 }
 
 zbuffer_error_e zb_deallocate() {
-#if defined (TARGET_NANOS) || defined(TARGET_NANOX)
+#if defined (TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2)
     if (zbuffer_internal.size == 0) {
         return zb_not_allocated;
     }
@@ -74,7 +74,7 @@ zbuffer_error_e zb_deallocate() {
 }
 
 zbuffer_error_e zb_check_canary() {
-#if defined (TARGET_NANOS) || defined(TARGET_NANOX)
+#if defined (TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2)
     CHECK_APP_CANARY();
     if (zbuffer_internal.size != 0) {
         // allocated
