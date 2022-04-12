@@ -27,12 +27,12 @@ DOCKER_APP_SRC=/project
 DOCKER_APP_SRC_NEW=/app
 DOCKER_APP_BIN=$(DOCKER_APP_SRC)/app/bin/app.elf
 
-SPECULOS_SDK=2.0
 SPECULOS_MODEL_SWITCH=nanos
 NANO_ICON_GIF=nanos_icon.gif
 BOLOS_SDK_DIRECTORY=/opt/nanos-secure-sdk
 TARGET_NAME=TARGET_NANOS
 TEST_DEVICE=nanos
+SPECULOS_SDK=2.1
 ifeq ($(TARGET_DEVICE), NANO_X)
     $(info Targeting NanoX)
     SPECULOS_MODEL_SWITCH=nanox
@@ -40,6 +40,7 @@ ifeq ($(TARGET_DEVICE), NANO_X)
     BOLOS_SDK_DIRECTORY=/opt/nanox-secure-sdk
     TARGET_NAME=TARGET_NANOX
     TEST_DEVICE=nanox
+    SPECULOS_SDK=2.0.2
 endif
 
 
@@ -118,8 +119,8 @@ convert_icon:
 .PHONY: pull_build_container
 pull_build_container:
 	docker version
-	docker pull ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:sha-74e395d
-	docker image tag ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:sha-74e395d ledger-app-builder
+	docker pull ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:sha-229b03c
+	docker image tag ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:sha-229b03c ledger-app-builder
 
 .PHONY: build
 build: pull_build_container
