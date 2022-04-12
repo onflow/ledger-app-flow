@@ -76,9 +76,6 @@ endif
 define run_docker
 	@echo "docker host: id -u: `id -u`"
 	@echo "docker host: whoami: `whoami`"
-	docker version
-	echo "TODO: this is all cached and fast on a local box, but takes over 4 minutes on CircleCI :-("
-	docker build -t ledger-app-builder:latest $(CURDIR)/deps/ledger-app-builder
 	docker run $(TTY_SETTING) $(INTERACTIVE_SETTING) $(MAKE_LINUX_DOCKER_OPTIONS) --rm \
 	-e SCP_PRIVKEY=$(SCP_PRIVKEY) \
 	-e BOLOS_ENV_IGNORE=/opt/bolos \
@@ -90,7 +87,7 @@ define run_docker
 	-v $(shell pwd)/app:/app \
 	-v $(shell pwd)/deps:/deps \
 	$(1) \
-	ledger-app-builder:latest \
+	ledger-app-builder \
 	$(2)
 endef
 
@@ -118,27 +115,29 @@ convert_icon:
 	@convert $(LEDGER_SRC)/tmp.gif -monochrome -size 16x16 -depth 1 $(LEDGER_SRC)/nanos_icon.gif
 	@convert $(LEDGER_SRC)/nanos_icon.gif -crop 14x14+1+1 +repage -negate $(LEDGER_SRC)/nanox_icon.gif
 
-.PHONY: build_build_container
-build_build_container:
-	docker build -t ledger-app-builder:latest $(CURDIR)/deps/ledger-app-builder
+.PHONY: pull_build_container
+pull_build_container:
+	docker version
+	docker pull ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:sha-74e395d
+	docker image tag ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:sha-74e395d ledger-app-builder
 
 .PHONY: build
-build:
+build: pull_build_container
 	$(info Replacing app icon)
 	@cp $(LEDGER_SRC)/$(NANO_ICON_GIF) $(LEDGER_SRC)/glyphs/icon_app.gif
 	$(info calling make inside docker)
 	$(call run_docker, , make -j `nproc`)
 
 .PHONY: clean
-clean:
+clean: pull_build_container
 	$(call run_docker, ,make clean)
 
 .PHONY: listvariants
-listvariants:
+listvariants: pull_build_container
 	$(call run_docker, ,make listvariants)
 
 .PHONY: shell
-shell:
+shell: pull_build_container
 	$(call run_docker, -ti, bash)
 
 .PHONY: load
