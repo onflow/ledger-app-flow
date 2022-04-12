@@ -239,12 +239,14 @@ speculos_install_js_link:
 	@echo
 endif
 
+.PHONY: speculos_pull_container
+speculos_pull_container:
+	docker pull ghcr.io/ledgerhq/speculos:sha-5a8e49b
+	docker image tag ghcr.io/ledgerhq/speculos:sha-5a8e49b speculos
+
 .PHONY: speculos_install
-speculos_install: speculos_install_js_link
+speculos_install: speculos_install_js_link speculos_pull_container
 	$(call run_announce,$@)
-	# pull speculos container
-	docker pull ghcr.io/ledgerhq/speculos
-	docker image tag ghcr.io/ledgerhq/speculos speculos
 	# check for nvm, node, npm, and yarn
 	@. $(MAKE_NVM_SH_PATH)/.nvm/nvm.sh ; nvm --version 2>&1 | perl -lane '$$nvm=$$_; chomp $$nvm; printf qq[# nvm --version: %s\n], $$nvm; if($$nvm!~m~^\d+\.\d+\.\d+$$~){ die qq[ERROR: nvm not installed? Please install, e.g. MacOS/Ubuntu: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash ; export NVM_DIR="$$HOME/.nvm" ; [ -s "$$NVM_DIR/nvm.sh" ] && \. "$$NVM_DIR/nvm.sh" ; [ -s "$$NVM_DIR/bash_completion" ] && \. "$$NVM_DIR/bash_completion" # see https://github.com/nvm-sh/nvm#installing-and-updating\n]; }'
 	@node --version 2>&1 | perl -lane '$$node=$$_; chomp $$node; printf qq[# node --version: %s\n], $$node; if($$node!~m~^v16\.10\.0$$~){ die qq[ERROR: desired node version not installed? Please install, e.g. MacOS/Ubuntu: nvm install 16.10.0 ; nvm use 16.10.0]; }'
@@ -255,21 +257,21 @@ speculos_install: speculos_install_js_link
 	@cd $(TESTS_SPECULOS_DIR) && yarn install
 
 .PHONY: speculos_port_5001_start
-speculos_port_5001_start:
+speculos_port_5001_start: speculos_pull_container
 	$(call run_announce,$@)
 	$(call start_speculos_container,5001,40001,41001,/app/bin)
 
-.PHONY: speculos_port_5002_start
-speculos_port_5002_start:
+.PHONY: speculos_port_5002_start 
+speculos_port_5002_start: speculos_pull_container
 	$(call run_announce,$@)
 	$(call start_speculos_container,5002,40002,41002,/app/bin)
 
-.PHONY: speculos_port_5003_start
-speculos_port_5003_start:
+.PHONY: speculos_port_5003_start 
+speculos_port_5003_start: speculos_pull_container
 	$(call run_announce,$@)
 	$(call start_speculos_container,5003,40003,41003,/tests_speculos/backward_compatibility_test_biniaries/0-9-12/)
 
-.PHONY: speculos_port_5001_stop
+.PHONY: speculos_port_5001_stop 
 speculos_port_5001_stop:
 	$(call run_announce,$@)
 	$(call stop_speculos_container,5001)
