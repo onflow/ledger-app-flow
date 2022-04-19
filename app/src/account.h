@@ -25,7 +25,7 @@ extern "C" {
 
 #define SLOT_COUNT              64
 
-typedef struct __attribute__((__packed__)) {
+typedef struct {
     flow_account_t account;
     hd_path_t path;
     uint16_t options;
@@ -47,9 +47,11 @@ zxerr_t slot_getItem(int8_t displayIdx,
 
 zxerr_t slot_status(uint8_t *out, uint16_t outLen);
 
-zxerr_t slot_getSlot(uint8_t slotIndex, uint8_t *out, uint16_t outLen);
+zxerr_t slot_getSlot(uint8_t slotIndex, account_slot_t *out);
 
 zxerr_t slot_parseSlot(uint8_t *buffer, uint16_t bufferLen);
+
+zxerr_t slot_serializeSlot(const account_slot_t *slot, uint8_t *buffer, uint16_t *bufferLen);
 
 void app_slot_setSlot();
 
