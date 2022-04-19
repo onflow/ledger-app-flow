@@ -2,7 +2,7 @@
 
 import { testStart, testStep, testEnd, compareInAPDU, compareOutAPDU, compareGetVersionAPDUs, noMoreAPDUs, getScriptName, getSpeculosDefaultConf } from "./speculos-common.js";
 import { getSpyTransport } from "./speculos-transport.js";
-import { ButtonsAndSnapshots } from "./speculos-buttons-and-snapshots.js";
+import { getButtonsAndSnapshots } from "./speculos-buttons-and-snapshots.js";
 import { transactionTest } from "./speculos-transaction.js";
 import { default as OnflowLedgerMod } from "@onflow/ledger";
 import { fileURLToPath } from 'url';
@@ -17,7 +17,7 @@ const speculosConf = getSpeculosDefaultConf();
 const transport = await getSpyTransport(speculosConf);
 const FlowApp = OnflowLedgerMod.default;
 const app = new FlowApp(transport);
-const device = new ButtonsAndSnapshots(scriptName, speculosConf);
+const device = getButtonsAndSnapshots(scriptName, speculosConf);
 
 let hexExpected = "";
 
@@ -106,7 +106,7 @@ const expectedAccount = "e467b9dd11fa00df";
 const expectedPath = `m/44'/539'/513'/0/0`;
 testStep(" - - -", "app.setSlot()");
 const setSlotPromise1 = app.setSlot(10, expectedAccount, expectedPath, 0);
-device.review("Set slot 10");
+await device.review("Set slot 10");
 const setSlotResponse1 = await setSlotPromise1;
 
 assert.equal(setSlotResponse1.returnCode, 0x9000);
@@ -137,3 +137,4 @@ noMoreAPDUs(transport);
 
 await transport.close()
 testEnd(scriptName);
+process.stdin.pause()

@@ -370,6 +370,25 @@ cpp_test:
 	mkdir -p build && cd build && cmake -DCMAKE_BUILD_TYPE=Debug .. && make
 	cd build && GTEST_COLOR=1 ASAN_OPTIONS=detect_leaks=0 ctest -VV
 
+########################## Ledger Test ###############################
+
+.PHONY: ledger_test
+ledger_test:
+	$(call run_announce,$@)
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-app-version.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-slot-status-bad-net.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-slot-status-full.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-sign-basic-invalid.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-get-address.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-show-address-secp256k1.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-show-address-secp256r1.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-show-address-expert.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-menu.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-slot-transaction-interaction.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-transaction-expert-mode.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-transactions.js
+	@echo "# ALL TESTS COMPLETED!"
+
 ########################## FUZZING Section ###############################
 
 .PHONY: fuzz_build

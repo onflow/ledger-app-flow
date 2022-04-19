@@ -200,17 +200,19 @@ Many of our integration tests expect the device to be configured with a known te
 
 - Run `make dev_ca`. The device will receive a development certificate to avoid constant manual confirmations.
 
-## Using a real device for a single test
+**4 - Load the app**
 
-- Use `make clean`, `make`, and `make load` to load the app to the ledger device.
-- Make adjustments in `js/test/transactions.spec.js` if needed
-- Run `yarn test` in the `js` folder. 
+- see below
+
+**5 - Run the tests**
+
+- Run `make ledger_test` and follow the instructions. You might want to comment out some tests.
 
 ### Loading the app
 
 The Makefile will build the firmware in a docker container and leave the binary in the correct directory.
 
-- Build
+- Build (you might need to `make clean first')
 
   ```
   make                # Builds the app

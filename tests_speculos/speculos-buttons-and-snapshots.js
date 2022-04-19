@@ -1,6 +1,5 @@
 import { syncBackTicks, sleep, humanTime } from "./speculos-common.js"
 
-
 const flowReadySHANanoS = "sha256:f3916e7cbbf8502b3eedbdf40cc6d6063b90f0e4a4814e34f2e7029bdaa4eaac";
 const flowReadySHANanoX = "sha256:186628eff908796f25c78a0f6ec6ec7ceef5ae6c92e9d240e8196bf34dec7688";
 
@@ -187,7 +186,43 @@ class ButtonsAndSnapshots {
         await this.curlButtonAndScreenshot("both", "Approve: "+textWhat);
         console.log(humanTime() + " back to main screen");
     }
-
 }
 
-export {ButtonsAndSnapshots};
+class LedgerButtonsAndSnapshots {
+	constructor () {
+	    this.wait = async (msg) => {
+			await sleep(200);
+			console.log(msg)
+
+			process.stdin.setRawMode(true)
+			return new Promise(resolve => process.stdin.once('data', (d) => {
+    			process.stdin.setRawMode(false)
+				resolve()
+			}))
+//  		    await sleep(5000);
+		};
+	}
+	curlButton(which, hint) {}
+	async curlButtonAndScreenshot(which, hint) {}
+	async curlScreenShot(lastButton = "") {}
+    async makeStartingScreenshot() {}
+
+	async review(textWhat) {
+		await this.wait("Please, review the transaction on the device.")
+	}
+    async toggleExpertMode(textWhat) { 
+		await this.wait("Please, toggle expert mode ("+textWhat+")")
+	}
+    async enterMenuElementAndReview(menuElementIndex, textWhat) {
+		await this.wait("Please, go to menu element "+menuElementIndex+" ("+textWhat+") and review the screens.")
+	}
+}
+
+function getButtonsAndSnapshots(scriptName, conf) {
+	if (conf.testOn === "ledger") {
+		return new LedgerButtonsAndSnapshots()
+	}
+	return new ButtonsAndSnapshots(scriptName, conf)
+}
+
+export {getButtonsAndSnapshots};

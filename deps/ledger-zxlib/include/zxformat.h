@@ -73,7 +73,6 @@ __Z_INLINE uint32_t bip32_to_str(char *s, uint32_t max, const uint32_t *path, ui
         size_t written;
 
         // Warning: overcomplicated because Ledger's snprintf does not return number of written bytes
-
         snprintf(s + offset, max - offset, "%d", path[i] & 0x7FFFFFFFu);
         written = strlen(s + offset);
         if (written == 0 || written >= max - offset) {
@@ -101,6 +100,7 @@ __Z_INLINE uint32_t bip32_to_str(char *s, uint32_t max, const uint32_t *path, ui
             }
             offset += written;
         }
+
     }
 
     return offset;

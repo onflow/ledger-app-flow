@@ -2,7 +2,7 @@
 
 import { testStart, testStep, testEnd, compareInAPDU, compareOutAPDU, noMoreAPDUs, compareGetVersionAPDUs, getScriptName, getSpeculosDefaultConf } from "./speculos-common.js";
 import { getSpyTransport } from "./speculos-transport.js";
-import { ButtonsAndSnapshots } from "./speculos-buttons-and-snapshots.js";
+import { getButtonsAndSnapshots } from "./speculos-buttons-and-snapshots.js";
 import { default as OnflowLedgerMod } from "@onflow/ledger";
 import { fileURLToPath } from 'url';
 import assert from 'assert/strict';
@@ -14,7 +14,7 @@ const speculosConf = getSpeculosDefaultConf();
 const transport = await getSpyTransport(speculosConf);
 const FlowApp = OnflowLedgerMod.default;
 const app = new FlowApp(transport);
-const device = new ButtonsAndSnapshots(scriptName, speculosConf);
+const device = getButtonsAndSnapshots(scriptName, speculosConf);
 let hexExpected = "";
 
 await device.makeStartingScreenshot();
@@ -44,7 +44,7 @@ const expectedPath = `m/44'/539'/${0x201}'/0/0`;
 
 testStep(" - - -", "app.setSlot() // expectedSlot=" + expectedSlot + " expectedAccount=" + expectedAccount + " expectedPath=" + expectedPath + "; Set slot 10");
 const setSlotPromise = app.setSlot(expectedSlot, expectedAccount, expectedPath, options);
-device.review("Set slot 10");
+await device.review("Set slot 10");
 const setSlotResponse = await setSlotPromise
 
 assert.equal(setSlotResponse.returnCode, 0x9000);
@@ -108,7 +108,7 @@ const options2 = FlowApp.Signature.P256 | FlowApp.Hash.SHA3_256;
 
 testStep(" - - -", "app.setSlot() // expectedSlot=" + expectedSlot + " expectedAccount2=" + expectedAccount2 + " expectedPath2=" + expectedPath2 + "; Set slot 10");
 const setSlotPromise2 = app.setSlot(expectedSlot, expectedAccount2, expectedPath2, options2);
-device.review("Update slot 10");
+await device.review("Update slot 10");
 const setSlotResponse2 = await setSlotPromise2;
 
 assert.equal(setSlotResponse2.returnCode, 0x9000);
@@ -157,7 +157,7 @@ const expectedPathDelete = `m/0/0/0/0/0`;
 
 testStep(" - - -", "app.setSlot() // expectedSlot=" + expectedSlot + " expectedAccountDelete=" + expectedAccountDelete + " expectedPathDelete=" + expectedPathDelete + "; Delete slot 10");
 const setSlotPromise3 = app.setSlot(10, expectedAccountDelete, expectedPathDelete, 0);
-device.review("Set slot 10");
+await device.review("Set slot 10");
 const setSlotResponse3 = await setSlotPromise3;
 
 assert.equal(setSlotResponse3.returnCode, 0x9000);
@@ -171,3 +171,4 @@ noMoreAPDUs(transport);
 
 await transport.close()
 testEnd(scriptName);
+process.stdin.pause()

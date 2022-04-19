@@ -2,7 +2,7 @@
 
 import { testStart, testStep, testEnd, compareInAPDU, compareOutAPDU, noMoreAPDUs, compareGetVersionAPDUs, getScriptName, getSpeculosDefaultConf } from "./speculos-common.js";
 import { getSpyTransport } from "./speculos-transport.js";
-import { ButtonsAndSnapshots } from "./speculos-buttons-and-snapshots.js";
+import { getButtonsAndSnapshots } from "./speculos-buttons-and-snapshots.js";
 import { default as OnflowLedgerMod } from "@onflow/ledger";
 import { fileURLToPath } from 'url';
 import assert from 'assert/strict';
@@ -14,7 +14,7 @@ const speculosConf = getSpeculosDefaultConf();
 const transport = await getSpyTransport(speculosConf);
 const FlowApp = OnflowLedgerMod.default;
 const app = new FlowApp(transport);
-const device = new ButtonsAndSnapshots(scriptName, speculosConf);
+const device = getButtonsAndSnapshots(scriptName, speculosConf);
 let hexExpected = "";
 
 await device.makeStartingScreenshot();
@@ -26,7 +26,7 @@ const expected_pk = "04db0a14364e5bf43a7ddda603522ddfee95c5ff12b48c49480f062e7aa
 
 testStep(" - - -", "app.showAddressAndPubKey() // goodSlot=" + path);
 const showPubkeyPromise = app.showAddressAndPubKey(path, options);
-device.review("Show address - empty slot");
+await device.review("Show address - empty slot");
 const showPubkeyResponse = await showPubkeyPromise
 
 assert.equal(showPubkeyResponse.returnCode, 0x9000);
@@ -43,3 +43,4 @@ noMoreAPDUs(transport);
 
 await transport.close()
 testEnd(scriptName);
+process.stdin.pause()
