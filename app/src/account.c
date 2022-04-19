@@ -229,7 +229,6 @@ zxerr_t slot_parseSlot(uint8_t *buffer, uint16_t bufferLen) {
         zemu_log(bufferUI);
         zemu_log("\n");
 
-
         zemu_log_stack("invalid path");
         return zxerr_out_of_bounds;
     }
