@@ -42,17 +42,14 @@ extern void explicit_bzero(void *s, size_t n) __THROW __nonnull ((1));
 
 #define STATIC_ASSERT _Static_assert
 
-
 #if defined(LEDGER_SPECIFIC)
 #include "bolos_target.h"
 #endif
 
-#if defined (TARGET_NANOS) || defined(TARGET_NANOX)
+#if defined (TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 #include "zxmacros_ledger.h"
 #else
-
 #include "zxmacros_x64.h"
-
 #endif
 
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
@@ -87,7 +84,7 @@ void handle_stack_overflow();
 
 void zemu_log_stack(const char *ctx);
 
-#if (defined (TARGET_NANOS) || defined(TARGET_NANOX))
+#if (defined (TARGET_NANOS) || defined(TARGET_NANOX)|| defined(TARGET_NANOS2))
 #if defined(ZEMU_LOGGING)
 __Z_INLINE void zemu_log(const char *buf)
 {
@@ -102,7 +99,7 @@ __Z_INLINE void zemu_log(const char *buf)
 __Z_INLINE void zemu_log(__Z_UNUSED const char *_) {}
 #endif
 #else
-__Z_INLINE void zemu_log(__Z_UNUSED const char *msg) {
+__Z_INLINE void zemu_log(const char *msg) {
     printf("%s\n", msg);
 }
 #endif

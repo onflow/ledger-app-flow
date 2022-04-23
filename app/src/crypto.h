@@ -25,6 +25,7 @@ extern "C" {
 #include <stdbool.h>
 #include <sigutils.h>
 #include <zxerror.h>
+#include <lcx_sha256.h>
 
 typedef enum {
     HASH_UNKNOWN,
@@ -38,7 +39,7 @@ typedef enum {
     CURVE_SECP256R1
 } curve_e;
 
-#if defined(TARGET_NANOS) || defined(TARGET_NANOX)
+#if defined(TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 #else
 #define CX_SHA256_SIZE 32
 #endif

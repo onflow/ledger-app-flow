@@ -35,7 +35,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#if defined(TARGET_NANOX)
+#if defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 
 void h_expert_toggle();
 void h_expert_update();
