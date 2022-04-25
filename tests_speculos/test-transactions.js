@@ -2,7 +2,7 @@
 
 import { testStart, testEnd, testCombo, compareInAPDU, compareOutAPDU, noMoreAPDUs, getScriptName, getSpeculosDefaultConf, humanTime } from "./speculos-common.js";
 import { getSpyTransport } from "./speculos-transport.js";
-import { ButtonsAndSnapshots } from "./speculos-buttons-and-snapshots.js";
+import { getButtonsAndSnapshots } from "./speculos-buttons-and-snapshots.js";
 import { transactionTest } from "./speculos-transaction.js";
 import { default as OnflowLedgerMod } from "@onflow/ledger";
 import { fileURLToPath } from 'url';
@@ -52,7 +52,7 @@ const exampleAddKeyBlob        = "f90186f9015eb86e7472616e73616374696f6e28707562
 				const testTitle = `basic sign: ${transactions[i].title} - ${sigAlgos[j].name} / ${hashAlgos[k].name}`; // e.g. basic sign: Transfer FLOW - secp256k1 / SHA-256
 				const scriptNameCombo = (scriptName + "." + testTitle).replace(new RegExp("([:/ \-]+)","gm"),"-").toLowerCase(); 
 				testCombo(scriptNameCombo);
-				const device = new ButtonsAndSnapshots(scriptNameCombo, speculosConf);
+				const device = getButtonsAndSnapshots(scriptNameCombo, speculosConf);
 				await device.makeStartingScreenshot();
 
 				await transactionTest(
@@ -78,7 +78,7 @@ const exampleAddKeyBlob        = "f90186f9015eb86e7472616e73616374696f6e28707562
 			var testTitle = `staking sign: ${transactions[i].title} - ${ECDSA_P256.name} / ${SHA3_256.name}`; // e.g. staking sign: TH.01 - Withdraw Unlocked FLOW - p256 / SHA3-256
 			const scriptNameCombo = (scriptName + "." + testTitle).replace(new RegExp("([:/ \-]+)","gm"),"-").toLowerCase(); 
 			testCombo(scriptNameCombo);
-			const device = new ButtonsAndSnapshots(scriptNameCombo, speculosConf);
+			const device = getButtonsAndSnapshots(scriptNameCombo, speculosConf);
 			await device.makeStartingScreenshot();
 
 			await transactionTest(
@@ -96,3 +96,4 @@ const exampleAddKeyBlob        = "f90186f9015eb86e7472616e73616374696f6e28707562
 
 await transport.close()
 testEnd(scriptName);
+process.stdin.pause()

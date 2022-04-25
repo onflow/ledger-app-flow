@@ -134,7 +134,7 @@ __Z_INLINE void handleGetSlot(__Z_UNUSED volatile uint32_t *flags, volatile uint
     snprintf(buffer, sizeof(buffer), "%d", slotIdx);
     zemu_log_stack(buffer);
 
-    zxerr_t err = slot_getSlot(slotIdx, G_io_apdu_buffer, IO_APDU_BUFFER_SIZE);
+    zxerr_t err = slot_getSlot(slotIdx, &tmp_slot);
     snprintf(buffer, sizeof(buffer), "err: %d", err);
     zemu_log_stack(buffer);
 
@@ -147,7 +147,14 @@ __Z_INLINE void handleGetSlot(__Z_UNUSED volatile uint32_t *flags, volatile uint
         THROW(APDU_CODE_EXECUTION_ERROR);
     }
 
-    *tx = sizeof(account_slot_t);
+    uint16_t slotBufLen = IO_APDU_BUFFER_SIZE;
+    err = slot_serializeSlot(&tmp_slot, G_io_apdu_buffer, &slotBufLen);
+
+    if (err != zxerr_ok) {
+        THROW(APDU_CODE_EXECUTION_ERROR);
+    }
+
+    *tx = (uint32_t)slotBufLen;
     THROW(APDU_CODE_OK);
 }
 

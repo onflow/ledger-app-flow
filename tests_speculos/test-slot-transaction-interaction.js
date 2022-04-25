@@ -2,7 +2,7 @@
 
 import { testStart, testEnd, testStep, compareInAPDU, compareOutAPDU, noMoreAPDUs, compareGetVersionAPDUs, getScriptName, getSpeculosDefaultConf, humanTime } from "./speculos-common.js";
 import { getSpyTransport } from "./speculos-transport.js";
-import { ButtonsAndSnapshots } from "./speculos-buttons-and-snapshots.js";
+import { getButtonsAndSnapshots } from "./speculos-buttons-and-snapshots.js";
 import { transactionTest } from "./speculos-transaction.js";
 import { default as OnflowLedgerMod } from "@onflow/ledger";
 import { fileURLToPath, pathToFileURL } from 'url';
@@ -15,7 +15,7 @@ const speculosConf = getSpeculosDefaultConf();
 const transport = await getSpyTransport(speculosConf);
 const FlowApp = OnflowLedgerMod.default;
 const app = new FlowApp(transport);
-const device = new ButtonsAndSnapshots(scriptName, speculosConf);
+const device = getButtonsAndSnapshots(scriptName, speculosConf);
 
 let hexExpected = "";
 
@@ -50,7 +50,7 @@ await transactionTest(
 testStep(" - - -", "app.setSlot(); Set slot 0 - incorrect derivation path");
 const address = "f8d6e0586b0a20c7";
 const setSlotPromise2 = app.setSlot(0, address, path, options);
-device.review("Set slot 0");
+await device.review("Set slot 0");
 const setSlotResponse2 = await setSlotPromise2;
 
 assert.equal(setSlotResponse2.returnCode, 0x9000);
@@ -140,7 +140,7 @@ const expectedPathDelete = `m/0/0/0/0/0`;
 
 testStep(" - - -", "app.setSlot(); Delete slot 10");
 const setSlotPromise3 = app.setSlot(0, expectedAccountDelete, expectedPathDelete, 0);
-device.review("Delete slot 0");
+await device.review("Delete slot 0");
 const setSlotResponse3 = await setSlotPromise3;
 
 assert.equal(setSlotResponse3.returnCode, 0x9000);
@@ -155,3 +155,4 @@ noMoreAPDUs(transport);
 
 await transport.close()
 testEnd(scriptName);
+process.stdin.pause()

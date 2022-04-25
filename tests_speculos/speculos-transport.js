@@ -1,9 +1,10 @@
 'use strict';
 import SpeculosTransport from "@ledgerhq/hw-transport-node-speculos";
 import { testStep, humanTime } from "./speculos-common.js"
+import TransportNodeHid from "@ledgerhq/hw-transport-node-hid"
 
-async function getSpyTransport(apduPort) {
-	return await (new SpyTransport()).initialize(apduPort);
+async function getSpyTransport(conf) {
+	return await (new SpyTransport()).initialize(conf);
 }
 
 class SpyTransport {
@@ -19,7 +20,12 @@ class SpyTransport {
 	resolveAPDUToWaitPromise = function() {}
 
 	async initialize(conf) {
-		this.transport = await SpeculosTransport.default.open({ apduPort: conf.speculosApduPort });
+		if (conf.testOn === "ledger") {
+			this.transport = await TransportNodeHid.default.create(1000);
+		}
+		else {
+			this.transport = await SpeculosTransport.default.open({ apduPort: conf.speculosApduPort });
+		}
 		return this;
 	}
 
