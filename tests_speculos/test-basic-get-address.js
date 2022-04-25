@@ -2,7 +2,7 @@
 
 import { testStart, testStep, testEnd, compareInAPDU, compareOutAPDU, noMoreAPDUs, compareGetVersionAPDUs, getScriptName, getSpeculosDefaultConf } from "./speculos-common.js";
 import { getSpyTransport } from "./speculos-transport.js";
-import { ButtonsAndSnapshots } from "./speculos-buttons-and-snapshots.js";
+import { getButtonsAndSnapshots } from "./speculos-buttons-and-snapshots.js";
 import { default as OnflowLedgerMod } from "@onflow/ledger";
 import { fileURLToPath } from 'url';
 import assert from 'assert/strict';
@@ -14,7 +14,7 @@ const speculosConf = getSpeculosDefaultConf();
 const transport = await getSpyTransport(speculosConf);
 const FlowApp = OnflowLedgerMod.default;
 const app = new FlowApp(transport);
-const device = new ButtonsAndSnapshots(scriptName, speculosConf);
+const device = getButtonsAndSnapshots(scriptName, speculosConf);
 
 const options = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA2_256;
 let hexExpected = "";
@@ -105,3 +105,4 @@ for(const tv of testVectors) {
 
 await transport.close()
 testEnd(scriptName);
+process.stdin.pause()

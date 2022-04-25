@@ -2,7 +2,7 @@
 
 import { testStart, testStep, testEnd, compareInAPDU, compareOutAPDU, noMoreAPDUs, compareGetVersionAPDUs, getScriptName, getSpeculosDefaultConf } from "./speculos-common.js";
 import { getSpyTransport } from "./speculos-transport.js";
-import { ButtonsAndSnapshots } from "./speculos-buttons-and-snapshots.js";
+import { getButtonsAndSnapshots } from "./speculos-buttons-and-snapshots.js";
 import { default as OnflowLedgerMod } from "@onflow/ledger";
 import { fileURLToPath } from 'url';
 import assert from 'assert/strict';
@@ -14,7 +14,7 @@ const speculosConf = getSpeculosDefaultConf();
 const transport = await getSpyTransport(speculosConf);
 const FlowApp = OnflowLedgerMod.default;
 const app = new FlowApp(transport);
-const device = new ButtonsAndSnapshots(scriptName, speculosConf);
+const device = getButtonsAndSnapshots(scriptName, speculosConf);
 let hexExpected = "";
 
 await device.makeStartingScreenshot();
@@ -26,7 +26,7 @@ const expected_pk = "04d7482bbaff7827035d5b238df318b10604673dc613808723efbd23fbc
 
 testStep("======", "app.showAddressAndPubKey() // Empty slot 0");
 const showPubkeyPromise = app.showAddressAndPubKey(path, options);
-device.review("Show address 1 - empty slot");
+await device.review("Show address 1 - empty slot");
 const showPubkeyResponse = await showPubkeyPromise;
 
 assert.equal(showPubkeyResponse.returnCode, 0x9000);
@@ -49,7 +49,7 @@ const slot = 0;
 
 testStep("======", "app.setSlot() // Set slot");
 const setSlotPromise = app.setSlot(slot, account, path2, options);
-device.review("Set slot 0");
+await device.review("Set slot 0");
 const setSlotResponse = await setSlotPromise;
 assert.equal(setSlotResponse.returnCode, 0x9000);
 
@@ -63,7 +63,7 @@ noMoreAPDUs(transport);
 //Call showpubkey for original path
 testStep("======", "app.showAddressAndPubKey() // Other path saved");
 const showPubkeyPromise2 = app.showAddressAndPubKey(path, options);
-device.review("Show address 2 - different path on slot");
+await device.review("Show address 2 - different path on slot");
 const showPubkeyResponse2 = await showPubkeyPromise2
 assert.equal(showPubkeyResponse2.returnCode, 0x9000);
 assert.equal(showPubkeyResponse2.errorMessage, "No errors");
@@ -80,7 +80,7 @@ noMoreAPDUs(transport);
 //Call showpubkey for other path
 testStep("======", "app.showAddressAndPubKey() // Saved path");
 const showPubkeyPromise3 = app.showAddressAndPubKey(path2, options);
-device.review("Show address 3 - path saved on slot");
+await device.review("Show address 3 - path saved on slot");
 const showPubkeyResponse3 = await showPubkeyPromise3
 assert.equal(showPubkeyResponse3.returnCode, 0x9000);
 assert.equal(showPubkeyResponse3.errorMessage, "No errors");
@@ -99,7 +99,7 @@ noMoreAPDUs(transport);
 testStep("======", "app.showAddressAndPubKey() // Saved path - hashes do not match");
 const options2 = FlowApp.Signature.SECP256K1 | FlowApp.Hash.SHA3_256;
 const showPubkeyPromise4 = app.showAddressAndPubKey(path2, options2);
-device.review("Show address 1 - path saved on slot - hashes do not match");
+await device.review("Show address 1 - path saved on slot - hashes do not match");
 const showPubkeyResponse4 = await showPubkeyPromise4;
 assert.equal(showPubkeyResponse4.returnCode, 0x9000);
 assert.equal(showPubkeyResponse4.errorMessage, "No errors");
@@ -117,7 +117,7 @@ noMoreAPDUs(transport);
 testStep("======", "app.showAddressAndPubKey() // Saved path - curves do not match");
 const options3 = FlowApp.Signature.P256 | FlowApp.Hash.SHA2_256;
 const showPubkeyPromise5 = app.showAddressAndPubKey(path2, options3);
-device.review("Show address 5 - path saved on slot - curves do not match");
+await device.review("Show address 5 - path saved on slot - curves do not match");
 const showPubkeyResponse5 = await showPubkeyPromise5;
 assert.equal(showPubkeyResponse5.returnCode, 0x9000);
 assert.equal(showPubkeyResponse5.errorMessage, "No errors");
@@ -137,7 +137,7 @@ const expectedAccountDelete = "0000000000000000";
 const expectedPathDelete = `m/0/0/0/0/0`;
 testStep("======", "app.setSlot() // Delete slot");
 const setSlotPromise3 = app.setSlot(slot, expectedAccountDelete, expectedPathDelete, 0);
-device.review("Delete slot");
+await device.review("Delete slot");
 const setSlotResponse3 = await setSlotPromise3;
 assert.equal(setSlotResponse3.returnCode, 0x9000);
 
@@ -150,3 +150,5 @@ noMoreAPDUs(transport);
 
 await transport.close()
 testEnd(scriptName);
+process.stdin.pause()
+

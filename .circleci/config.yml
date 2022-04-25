@@ -48,8 +48,8 @@ jobs:
       - run:
           name: Build build conainer
           command: |
-            git submodule update --init --recursive
-            make  build_build_container
+            make pull_build_container
+            make speculos_pull_container
       - run:
           # todo: consider splitting the container cross-compiler upgrade step into its own step: make compiler_container
           # todo: consider upgrading CircleCI to allow caching docker images across builds to speed up the step the container cross-compiler upgrade step
@@ -110,10 +110,10 @@ jobs:
             export MAKE_LINUX_DOCKER_OPTIONS=--network host
             make speculos_install
       - run:
-          name: Build build conainer
+          name: Pull containers
           command: |
-            git submodule update --init --recursive
-            make  build_build_container
+            make pull_build_container
+            make speculos_pull_container
       - run:
           # todo: consider splitting the container cross-compiler upgrade step into its own step: make compiler_container
           # todo: consider upgrading CircleCI to allow caching docker images across builds to speed up the step the container cross-compiler upgrade step

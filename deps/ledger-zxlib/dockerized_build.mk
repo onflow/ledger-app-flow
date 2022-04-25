@@ -27,12 +27,12 @@ DOCKER_APP_SRC=/project
 DOCKER_APP_SRC_NEW=/app
 DOCKER_APP_BIN=$(DOCKER_APP_SRC)/app/bin/app.elf
 
-SPECULOS_SDK=2.0
 SPECULOS_MODEL_SWITCH=nanos
 NANO_ICON_GIF=nanos_icon.gif
 BOLOS_SDK_DIRECTORY=/opt/nanos-secure-sdk
 TARGET_NAME=TARGET_NANOS
 TEST_DEVICE=nanos
+SPECULOS_SDK=2.1
 ifeq ($(TARGET_DEVICE), NANO_X)
     $(info Targeting NanoX)
     SPECULOS_MODEL_SWITCH=nanox
@@ -40,6 +40,7 @@ ifeq ($(TARGET_DEVICE), NANO_X)
     BOLOS_SDK_DIRECTORY=/opt/nanox-secure-sdk
     TARGET_NAME=TARGET_NANOX
     TEST_DEVICE=nanox
+    SPECULOS_SDK=2.0.2
 endif
 
 
@@ -76,9 +77,6 @@ endif
 define run_docker
 	@echo "docker host: id -u: `id -u`"
 	@echo "docker host: whoami: `whoami`"
-	docker version
-	echo "TODO: this is all cached and fast on a local box, but takes over 4 minutes on CircleCI :-("
-	docker build -t ledger-app-builder:latest $(CURDIR)/deps/ledger-app-builder
 	docker run $(TTY_SETTING) $(INTERACTIVE_SETTING) $(MAKE_LINUX_DOCKER_OPTIONS) --rm \
 	-e SCP_PRIVKEY=$(SCP_PRIVKEY) \
 	-e BOLOS_ENV_IGNORE=/opt/bolos \
@@ -90,7 +88,7 @@ define run_docker
 	-v $(shell pwd)/app:/app \
 	-v $(shell pwd)/deps:/deps \
 	$(1) \
-	ledger-app-builder:latest \
+	ledger-app-builder \
 	$(2)
 endef
 
@@ -118,27 +116,29 @@ convert_icon:
 	@convert $(LEDGER_SRC)/tmp.gif -monochrome -size 16x16 -depth 1 $(LEDGER_SRC)/nanos_icon.gif
 	@convert $(LEDGER_SRC)/nanos_icon.gif -crop 14x14+1+1 +repage -negate $(LEDGER_SRC)/nanox_icon.gif
 
-.PHONY: build_build_container
-build_build_container:
-	docker build -t ledger-app-builder:latest $(CURDIR)/deps/ledger-app-builder
+.PHONY: pull_build_container
+pull_build_container:
+	docker version
+	docker pull ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:sha-229b03c
+	docker image tag ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:sha-229b03c ledger-app-builder
 
 .PHONY: build
-build:
+build: pull_build_container
 	$(info Replacing app icon)
 	@cp $(LEDGER_SRC)/$(NANO_ICON_GIF) $(LEDGER_SRC)/glyphs/icon_app.gif
 	$(info calling make inside docker)
 	$(call run_docker, , make -j `nproc`)
 
 .PHONY: clean
-clean:
+clean: pull_build_container
 	$(call run_docker, ,make clean)
 
 .PHONY: listvariants
-listvariants:
+listvariants: pull_build_container
 	$(call run_docker, ,make listvariants)
 
 .PHONY: shell
-shell:
+shell: pull_build_container
 	$(call run_docker, -ti, bash)
 
 .PHONY: load
@@ -239,12 +239,14 @@ speculos_install_js_link:
 	@echo
 endif
 
+.PHONY: speculos_pull_container
+speculos_pull_container:
+	docker pull ghcr.io/ledgerhq/speculos:sha-5a8e49b
+	docker image tag ghcr.io/ledgerhq/speculos:sha-5a8e49b speculos
+
 .PHONY: speculos_install
-speculos_install: speculos_install_js_link
+speculos_install: speculos_install_js_link speculos_pull_container
 	$(call run_announce,$@)
-	# pull speculos container
-	docker pull ghcr.io/ledgerhq/speculos
-	docker image tag ghcr.io/ledgerhq/speculos speculos
 	# check for nvm, node, npm, and yarn
 	@. $(MAKE_NVM_SH_PATH)/.nvm/nvm.sh ; nvm --version 2>&1 | perl -lane '$$nvm=$$_; chomp $$nvm; printf qq[# nvm --version: %s\n], $$nvm; if($$nvm!~m~^\d+\.\d+\.\d+$$~){ die qq[ERROR: nvm not installed? Please install, e.g. MacOS/Ubuntu: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash ; export NVM_DIR="$$HOME/.nvm" ; [ -s "$$NVM_DIR/nvm.sh" ] && \. "$$NVM_DIR/nvm.sh" ; [ -s "$$NVM_DIR/bash_completion" ] && \. "$$NVM_DIR/bash_completion" # see https://github.com/nvm-sh/nvm#installing-and-updating\n]; }'
 	@node --version 2>&1 | perl -lane '$$node=$$_; chomp $$node; printf qq[# node --version: %s\n], $$node; if($$node!~m~^v16\.10\.0$$~){ die qq[ERROR: desired node version not installed? Please install, e.g. MacOS/Ubuntu: nvm install 16.10.0 ; nvm use 16.10.0]; }'
@@ -255,21 +257,21 @@ speculos_install: speculos_install_js_link
 	@cd $(TESTS_SPECULOS_DIR) && yarn install
 
 .PHONY: speculos_port_5001_start
-speculos_port_5001_start:
+speculos_port_5001_start: speculos_pull_container
 	$(call run_announce,$@)
 	$(call start_speculos_container,5001,40001,41001,/app/bin)
 
-.PHONY: speculos_port_5002_start
-speculos_port_5002_start:
+.PHONY: speculos_port_5002_start 
+speculos_port_5002_start: speculos_pull_container
 	$(call run_announce,$@)
 	$(call start_speculos_container,5002,40002,41002,/app/bin)
 
-.PHONY: speculos_port_5003_start
-speculos_port_5003_start:
+.PHONY: speculos_port_5003_start 
+speculos_port_5003_start: speculos_pull_container
 	$(call run_announce,$@)
 	$(call start_speculos_container,5003,40003,41003,/tests_speculos/backward_compatibility_test_biniaries/0-9-12/)
 
-.PHONY: speculos_port_5001_stop
+.PHONY: speculos_port_5001_stop 
 speculos_port_5001_stop:
 	$(call run_announce,$@)
 	$(call stop_speculos_container,5001)
@@ -367,6 +369,25 @@ rust_test:
 cpp_test:
 	mkdir -p build && cd build && cmake -DCMAKE_BUILD_TYPE=Debug .. && make
 	cd build && GTEST_COLOR=1 ASAN_OPTIONS=detect_leaks=0 ctest -VV
+
+########################## Ledger Test ###############################
+
+.PHONY: ledger_test
+ledger_test:
+	$(call run_announce,$@)
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-app-version.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-slot-status-bad-net.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-slot-status-full.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-sign-basic-invalid.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-get-address.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-show-address-secp256k1.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-show-address-secp256r1.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-show-address-expert.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-menu.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-slot-transaction-interaction.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-transaction-expert-mode.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-transactions.js
+	@echo "# ALL TESTS COMPLETED!"
 
 ########################## FUZZING Section ###############################
 
