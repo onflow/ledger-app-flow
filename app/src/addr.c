@@ -85,7 +85,7 @@ zxerr_t addr_getItem_internal(int8_t *displayIdx,
 
     SCREEN(show_address_yes) {
         array_to_hexstr(outKey, outKeyLen, address_to_display.data, sizeof(address_to_display.data)); 
-        #if defined(TARGET_NANOX)
+        #if defined(TARGET_NANOX) || defined(TARGET_NANOS2)
             snprintf(outVal, outValLen, " using any Flow blockchain explorer.");
         #else
             snprintf(outVal, outValLen, " using any Flow  blockch. explorer.");

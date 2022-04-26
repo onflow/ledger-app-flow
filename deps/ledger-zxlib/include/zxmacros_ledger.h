@@ -15,8 +15,6 @@
 ********************************************************************************/
 #pragma once
 
-#include "bolos_target.h"
-
 #if defined (TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 
 #include "os.h"
@@ -32,7 +30,7 @@
 #define MEMCMP memcmp
 #define MEMZERO explicit_bzero
 
-#if defined(TARGET_NANOX) || defined(TARGET_NANO_S2)
+#if defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 #include "ux.h"
 #define NV_CONST const
 #define NV_VOLATILE volatile

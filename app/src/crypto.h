@@ -25,7 +25,6 @@ extern "C" {
 #include <stdbool.h>
 #include <sigutils.h>
 #include <zxerror.h>
-#include <lcx_sha256.h>
 
 typedef enum {
     HASH_UNKNOWN,

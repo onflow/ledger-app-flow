@@ -150,7 +150,8 @@ function getSpeculosDefaultConf() {
         testOn: process.env.TEST_ON_DEVICE ? "ledger": "speculos",
 	    speculosApiPort: process.env.TEST_SPECULOS_API_PORT ? process.env.TEST_SPECULOS_API_PORT : 5000,
 	    speculosApduPort: process.env.TEST_SPECULOS_APDU_PORT ? process.env.TEST_SPECULOS_APDU_PORT : 40000,
-	    isNanoX: process.env.TEST_DEVICE && process.env.TEST_DEVICE == "nanox",
+	    deviceType: process.env.TEST_DEVICE, //nanos, nanox, nanosp
+		snapshotName: process.env.TEST_DEVICE == "nanos" ? "nanos" : "nanox", //snapshots for nanosp are identical to nanox 
 	};
 }
 
