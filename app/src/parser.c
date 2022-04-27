@@ -25,14 +25,6 @@
 #include "hdpath.h"
 #include "app_mode.h"
 
-#if defined(TARGET_NANOX) || defined(TARGET_NANOS2)
-// For some reason NanoX requires this function
-void __assert_fail(const char * assertion, const char * file, unsigned int line, const char * function){
-    while(1) {};
-}
-#endif
-
-
 #define FLOW_PUBLIC_KEY_SIZE 64     // 64 bytes for public key
 #define FLOW_SIG_ALGO_SIZE 1        // 8 bits for signature algorithm (uint8)
 #define FLOW_HASH_ALGO_SIZE 1       // 8 bits for hash algorithm (uint8)
