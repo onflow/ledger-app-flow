@@ -384,18 +384,18 @@ cpp_test:
 .PHONY: ledger_test
 ledger_test:
 	$(call run_announce,$@)
-	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-app-version.js
-	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-slot-status-bad-net.js
-	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-slot-status-full.js
-	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-sign-basic-invalid.js
-	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-get-address.js
-	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-show-address-secp256k1.js
-	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-show-address-secp256r1.js
-	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-show-address-expert.js
-	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-menu.js
-	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-slot-transaction-interaction.js
-	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-transaction-expert-mode.js
-	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-transactions.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-basic-app-version.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-basic-slot-status-bad-net.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-basic-slot-status-full.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-basic-sign-basic-invalid.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-basic-get-address.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-basic-show-address-secp256k1.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-basic-show-address-secp256r1.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-basic-show-address-expert.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-menu.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-slot-transaction-interaction.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-transaction-expert-mode.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-transactions.js
 	@echo "# ALL TESTS COMPLETED!"
 
 ########################## FUZZING Section ###############################
