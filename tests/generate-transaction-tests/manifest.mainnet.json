@@ -1281,6 +1281,188 @@
       ],
       "network": "mainnet",
       "hash": "7ff4d9f53ba5eebda556d0ead0ca13911bc8996e2c91c5147f8787d10a324483"
+    },
+    {
+      "id": "SCO.03",
+      "name": "Register Node",
+      "source": "import Crypto\nimport FlowStakingCollection from 0x8d0e87b65159ae63\n\n/// Registers a delegator in the staking collection resource\n/// for the specified node information and the amount of tokens to commit\n\ntransaction(id: String,\n            role: UInt8,\n            networkingAddress: String,\n            networkingKey: String,\n            stakingKey: String,\n            amount: UFix64,\n            publicKeys: [Crypto.KeyListEntry]?) {\n    \n    let stakingCollectionRef: \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: AuthAccount) {\n        self.stakingCollectionRef = account.borrow\u003c\u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n\n        if let machineAccount = self.stakingCollectionRef.registerNode(\n            id: id,\n            role: role,\n            networkingAddress: networkingAddress,\n            networkingKey: networkingKey,\n            stakingKey: stakingKey,\n            amount: amount,\n            payer: account) \n        {\n            if publicKeys == nil || publicKeys!.length == 0 {\n                panic(\"Cannot provide zero keys for the machine account\")\n            }\n            for key in publicKeys! {\n                machineAccount.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)\n            }\n        }\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "String",
+          "name": "id",
+          "label": "Node ID",
+          "sampleValues": [
+            {
+              "type": "String",
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+            }
+          ]
+        },
+        {
+          "type": "UInt8",
+          "name": "role",
+          "label": "Node Role",
+          "sampleValues": [
+            {
+              "type": "UInt8",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "type": "String",
+          "name": "networkingAddress",
+          "label": "Networking Address",
+          "sampleValues": [
+            {
+              "type": "String",
+              "value": "flow-node.test:3569"
+            }
+          ]
+        },
+        {
+          "type": "String",
+          "name": "networkingKey",
+          "label": "Networking Key",
+          "sampleValues": [
+            {
+              "type": "String",
+              "value": "1348307bc77c688e80049de9d081aa09755da33e6997605fa059db2144fc85e560cbe6f7da8d74b453f5916618cb8fd392c2db856f3e78221dc68db1b1d914e4"
+            }
+          ]
+        },
+        {
+          "type": "String",
+          "name": "stakingKey",
+          "label": "Staking Key",
+          "sampleValues": [
+            {
+              "type": "String",
+              "value": "9e9ae0d645fd5fd9050792e0b0daa82cc1686d9133afa0f81a784b375c42ae48567d1545e7a9e1965f2c1a32f73cf8575ebb7a967f6e4d104d2df78eb8be409135d12da0499b8a00771f642c1b9c49397f22b440439f036c3bdee82f5309dab3"
+            }
+          ]
+        },
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount",
+          "sampleValues": [
+            {
+              "type": "UFix64",
+              "value": "92233720368.54775808"
+            }
+          ]
+        },
+        {
+          "type": "[String]?",
+          "name": "publicKeys",
+          "label": "Public Keys",
+          "sampleValues": [
+            {
+              "type": "Optional",
+              "value": null
+            },
+            {
+              "type": "Optional",
+              "value": {
+                "type": "Array",
+                "value": []
+              }
+            },
+            {
+              "type": "Optional",
+              "value": {
+                "type": "Array",
+                "value": [
+                  {
+                    "type": "String",
+                    "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Optional",
+              "value": {
+                "type": "Array",
+                "value": [
+                  {
+                    "type": "String",
+                    "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                  },
+                  {
+                    "type": "String",
+                    "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                  },
+                  {
+                    "type": "String",
+                    "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "network": "mainnet",
+      "hash": "79de7119aea61bdafb39cc3d1f4fa17ca802c2732726a86d2c636dbc19808b68"
+    },
+    {
+      "id": "SCO.04",
+      "name": "Create Machine Account",
+      "source": "import Crypto\nimport FlowStakingCollection from 0x8d0e87b65159ae63\n\n/// Creates a machine account for a node that is already in the staking collection\n/// and adds public keys to the new account\n\ntransaction(nodeID: String, publicKeys: [Crypto.KeyListEntry]) {\n    \n    let stakingCollectionRef: \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: AuthAccount) {\n        self.stakingCollectionRef = account.borrow\u003c\u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n\n        if let machineAccount = self.stakingCollectionRef.createMachineAccountForExistingNode(nodeID: nodeID, payer: account) {\n            if publicKeys == nil || publicKeys!.length == 0 {\n                panic(\"Cannot provide zero keys for the machine account\")\n            }\n            for key in publicKeys {\n                machineAccount.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)\n            }\n        } else {\n            panic(\"Could not create a machine account for the node\")\n        }\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "String",
+          "name": "id",
+          "label": "Node ID",
+          "sampleValues": [
+            {
+              "type": "String",
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+            }
+          ]
+        },
+        {
+          "type": "[String]",
+          "name": "publicKeys",
+          "label": "Public Keys",
+          "sampleValues": [
+            {
+              "type": "Array",
+              "value": []
+            },
+            {
+              "type": "Array",
+              "value": [
+                {
+                  "type": "String",
+                  "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                }
+              ]
+            },
+            {
+              "type": "Array",
+              "value": [
+                {
+                  "type": "String",
+                  "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                },
+                {
+                  "type": "String",
+                  "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                },
+                {
+                  "type": "String",
+                  "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "network": "mainnet",
+      "hash": "dd3b327b09087ea7f8e92a22a6b04a3c6ca33b868b430c4f15f251658c38c1b7"
     }
   ]
 }
