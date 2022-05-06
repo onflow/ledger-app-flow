@@ -135,6 +135,62 @@ jobs:
             nvm use 16.10.0
             TEST_DEBUG=1 TARGET_DEVICE=NANO_X  make speculos_port_5002_test
 
+  speculos_nanosp_tests:
+    machine:
+      image: ubuntu-2004:202201-02
+      # see https://circleci.com/docs/2.0/docker-layer-caching/
+      docker_layer_caching: true
+    environment:
+      #- BOLOS_SDK_IGNORE=/home/zondax/project/deps/nanos-secure-sdk
+      #- BOLOS_ENV_IGNORE=/opt/bolos
+    steps:
+      - checkout
+      # Docker entrypoint is not considered
+      - run:
+          name: Install node + yarn
+          command: |
+            source /opt/circleci/.nvm/nvm.sh
+            nvm install 16.10.0
+            nvm use 16.10.0
+            rm -rf ~/.yarn
+            npm install -g yarn
+            which yarn
+            yarn -v
+      - run:
+          name: Docker pull speculos + yarn install
+          command: |
+            source /opt/circleci/.nvm/nvm.sh
+            nvm use 16.10.0
+            export MAKE_NVM_SH_PATH=/opt/circleci
+            # Linux docker instances start and stop quicker with `--network host`; see https://github.com/LedgerHQ/speculos/issues/249
+            export MAKE_LINUX_DOCKER_OPTIONS=--network host
+            make speculos_install
+      - run:
+          name: Pull containers
+          command: |
+            make pull_build_container
+            make speculos_pull_container
+      - run:
+          # todo: consider splitting the container cross-compiler upgrade step into its own step: make compiler_container
+          # todo: consider upgrading CircleCI to allow caching docker images across builds to speed up the step the container cross-compiler upgrade step
+          name: Build
+          command: |
+            TARGET_DEVICE=NANO_SP make
+      - run:
+          # todo: consider upgrading CircleCI to allow parallel jobs, and splitting this into a separate CircleCI jobs which run in parallel on separate speculos container instances
+          name: Run speculos port 5001 tests
+          command: |
+            source /opt/circleci/.nvm/nvm.sh
+            nvm use 16.10.0
+            TEST_DEBUG=1 TARGET_DEVICE=NANO_SP make speculos_port_5001_test
+      - run:
+          # todo: consider upgrading CircleCI to allow parallel jobs, and splitting this into a separate CircleCI jobs which run in parallel on separate speculos container instances
+          name: Run speculos port 5002 tests
+          command: |
+            source /opt/circleci/.nvm/nvm.sh
+            nvm use 16.10.0
+            TEST_DEBUG=1 TARGET_DEVICE=NANO_SP make speculos_port_5002_test
+
   test_fuzz_crash_fixes:
     docker:
       - image: zondax/circleci@sha256:37f78ab294b35a055768c2305b3f13813e55fb9db4e65f72745ede61dd842c08
@@ -163,4 +219,5 @@ workflows:
       - cpp_unit_tests
       - speculos_nanos_tests
       - speculos_nanox_tests
+      - speculos_nanosp_tests
 

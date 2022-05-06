@@ -33,7 +33,11 @@ assert.equal(transport.hexApduCommandIn.length, 1)
 
 hexExpected = "3300000000";
 compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, unexpected:9999});
-hexExpected = speculosConf.isNanoX ? "0000090d00330000049000" : "0000090d00311000049000";
+hexExpected = {
+    "nanos":  "0000090d00311000049000",
+    "nanox":  "0000090d00330000049000",
+    "nanosp": "0000090d00331000049000",
+}[speculosConf.deviceType];
 compareInAPDU(transport, hexExpected, "apdu response", {testMode:1, major:1, minor:1, patch:1, deviceLocked:1, targetId:4, returnCode:2, unexpected:9999});
 noMoreAPDUs(transport);
 

@@ -9,7 +9,7 @@
 #include "account.h"
 
 __Z_INLINE void menuaddr_return() {
-    view_idle_show(0, NULL);
+    view_idle_show(0, "Ready");
 }
 
 void handleMenuShowAddress() {

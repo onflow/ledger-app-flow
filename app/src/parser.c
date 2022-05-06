@@ -25,14 +25,6 @@
 #include "hdpath.h"
 #include "app_mode.h"
 
-#if defined(TARGET_NANOX)
-// For some reason NanoX requires this function
-void __assert_fail(const char * assertion, const char * file, unsigned int line, const char * function){
-    while(1) {};
-}
-#endif
-
-
 #define FLOW_PUBLIC_KEY_SIZE 64     // 64 bytes for public key
 #define FLOW_SIG_ALGO_SIZE 1        // 8 bits for signature algorithm (uint8)
 #define FLOW_HASH_ALGO_SIZE 1       // 8 bits for hash algorithm (uint8)
@@ -514,7 +506,7 @@ parser_error_t parser_getItemAfterArguments(__Z_UNUSED const parser_context_t *c
             }
             if (show_address == SHOW_ADDRESS_YES_HASH_MISMATCH && displayIdx-- == 0) {
                 snprintf(outKey, outKeyLen, "Warning:");
-                #if defined(TARGET_NANOX)
+                #if defined(TARGET_NANOX) || defined(TARGET_NANOS2)
                 pageString(outVal, outValLen, "Specified hash algorithm does not match stored value.", pageIdx, pageCount);
                 #else
                 pageString(outVal, outValLen, " Specified hash   algorithm does  not match stored value.", pageIdx, pageCount);

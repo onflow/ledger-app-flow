@@ -1,11 +1,10 @@
 import { syncBackTicks, sleep, humanTime } from "./speculos-common.js"
 
 const flowReadySHANanoS = "sha256:f3916e7cbbf8502b3eedbdf40cc6d6063b90f0e4a4814e34f2e7029bdaa4eaac";
-const flowReadySHANanoX = "sha256:186628eff908796f25c78a0f6ec6ec7ceef5ae6c92e9d240e8196bf34dec7688";
+const flowReadySHANanoX = "sha256:186628eff908796f25c78a0f6ec6ec7ceef5ae6c92e9d240e8196bf34dec7688"; //works for NanoSP, too
 
 const approveSHANanoS = "sha256:bf2dd4e939fc90cde614b84e97e7f674491063a78b2b47c6faa3639b45b2b48d";
 const approveSHANanoX = "sha256:acdd16e95aca0642489009b3ee2a5da2823597a89f227d541ce1c6fdde064356";
-
 const max_review_screens = 100;
 
 class ButtonsAndSnapshots {
@@ -13,7 +12,7 @@ class ButtonsAndSnapshots {
     pngNum = 1;
     pngSha256Previous = "";
     speculosButtonsPort;
-	isNanoX;
+	deviceType;
 
 	flowReadySHA;
 	approveSHA;
@@ -21,9 +20,10 @@ class ButtonsAndSnapshots {
     constructor(scriptName, conf) {
         this.scriptName = scriptName;
         this.speculosButtonsPort = conf.speculosApiPort;
-		this.isNanoX = conf.isNanoX;
-		this.flowReadySHA = this.isNanoX ? flowReadySHANanoX : flowReadySHANanoS;
-		this.approveSHA = this.isNanoX ? approveSHANanoX : approveSHANanoS;
+		this.deviceType = conf.deviceType;
+		this.snapshotName = conf.snapshotName
+		this.flowReadySHA = this.deviceType == "nanos" ? flowReadySHANanoS : flowReadySHANanoX;
+		this.approveSHA = this.deviceType == "nanos" ? approveSHANanoS : approveSHANanoX;
     }
 
 	curlButton(which, hint) { // e.g. which: 'left', 'right', or 'both'
@@ -41,7 +41,7 @@ class ButtonsAndSnapshots {
 	}
 
 	async curlScreenShot(lastButton = "") {
-		const test_device = this.isNanoX ? "nanox":"nanos"; 
+		const test_device = this.snapshotName; 
 		const originalScreenshotSHA = this.pngSha256Previous;
 		// e.g. test-transactions.staking-sign-ts.02-transfer-top-shot-moment-p256-sha3-256/nanos.01.png
 		const png = this.scriptName.replace(".js", "") + "/" + test_device + "." + this.pngNum.toString(10).padStart(2, '0') + ".png"

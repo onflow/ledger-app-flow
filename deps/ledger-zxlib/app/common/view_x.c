@@ -35,7 +35,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#if defined(TARGET_NANOX)
+#if defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 
 void h_expert_toggle();
 void h_expert_update();
@@ -238,7 +238,7 @@ void h_secret_click() {
 //////////////////////////
 //////////////////////////
 
-void view_idle_show_impl(uint8_t item_idx, char *statusString) {
+void view_idle_show_impl(__Z_UNUSED uint8_t item_idx, char *statusString) {
     if (statusString == NULL ) {
 
 #ifdef APP_SECRET_MODE_ENABLED

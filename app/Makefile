@@ -72,13 +72,16 @@ endef
 $(error "$(errorMessage)")
 endif
 
-APP_LOAD_PARAMS = --appFlags 0x200 --delete $(COMMON_LOAD_PARAMS) --path ${APPPATH} --path "44'/1'"
+ifeq ($(TARGET_NAME),TARGET_NANOX)
+APP_LOAD_PARAMS = --appFlags 0x200
+else
+APP_LOAD_PARAMS = --appFlags 0x000
+endif
+APP_LOAD_PARAMS += --delete $(COMMON_LOAD_PARAMS) --path ${APPPATH} --path "44'/1'"
 
 ifeq ($(TARGET_NAME),TARGET_NANOS)
 ICONNAME:=$(CURDIR)/nanos_icon.gif
-endif
-
-ifeq ($(TARGET_NAME),TARGET_NANOX)
+else
 ICONNAME:=$(CURDIR)/nanox_icon.gif
 endif
 
@@ -110,6 +113,16 @@ DEFINES       += HAVE_BOLOS_APP_STACK_CANARY
 DEFINES       += HAVE_WEBUSB WEBUSB_URL_SIZE_B=0 WEBUSB_URL=""
 
 ifeq ($(TARGET_NAME),TARGET_NANOX)
+DEFINES       += HAVE_BLE
+DEFINES       += HAVE_BLE_APDU BLE_COMMAND_TIMEOUT_MS=2000
+
+SDK_SOURCE_PATH  += lib_blewbxx lib_blewbxx_impl
+endif
+
+ifeq ($(TARGET_NAME),TARGET_NANOS)
+DEFINES       += IO_SEPROXYHAL_BUFFER_SIZE_B=128
+else
+# Assume Nano X/S+
 DEFINES       += IO_SEPROXYHAL_BUFFER_SIZE_B=300
 
 DEFINES       += HAVE_GLO096
@@ -120,15 +133,6 @@ DEFINES       += HAVE_BAGL_FONT_OPEN_SANS_EXTRABOLD_11PX
 DEFINES       += HAVE_BAGL_FONT_OPEN_SANS_LIGHT_16PX
 
 DEFINES       += HAVE_UX_FLOW
-
-DEFINES       += HAVE_BLE
-DEFINES       += HAVE_BLE_APDU BLE_COMMAND_TIMEOUT_MS=2000
-
-SDK_SOURCE_PATH  += lib_blewbxx lib_blewbxx_impl
-else
-# Assume Nano S
-DEFINES       += IO_SEPROXYHAL_BUFFER_SIZE_B=128
-#DEFINES       += COMPLIANCE_UX_160 HAVE_UX_LEGACY   #defined in SDK
 endif
 
 # X specific

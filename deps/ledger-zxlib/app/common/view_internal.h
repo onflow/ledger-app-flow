@@ -24,7 +24,7 @@
 
 #define CUR_FLOW G_ux.flow_stack[G_ux.stack_count-1]
 
-#if defined(TARGET_NANOX)
+#if defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 #define MAX_CHARS_PER_KEY_LINE      64
 #define MAX_CHARS_PER_VALUE1_LINE   4096
 #define MAX_CHARS_HEXMESSAGE        160

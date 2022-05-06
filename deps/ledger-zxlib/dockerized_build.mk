@@ -42,6 +42,15 @@ ifeq ($(TARGET_DEVICE), NANO_X)
     TEST_DEVICE=nanox
     SPECULOS_SDK=2.0.2
 endif
+ifeq ($(TARGET_DEVICE), NANO_SP)
+    $(info Targeting NanoSPlus)
+    SPECULOS_MODEL_SWITCH=nanosp
+    NANO_ICON_GIF=nanox_icon.gif
+    BOLOS_SDK_DIRECTORY=/opt/nanosplus-secure-sdk
+    TARGET_NAME=TARGET_NANOS2
+    TEST_DEVICE=nanosp
+    SPECULOS_SDK=1.0
+endif
 
 
 # todo: figure out if we are running on MacOS or Linux and how to set this env var dynamically: MAKE_LINUX_DOCKER_OPTIONS=--network host
@@ -375,18 +384,18 @@ cpp_test:
 .PHONY: ledger_test
 ledger_test:
 	$(call run_announce,$@)
-	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-app-version.js
-	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-slot-status-bad-net.js
-	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-slot-status-full.js
-	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-sign-basic-invalid.js
-	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-get-address.js
-	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-show-address-secp256k1.js
-	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-show-address-secp256r1.js
-	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-basic-show-address-expert.js
-	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-menu.js
-	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-slot-transaction-interaction.js
-	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-transaction-expert-mode.js
-	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER node test-transactions.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-basic-app-version.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-basic-slot-status-bad-net.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-basic-slot-status-full.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-basic-sign-basic-invalid.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-basic-get-address.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-basic-show-address-secp256k1.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-basic-show-address-secp256r1.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-basic-show-address-expert.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-menu.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-slot-transaction-interaction.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-transaction-expert-mode.js
+	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-transactions.js
 	@echo "# ALL TESTS COMPLETED!"
 
 ########################## FUZZING Section ###############################
