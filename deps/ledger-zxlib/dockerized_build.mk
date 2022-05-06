@@ -43,7 +43,7 @@ ifeq ($(TARGET_DEVICE), NANO_X)
     SPECULOS_SDK=2.0.2
 endif
 ifeq ($(TARGET_DEVICE), NANO_SP)
-    $(info Targeting NanoX)
+    $(info Targeting NanoSPlus)
     SPECULOS_MODEL_SWITCH=nanosp
     NANO_ICON_GIF=nanox_icon.gif
     BOLOS_SDK_DIRECTORY=/opt/nanosplus-secure-sdk
