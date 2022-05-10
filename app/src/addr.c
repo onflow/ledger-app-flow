@@ -98,9 +98,9 @@ zxerr_t addr_getItem_internal(int8_t *displayIdx,
             array_to_hexstr(outKey, outKeyLen, address_to_display.data, sizeof(address_to_display.data)); 
             snprintf(outVal, outValLen, " using any Flow  blockch. explorer.");
         #else
-            //Hack, but it does not seem dangerous and it saves a  bit of stack memory
-            array_to_hexstr(outKey, outKeyLen, address_to_display.data, sizeof(address_to_display.data)); 
-            snprintf(outVal, outValLen, "%s using any Flow blockchain explorer.", outKey);
+            char buffer[2*sizeof(address_to_display.data)+1];
+            array_to_hexstr(buffer, sizeof(buffer), address_to_display.data, sizeof(address_to_display.data)); 
+            snprintf(outVal, outValLen, "%s using any Flow blockchain explorer.", buffer);
             snprintf(outKey, outKeyLen, ""); 
         #endif
         return zxerr_ok;
