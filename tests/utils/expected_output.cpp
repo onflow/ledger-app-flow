@@ -404,8 +404,8 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
         case SCRIPT_TS02_TRANSFER_TOP_SHOT_MOMENT: {
             addTo(answer, "{} | Type : Transfer Top Shot Moment", item++);
             addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
-            addTo(answer, "{} | Moment ID : {}", item++, tcd.arguments[0]["value"].asString());
-            addMultiStringArgumentTo(answer, "Address", item++, tcd.arguments[1]["value"]);
+            addTo(answer, "{} | Moment ID : {}", item++, tcd.arguments[1]["value"].asString());
+            addMultiStringArgumentTo(answer, "Address", item++, tcd.arguments[0]["value"]);
             break;
         }
         case SCRIPT_USDC01_SETUP_USDC_VAULT: {

@@ -1867,12 +1867,12 @@ parser_error_t parser_getItemTransferTopShotMoment(const parser_context_t *ctx,
                                        outVal, outValLen, pageIdx, pageCount);
         case 2:
             snprintf(outKey, outKeyLen, "Moment ID");
-            return parser_printArgument(&parser_tx_obj.arguments, 0,
+            return parser_printArgument(&parser_tx_obj.arguments, 1,
                                         "UInt64", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
         case 3:
             snprintf(outKey, outKeyLen, "Address");
-            return parser_printArgument(&parser_tx_obj.arguments, 1,
+            return parser_printArgument(&parser_tx_obj.arguments, 0,
                                         "Address", JSMN_STRING,
                                         outVal, outValLen, pageIdx, pageCount);
         default:
