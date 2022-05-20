@@ -40,18 +40,18 @@ flow_argument_list_t arg_list = {{},{context2, context3, context4, context5}, 4}
 
 
 
-TEST(parser, printOptionalDelegatorID) {
+TEST(parser, printOptionalArgument) {
     char outValBuf[40];
     uint8_t pageCountVar = 0;
 
     char ufix64[] = "UFix64";
-    parser_error_t err = parser_printArgumentOptionalDelegatorID(&arg_list, 0, ufix64, JSMN_STRING,
+    parser_error_t err = parser_printOptionalArgument(&arg_list, 0, ufix64, JSMN_STRING,
                                                outValBuf, 40, 0, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_THAT(pageCountVar, 1);
     EXPECT_STREQ(outValBuf, "None");
 
-    err = parser_printArgumentOptionalDelegatorID(&arg_list, 1, ufix64, JSMN_STRING,
+    err = parser_printOptionalArgument(&arg_list, 1, ufix64, JSMN_STRING,
                                                outValBuf, 40, 0, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_STREQ(outValBuf, "545.77");
@@ -59,82 +59,82 @@ TEST(parser, printOptionalDelegatorID) {
 }
 
 
-TEST(parser, printOptionalPublicKeys) {
+TEST(parser, printOptionalArray) {
     char outValBuf[40];
     uint8_t pageCountVar = 0;
 
-    parser_error_t err = parser_printArgumentOptionalPublicKeys(&arg_list.argCtx[0], 0,
+    parser_error_t err = parser_printArgumentOptionalArray(&arg_list, 0, 0, "String", JSMN_STRING,
                                                outValBuf, 40, 0, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_THAT(pageCountVar, 1);
     EXPECT_STREQ(outValBuf, "None");
 
-    err = parser_printArgumentOptionalPublicKeys(&arg_list.argCtx[2], 0,
+    err = parser_printArgumentOptionalArray(&arg_list, 2, 0, "String", JSMN_STRING,
                                                outValBuf, 40, 0, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_STREQ(outValBuf, "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb");
     EXPECT_THAT(pageCountVar, 4);
 
-    err = parser_printArgumentOptionalPublicKeys(&arg_list.argCtx[2], 0,
+    err = parser_printArgumentOptionalArray(&arg_list, 2, 0, "String", JSMN_STRING,
                                                outValBuf, 40, 1, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_STREQ(outValBuf, "29feaeb4559fdb71a97e2fd0438565310e87670");
     EXPECT_THAT(pageCountVar, 4);
 
-    err = parser_printArgumentOptionalPublicKeys(&arg_list.argCtx[2], 0,
+    err = parser_printArgumentOptionalArray(&arg_list, 2, 0, "String", JSMN_STRING,
                                                outValBuf, 40, 2, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_STREQ(outValBuf, "035d83bc10fe67fe314dba5363c81654595d648");
     EXPECT_THAT(pageCountVar, 4);
 
-    err = parser_printArgumentOptionalPublicKeys(&arg_list.argCtx[2], 0,
+    err = parser_printArgumentOptionalArray(&arg_list, 2, 0, "String", JSMN_STRING,
                                                outValBuf, 40, 3, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_STREQ(outValBuf, "84b1ecad1512a64e65e020164");
     EXPECT_THAT(pageCountVar, 4);
 
-    err = parser_printArgumentOptionalPublicKeys(&arg_list.argCtx[3], 0,
+    err = parser_printArgumentOptionalArray(&arg_list, 3, 0, "String", JSMN_STRING,
                                                outValBuf, 40, 0, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_STREQ(outValBuf, "e845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb");
     EXPECT_THAT(pageCountVar, 4);
 
-    err = parser_printArgumentOptionalPublicKeys(&arg_list.argCtx[3], 0,
+    err = parser_printArgumentOptionalArray(&arg_list, 3, 0, "String", JSMN_STRING,
                                                outValBuf, 40, 1, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_STREQ(outValBuf, "29feaeb4559fdb71a97e2fd0438565310e87670");
     EXPECT_THAT(pageCountVar, 4);
 
-    err = parser_printArgumentOptionalPublicKeys(&arg_list.argCtx[3], 0,
+    err = parser_printArgumentOptionalArray(&arg_list, 3, 0, "String", JSMN_STRING,
                                                outValBuf, 40, 2, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_STREQ(outValBuf, "035d83bc10fe67fe314dba5363c81654595d648");
     EXPECT_THAT(pageCountVar, 4);
 
-    err = parser_printArgumentOptionalPublicKeys(&arg_list.argCtx[3], 0,
+    err = parser_printArgumentOptionalArray(&arg_list, 3, 0, "String", JSMN_STRING,
                                                outValBuf, 40, 3, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_STREQ(outValBuf, "84b1ecad1512a64e65e020164");
     EXPECT_THAT(pageCountVar, 4);
 
-    err = parser_printArgumentOptionalPublicKeys(&arg_list.argCtx[3], 1,
+    err = parser_printArgumentOptionalArray(&arg_list, 3, 1, "String", JSMN_STRING,
                                                outValBuf, 40, 0, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_STREQ(outValBuf, "d845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb");
     EXPECT_THAT(pageCountVar, 4);
-    err = parser_printArgumentOptionalPublicKeys(&arg_list.argCtx[3], 1,
+    err = parser_printArgumentOptionalArray(&arg_list, 3, 1, "String", JSMN_STRING,
                                                outValBuf, 40, 1, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_STREQ(outValBuf, "29feaeb4559fdb71a97e2fd0438565310e87670");
     EXPECT_THAT(pageCountVar, 4);
 
-    err = parser_printArgumentOptionalPublicKeys(&arg_list.argCtx[3], 1,
+    err = parser_printArgumentOptionalArray(&arg_list, 3, 1, "String", JSMN_STRING,
                                                outValBuf, 40, 2, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_STREQ(outValBuf, "035d83bc10fe67fe314dba5363c81654595d648");
     EXPECT_THAT(pageCountVar, 4);
 
-    err = parser_printArgumentOptionalPublicKeys(&arg_list.argCtx[3], 1,
+    err = parser_printArgumentOptionalArray(&arg_list, 3, 1, "String", JSMN_STRING,
                                                outValBuf, 40, 3, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_STREQ(outValBuf, "84b1ecad1512a64e65e020164");

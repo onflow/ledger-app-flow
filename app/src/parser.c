@@ -192,7 +192,7 @@ parser_error_t parser_printArgument(const flow_argument_list_t *v, uint8_t argIn
 parser_error_t parser_printOptionalArgument(const flow_argument_list_t *v, uint8_t argIndex,
                                                char *expectedType, jsmntype_t jsonType,
                                                char *outVal, uint16_t outValLen,
-                                               __Z_UNUSED uint8_t pageIdx, uint8_t *pageCount) {
+                                               uint8_t pageIdx, uint8_t *pageCount) {
     MEMZERO(outVal, outValLen);
 
     if (argIndex >= v->argCount) {
