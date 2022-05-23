@@ -49,9 +49,9 @@ parser_error_t parser_getItem(const parser_context_t *ctx,
 
 ////for testing purposes
 parser_error_t parser_printOptionalArgument(const flow_argument_list_t *v, uint8_t argIndex,
-                                               char *expectedType, jsmntype_t jsonType,
-                                               char *outVal, uint16_t outValLen,
-                                               uint8_t pageIdx, uint8_t *pageCount);
+                                            char *expectedType, jsmntype_t jsonType,
+                                            char *outVal, uint16_t outValLen,
+                                            uint8_t pageIdx, uint8_t *pageCount);
 
 parser_error_t parser_printArgumentOptionalArray(const flow_argument_list_t *v, uint8_t argIndex, uint8_t arrayIndex,
                                                  char *expectedType, jsmntype_t jsonType,

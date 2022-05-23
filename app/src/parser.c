@@ -212,7 +212,9 @@ parser_error_t parser_printOptionalArgument(const flow_argument_list_t *v, uint8
         strncpy_s(outVal, "None", 5);
     }
     else {
-        CHECK_PARSER_ERR(json_extractToken(outVal, outValLen, &parsedJson, valueTokenIndex))
+        char bufferUI[ARGUMENT_BUFFER_SIZE_STRING];
+        CHECK_PARSER_ERR(json_extractToken(bufferUI, sizeof(bufferUI), &parsedJson, valueTokenIndex))
+        pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
     }
 
     return PARSER_OK;
