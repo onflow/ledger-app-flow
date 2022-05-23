@@ -49,7 +49,7 @@ async function transactionTest(app, transport, device, txHexBlob, sigAlgo, hashA
 	const signPromise =  app.sign(path, txBlob, options);
 	//sign is multiAPDU operation. To help the snapshotter with synchronization we await last APDU beign sent
 	await transport.waitForAPDU(0x33, 0x02, 0x02);	
-    await device.review("Show address 1 - empty slot");
+    await device.review("Review transaction");
 	const signResponse = await signPromise;
 
 	assert.equal(signResponse.returnCode, 0x9000);
