@@ -159,7 +159,7 @@ parser_error_t json_extractToken(char *outVal, uint16_t outValLen, parsed_json_t
     return PARSER_OK;
 }
 
-parser_error_t json_matchToken(parsed_json_t *parsedJson, uint16_t tokenIdx, char *expectedValue) {
+parser_error_t json_matchToken(parsed_json_t *parsedJson, uint16_t tokenIdx, const char *expectedValue) {
     CHECK_PARSER_ERR(json_validateToken(parsedJson, tokenIdx))
 
     const jsmntok_t token = parsedJson->tokens[tokenIdx];
@@ -198,7 +198,7 @@ parser_error_t json_matchNull(parsed_json_t *parsedJson, uint16_t tokenIdx) {
 }
 
 parser_error_t json_matchKeyValue(parsed_json_t *parsedJson,
-                                  uint16_t tokenIdx, char *expectedType, jsmntype_t jsonType, uint16_t *valueTokenIdx) {
+                                  uint16_t tokenIdx, const char *expectedType, jsmntype_t jsonType, uint16_t *valueTokenIdx) {
     CHECK_PARSER_ERR(json_validateToken(parsedJson, tokenIdx))
 
     if (! (tokenIdx + 4 < parsedJson->numberOfTokens)) {
@@ -229,7 +229,7 @@ parser_error_t json_matchKeyValue(parsed_json_t *parsedJson,
 
 //valueTokenIdx is JSON_MATCH_VALUE_IDX_NONE if the optional is null
 parser_error_t json_matchOptionalKeyValue(parsed_json_t *parsedJson,
-                                  uint16_t tokenIdx, char *expectedType, jsmntype_t jsonType, uint16_t *valueTokenIdx) {
+                                  uint16_t tokenIdx, const char *expectedType, jsmntype_t jsonType, uint16_t *valueTokenIdx) {
     CHECK_PARSER_ERR(json_validateToken(parsedJson, tokenIdx))
 
     if (!(tokenIdx + 4 < parsedJson->numberOfTokens)) {
@@ -324,18 +324,6 @@ parser_error_t formatStrUInt8AsHex(const char *decStr, char *hexStr) {
     hexStr[0] = hexDigit(v / 16);
     hexStr[1] = hexDigit(v % 16);
     hexStr[2] = 0;
-    return PARSER_OK;
-}
-
-parser_error_t json_extractString(char *outVal, uint16_t outValLen, parsed_json_t *parsedJson, uint16_t tokenIdx) {
-    MEMZERO(outVal, outValLen);
-
-    uint16_t internalTokenElemIdx;
-    CHECK_PARSER_ERR(json_matchKeyValue(
-            parsedJson, tokenIdx, (char *) "String", JSMN_STRING, &internalTokenElemIdx))
-
-    CHECK_PARSER_ERR(json_extractToken(outVal, outValLen, parsedJson, internalTokenElemIdx))
-
     return PARSER_OK;
 }
 

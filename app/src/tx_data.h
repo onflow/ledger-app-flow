@@ -35,6 +35,7 @@ typedef enum {
 #define MAX_TEMPLATE_NUMBER_OF_HASHES 10
 #define MAX_TEMPLATE_STRING_LENGTH 100
 
+//It is planed that all these strings may be on flash, thus they are volatile (for NanoX and NanoSPlus)
 typedef struct {
     parsed_tx_template_argument_type_e argumentType;
     const NV_VOLATILE char *displayKey; 
@@ -56,6 +57,7 @@ typedef struct {
 
 #define SCRIPT_HASH_SIZE 32
 
+//It is planed that compressedData may be on flash, thus they are volatile (for NanoX and NanoSPlus)
 parser_error_t parseCompressedTxData(uint8_t scriptHash[SCRIPT_HASH_SIZE], const NV_VOLATILE uint8_t *compressedData, uint16_t compressedDataLen, 
                                      parsed_tx_template_t *parsedTxTempate);
 

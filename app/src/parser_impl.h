@@ -51,16 +51,16 @@ parser_error_t json_validateToken(parsed_json_t *parsedJson, uint16_t tokenIdx);
 
 parser_error_t json_extractToken(char *outVal, uint16_t outValLen, parsed_json_t *parsedJson, uint16_t tokenIdx);
 
-parser_error_t json_matchToken(parsed_json_t *parsedJson, uint16_t tokenIdx, char *expectedValue);
+parser_error_t json_matchToken(parsed_json_t *parsedJson, uint16_t tokenIdx, const char *expectedValue);
 
 parser_error_t json_matchNull(parsed_json_t *parsedJson, uint16_t tokenIdx);
 
 parser_error_t json_matchKeyValue(parsed_json_t *parsedJson,
-                                  uint16_t tokenIdx, char *expectedType, jsmntype_t jsonType, uint16_t *valueTokenIdx);
+                                  uint16_t tokenIdx, const char *expectedType, jsmntype_t jsonType, uint16_t *valueTokenIdx);
 
 #define JSON_MATCH_VALUE_IDX_NONE 65535
 parser_error_t json_matchOptionalKeyValue(parsed_json_t *parsedJson,
-                                  uint16_t tokenIdx, char *expectedType, jsmntype_t jsonType, uint16_t *valueTokenIdx);
+                                  uint16_t tokenIdx, const char *expectedType, jsmntype_t jsonType, uint16_t *valueTokenIdx);
 
 parser_error_t json_matchOptionalArray(parsed_json_t *parsedJson, uint16_t tokenIdx, uint16_t *valueTokenIdx);
 

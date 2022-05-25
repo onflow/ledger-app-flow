@@ -95,8 +95,6 @@ TEST(tx_data, validateHash) {
     EXPECT_THAT(err, PARSER_OK);
 }
 
-const uint8_t A[] = { 0, 1 };
-
 
 TEST(tx_data, parseCompressedTxData) {
     parser_error_t err;

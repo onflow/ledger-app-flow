@@ -149,7 +149,7 @@ parser_error_t parseCompressedTxData(uint8_t scriptHash[SCRIPT_HASH_SIZE], const
         if (parsedTxTempate->argCount > PARSER_MAX_ARGCOUNT) {
             return PARSER_TEMPLATE_TOO_MANY_ARGUMENTS;
         }
-        STATIC_ASSERT(sizeof(parsedTxTempate->arguments) >= PARSER_MAX_ARGCOUNT, "Too few argumentst in parsed_tx_template_t.");
+        STATIC_ASSERT(sizeof(parsedTxTempate->arguments) >= PARSER_MAX_ARGCOUNT, "Too few arguments in parsed_tx_template_t.");
         for(int i=0; i<parsedTxTempate->argCount; i++) {
             READ_CHAR(&parsedTxTempate->arguments[i].argumentType);
             READ_STRING(&parsedTxTempate->arguments[i].displayKey, &parsedTxTempate->arguments[i].displayKeyLength)
@@ -173,10 +173,10 @@ parser_error_t parseCompressedTxData(uint8_t scriptHash[SCRIPT_HASH_SIZE], const
 parser_error_t matchStoredCompressedTxData(uint8_t scriptHash[SCRIPT_HASH_SIZE], parsed_tx_template_t *parsedTxTempate) {
     size_t i=0;
     while(KNOWN_TEMPLATES[i].template != NULL) {
-        parser_error_t err = _validateHash(scriptHash, KNOWN_TEMPLATES[i].template, KNOWN_TEMPLATES[i].templateLength);
+        parser_error_t err = _validateHash(scriptHash, PIC(KNOWN_TEMPLATES[i].template), KNOWN_TEMPLATES[i].templateLength);
         switch (err) {
             case PARSER_OK:
-                return parseCompressedTxData(scriptHash, KNOWN_TEMPLATES[i].template, KNOWN_TEMPLATES[i].templateLength, parsedTxTempate);
+                return parseCompressedTxData(scriptHash, PIC(KNOWN_TEMPLATES[i].template), KNOWN_TEMPLATES[i].templateLength, parsedTxTempate);
             case PARSER_UNEXPECTED_SCRIPT:
                 break;  //break switch
             default:
