@@ -133,8 +133,6 @@ pull_build_container:
 
 .PHONY: build
 build: pull_build_container
-	$(info Replacing app icon)
-	@cp $(LEDGER_SRC)/$(NANO_ICON_GIF) $(LEDGER_SRC)/glyphs/icon_app.gif
 	$(info calling make inside docker)
 	$(call run_docker, , make -j `nproc`)
 
