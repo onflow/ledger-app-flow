@@ -30,42 +30,42 @@ typedef enum {
     ARGUMENT_TYPE_OPTIONAL = 2,
     ARGUMENT_TYPE_ARRAY = 3,
     ARGUMENT_TYPE_OPTIONALARRAY = 4
-} parsed_tx_template_argument_type_e;
+} argument_type_e;
 
 #define MAX_TEMPLATE_NUMBER_OF_HASHES 10
 #define MAX_TEMPLATE_STRING_LENGTH 100
 
 //It is planed that all these strings may be on flash, thus they are volatile (for NanoX and NanoSPlus)
 typedef struct {
-    parsed_tx_template_argument_type_e argumentType;
+    argument_type_e argumentType;
     const NV_VOLATILE char *displayKey; 
     uint8_t displayKeyLength;
     uint8_t argumentIndex; //argument index within transaction
     const NV_VOLATILE char *jsonExpectedType; //pointer to null terminated string
     uint8_t jsonExpectedTypeLength;
     jsmntype_t jsonExpectedKind;
-} parsed_tx_template_argument_t;
+} parsed_tx_metadata_argument_t;
 
 typedef struct {
     script_type_e script;
     const NV_VOLATILE char *txName;
     uint8_t txNameLength;
     uint8_t argCount;
-    parsed_tx_template_argument_t arguments[PARSER_MAX_ARGCOUNT]; //order of arguments in which they should be displayed
-} parsed_tx_template_t;
+    parsed_tx_metadata_argument_t arguments[PARSER_MAX_ARGCOUNT]; //order of arguments in which they should be displayed
+} parsed_tx_metadata_t;
 
 
 #define SCRIPT_HASH_SIZE 32
 
 //It is planed that compressedData may be on flash, thus they are volatile (for NanoX and NanoSPlus)
-parser_error_t parseCompressedTxData(uint8_t scriptHash[SCRIPT_HASH_SIZE], const NV_VOLATILE uint8_t *compressedData, uint16_t compressedDataLen, 
-                                     parsed_tx_template_t *parsedTxTempate);
+parser_error_t parseTxMetadata(uint8_t scriptHash[SCRIPT_HASH_SIZE], const NV_VOLATILE uint8_t *txMetadata, uint16_t txMetadataLength, 
+                               parsed_tx_metadata_t *parsedTxMetadata);
 
-parser_error_t matchStoredCompressedTxData(uint8_t scriptHash[SCRIPT_HASH_SIZE], parsed_tx_template_t *parsedTxTempate);
+parser_error_t matchStoredTxMetadata(uint8_t scriptHash[SCRIPT_HASH_SIZE], parsed_tx_metadata_t *parsedTxMetadata);
 
 #ifdef __cplusplus
 
 //For C++ unit tests
-parser_error_t _validateHash(uint8_t scriptHash[SCRIPT_HASH_SIZE], const NV_VOLATILE uint8_t *compressedData, uint16_t compressedDataLen);
+parser_error_t _validateHash(uint8_t scriptHash[SCRIPT_HASH_SIZE], const NV_VOLATILE uint8_t *txMetadata, uint16_t txMetadataLength);
 }
 #endif

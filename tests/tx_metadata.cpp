@@ -19,10 +19,10 @@
 #include <stdlib.h>
 #include <hexutils.h>
 #include <json/json_parser.h>
-#include <tx_data.h>
+#include <tx_metadata.h>
 #include <string.h>
 
-const uint8_t TEMPLATE_ADD_NEW_KEY[] = {
+const uint8_t TX_METADATA_ADD_NEW_KEY[] = {
     1, //number of hashes + hashes
     0x59, 0x5c, 0x86, 0x56, 0x14, 0x41, 0xb3, 0x2b, 0x2b, 0x91, 0xee, 0x03, 0xf9, 0xe1, 0x0c, 0xa6, 0xef, 0xa7, 0xb4, 0x1b, 0xcc, 0x99, 0x4f, 0x51, 0x31, 0x7e, 0xc0, 0xaa, 0x9d, 0x8f, 0x8a, 0x42,
     'A', 'd', 'd', ' ', 'N', 'e', 'w', ' ', 'K', 'e', 'y', 0,  //tx name (to display)
@@ -36,7 +36,7 @@ const uint8_t TEMPLATE_ADD_NEW_KEY[] = {
     JSMN_STRING //expected value json token type
 };
 
-const uint8_t TEMPLATE_TOKEN_TRANSFER[] = {
+const uint8_t TX_METADATA_TOKEN_TRANSFER[] = {
     3, //number of hashes + hashes
     0xca, 0x80, 0xb6, 0x28, 0xd9, 0x85, 0xb3, 0x58, 0xae, 0x1c, 0xb1, 0x36, 0xbc, 0xd9, 0x76, 0x99, 0x7c, 0x94, 0x2f, 0xa1, 0x0d, 0xba, 0xbf, 0xea, 0xfb, 0x4e, 0x20, 0xfa, 0x66, 0xa5, 0xa5, 0xe2,
     0xd5, 0x6f, 0x4e, 0x1d, 0x23, 0x55, 0xcd, 0xcf, 0xac, 0xfd, 0x01, 0xe4, 0x71, 0x45, 0x9c, 0x6e, 0xf1, 0x68, 0xbf, 0xdf, 0x84, 0x37, 0x1a, 0x68, 0x5c, 0xcf, 0x31, 0xcf, 0x3c, 0xde, 0xdc, 0x2d,
@@ -67,42 +67,42 @@ uint8_t hashTokenTranfer3[32] = {0x47, 0x85, 0x15, 0x86, 0xd9, 0x62, 0x33, 0x5e,
 
 TEST(tx_data, validateHash) {
     parser_error_t err;
-    err = _validateHash(hashAddNewKey, TEMPLATE_ADD_NEW_KEY, sizeof(TEMPLATE_ADD_NEW_KEY));
+    err = _validateHash(hashAddNewKey, TX_METADATA_ADD_NEW_KEY, sizeof(TX_METADATA_ADD_NEW_KEY));
     EXPECT_THAT(err, PARSER_OK);
 
-    err = _validateHash(hashTokenTranfer1, TEMPLATE_ADD_NEW_KEY, sizeof(TEMPLATE_ADD_NEW_KEY));
+    err = _validateHash(hashTokenTranfer1, TX_METADATA_ADD_NEW_KEY, sizeof(TX_METADATA_ADD_NEW_KEY));
     EXPECT_THAT(err, PARSER_UNEXPECTED_SCRIPT);
 
-    err = _validateHash(hashTokenTranfer1, TEMPLATE_TOKEN_TRANSFER, sizeof(TEMPLATE_TOKEN_TRANSFER));
+    err = _validateHash(hashTokenTranfer1, TX_METADATA_TOKEN_TRANSFER, sizeof(TX_METADATA_TOKEN_TRANSFER));
     EXPECT_THAT(err, PARSER_OK);
 
-    err = _validateHash(hashTokenTranfer2, TEMPLATE_TOKEN_TRANSFER, sizeof(TEMPLATE_TOKEN_TRANSFER));
+    err = _validateHash(hashTokenTranfer2, TX_METADATA_TOKEN_TRANSFER, sizeof(TX_METADATA_TOKEN_TRANSFER));
     EXPECT_THAT(err, PARSER_OK);
 
-    err = _validateHash(hashTokenTranfer3, TEMPLATE_TOKEN_TRANSFER, sizeof(TEMPLATE_TOKEN_TRANSFER));
+    err = _validateHash(hashTokenTranfer3, TX_METADATA_TOKEN_TRANSFER, sizeof(TX_METADATA_TOKEN_TRANSFER));
     EXPECT_THAT(err, PARSER_OK);
 
-    err = _validateHash(hashAddNewKey, TEMPLATE_TOKEN_TRANSFER, sizeof(TEMPLATE_TOKEN_TRANSFER));
+    err = _validateHash(hashAddNewKey, TX_METADATA_TOKEN_TRANSFER, sizeof(TX_METADATA_TOKEN_TRANSFER));
     EXPECT_THAT(err, PARSER_UNEXPECTED_SCRIPT);
 
-    err = _validateHash(hashTokenTranfer3, TEMPLATE_ADD_NEW_KEY, 0);
+    err = _validateHash(hashTokenTranfer3, TX_METADATA_ADD_NEW_KEY, 0);
     EXPECT_THAT(err, PARSER_TEMPLATE_ERROR);
 
-    err = _validateHash(hashTokenTranfer3, TEMPLATE_TOKEN_TRANSFER, 3*32);
+    err = _validateHash(hashTokenTranfer3, TX_METADATA_TOKEN_TRANSFER, 3*32);
     EXPECT_THAT(err, PARSER_TEMPLATE_ERROR);
 
-    err = _validateHash(hashTokenTranfer3, TEMPLATE_TOKEN_TRANSFER, 3*32+1);
+    err = _validateHash(hashTokenTranfer3, TX_METADATA_TOKEN_TRANSFER, 3*32+1);
     EXPECT_THAT(err, PARSER_OK);
 }
 
 
 TEST(tx_data, parseCompressedTxData) {
     parser_error_t err;
-    parsed_tx_template_t result;
-    err = parseCompressedTxData(hashTokenTranfer1, TEMPLATE_ADD_NEW_KEY, sizeof(TEMPLATE_ADD_NEW_KEY), &result);
+    parsed_tx_metadata_t result;
+    err = parseTxMetadata(hashTokenTranfer1, TX_METADATA_ADD_NEW_KEY, sizeof(TX_METADATA_ADD_NEW_KEY), &result);
     EXPECT_THAT(err, PARSER_UNEXPECTED_SCRIPT);
     
-    err = parseCompressedTxData(hashAddNewKey, TEMPLATE_ADD_NEW_KEY, sizeof(TEMPLATE_ADD_NEW_KEY), &result);
+    err = parseTxMetadata(hashAddNewKey, TX_METADATA_ADD_NEW_KEY, sizeof(TX_METADATA_ADD_NEW_KEY), &result);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_THAT(std::string(result.txName), "Add New Key");
     EXPECT_THAT(result.txNameLength, 11);
@@ -115,7 +115,7 @@ TEST(tx_data, parseCompressedTxData) {
     EXPECT_THAT(result.arguments[0].jsonExpectedTypeLength, 6);
     EXPECT_THAT(result.arguments[0].jsonExpectedKind, JSMN_STRING);
 
-    err = parseCompressedTxData(hashTokenTranfer3, TEMPLATE_TOKEN_TRANSFER, sizeof(TEMPLATE_TOKEN_TRANSFER), &result);
+    err = parseTxMetadata(hashTokenTranfer3, TX_METADATA_TOKEN_TRANSFER, sizeof(TX_METADATA_TOKEN_TRANSFER), &result);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_THAT(std::string(result.txName), "Token Transfer");
     EXPECT_THAT(result.txNameLength, 14);
@@ -135,21 +135,21 @@ TEST(tx_data, parseCompressedTxData) {
     EXPECT_THAT(result.arguments[1].jsonExpectedTypeLength, 7);
     EXPECT_THAT(result.arguments[1].jsonExpectedKind, JSMN_STRING);    
 
-    err = parseCompressedTxData(hashAddNewKey, TEMPLATE_ADD_NEW_KEY, sizeof(TEMPLATE_ADD_NEW_KEY)-1, &result);
+    err = parseTxMetadata(hashAddNewKey, TX_METADATA_ADD_NEW_KEY, sizeof(TX_METADATA_ADD_NEW_KEY)-1, &result);
     EXPECT_THAT(err, PARSER_TEMPLATE_ERROR);
-    err = parseCompressedTxData(hashTokenTranfer3, TEMPLATE_TOKEN_TRANSFER, sizeof(TEMPLATE_TOKEN_TRANSFER)+1, &result);
+    err = parseTxMetadata(hashTokenTranfer3, TX_METADATA_TOKEN_TRANSFER, sizeof(TX_METADATA_TOKEN_TRANSFER)+1, &result);
     EXPECT_THAT(err, PARSER_TEMPLATE_ERROR);
 }
 
 TEST(tx_data, matchStoredCompressedTxData) {
     parser_error_t err;
-    parsed_tx_template_t result;
+    parsed_tx_metadata_t result;
 
     uint8_t hashWrong[32]     = {0x59, 0x5c, 0x86, 0x56, 0x14, 0x41, 0xb3, 0x2b, 0x2b, 0x91, 0xee, 0x03, 0xf9, 0xe1, 0x0c, 0xa6, 0xef, 0xa7, 0xb4, 0x1b, 0xcc, 0x99, 0x4f, 0x51, 0x31, 0x7e, 0xc0, 0xaa, 0x9d, 0x8f, 0x8a, 0x41};
-    err = matchStoredCompressedTxData(hashWrong, &result);
+    err = matchStoredTxMetadata(hashWrong, &result);
     EXPECT_THAT(err, PARSER_UNEXPECTED_SCRIPT);
 
-    err = matchStoredCompressedTxData(hashAddNewKey, &result);
+    err = matchStoredTxMetadata(hashAddNewKey, &result);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_THAT(std::string(result.txName), "Add New Key");
     EXPECT_THAT(result.txNameLength, 11);
@@ -162,7 +162,7 @@ TEST(tx_data, matchStoredCompressedTxData) {
     EXPECT_THAT(result.arguments[0].jsonExpectedTypeLength, 6);
     EXPECT_THAT(result.arguments[0].jsonExpectedKind, JSMN_STRING);
 
-    err = matchStoredCompressedTxData(hashTokenTranfer3, &result);
+    err = matchStoredTxMetadata(hashTokenTranfer3, &result);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_THAT(std::string(result.txName), "Token Transfer");
     EXPECT_THAT(result.txNameLength, 14);
