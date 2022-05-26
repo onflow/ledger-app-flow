@@ -30,22 +30,18 @@ extern parser_tx_t parser_tx_obj;
 
 parser_error_t parser_init(parser_context_t *ctx, const uint8_t *buffer, uint16_t bufferSize);
 
-parser_error_t _matchScriptType(uint8_t scriptHash[32], script_type_e *scriptType);
-
 parser_error_t _read(parser_context_t *c, parser_tx_t *v);
 
 parser_error_t _validateTx(const parser_context_t *c, const parser_tx_t *v);
 
-parser_error_t _getNumItems(const parser_context_t *c, const parser_tx_t *v, uint8_t *numItems);
-
 //Called when argumentIndex-th argument is an array. If the array length is more than max_number_of_items
 //returns parser error, otherwise it sets number_of_items as the array length. 
 parser_error_t _countArgumentItems(const flow_argument_list_t *v, uint8_t argumentIndex, 
-                                   uint8_t max_number_of_items, uint8_t *number_of_items);
+                                   uint8_t min_number_of_items, uint8_t max_number_of_items, uint8_t *number_of_items);
 
 //Same as _countArgumentItems, but the array is optional.
 parser_error_t _countArgumentOptionalItems(const flow_argument_list_t *v, uint8_t argumentIndex, 
-                                           uint8_t max_number_of_items, uint8_t *number_of_items);
+                                           uint8_t min_number_of_items, uint8_t max_number_of_items, uint8_t *number_of_items);
 
 parser_error_t json_validateToken(const parsed_json_t *parsedJson, uint16_t tokenIdx);
 

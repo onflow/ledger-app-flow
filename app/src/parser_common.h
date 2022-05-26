@@ -75,9 +75,10 @@ typedef enum {
     PARSER_REQUIRED_NONCE,
     PARSER_REQUIRED_METHOD,
     //Template errors
-    PARSER_TEMPLATE_TOO_MANY_HASHES,
-    PARSER_TEMPLATE_TOO_MANY_ARGUMENTS,
-    PARSER_TEMPLATE_ERROR //covers several minor template related errors
+    PARSER_METADATA_TOO_MANY_HASHES,
+    PARSER_METADATA_ERROR,
+    PARSER_METADATA_TOO_MANY_ARGUMENTS
+
 } parser_error_t;
 
 typedef struct {

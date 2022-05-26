@@ -45,7 +45,7 @@ const uint8_t TX_METADATA_TOKEN_TRANSFER[] = {
     2,  //number of arguments
 
     //Argument 1
-    ARGUMENT_TYPE_NORMAL,
+    ARGUMENT_TYPE_OPTIONALARRAY, 5, 10,
     'A', 'm', 'o', 'u', 'n', 't', 0, //arg name (to display)
     0, //argument index
     'U','I', 'n', 't', '6', '4',  0, //expected value type
@@ -86,10 +86,10 @@ TEST(tx_data, validateHash) {
     EXPECT_THAT(err, PARSER_UNEXPECTED_SCRIPT);
 
     err = _validateHash(hashTokenTranfer3, TX_METADATA_ADD_NEW_KEY, 0);
-    EXPECT_THAT(err, PARSER_TEMPLATE_ERROR);
+    EXPECT_THAT(err, PARSER_METADATA_ERROR);
 
     err = _validateHash(hashTokenTranfer3, TX_METADATA_TOKEN_TRANSFER, 3*32);
-    EXPECT_THAT(err, PARSER_TEMPLATE_ERROR);
+    EXPECT_THAT(err, PARSER_METADATA_ERROR);
 
     err = _validateHash(hashTokenTranfer3, TX_METADATA_TOKEN_TRANSFER, 3*32+1);
     EXPECT_THAT(err, PARSER_OK);
@@ -120,7 +120,9 @@ TEST(tx_data, parseCompressedTxData) {
     EXPECT_THAT(std::string(result.txName), "Token Transfer");
     EXPECT_THAT(result.txNameLength, 14);
     EXPECT_THAT(result.argCount, 2);
-    EXPECT_THAT(result.arguments[0].argumentType, ARGUMENT_TYPE_NORMAL);
+    EXPECT_THAT(result.arguments[0].argumentType, ARGUMENT_TYPE_OPTIONALARRAY);
+    EXPECT_THAT(result.arguments[0].arrayMinElements, 5);
+    EXPECT_THAT(result.arguments[0].arrayMaxElements, 10);
     EXPECT_THAT(std::string(result.arguments[0].displayKey), "Amount");
     EXPECT_THAT(result.arguments[0].displayKeyLength, 6);
     EXPECT_THAT(result.arguments[0].argumentIndex, 0);
@@ -136,12 +138,12 @@ TEST(tx_data, parseCompressedTxData) {
     EXPECT_THAT(result.arguments[1].jsonExpectedKind, JSMN_STRING);    
 
     err = parseTxMetadata(hashAddNewKey, TX_METADATA_ADD_NEW_KEY, sizeof(TX_METADATA_ADD_NEW_KEY)-1, &result);
-    EXPECT_THAT(err, PARSER_TEMPLATE_ERROR);
+    EXPECT_THAT(err, PARSER_METADATA_ERROR);
     err = parseTxMetadata(hashTokenTranfer3, TX_METADATA_TOKEN_TRANSFER, sizeof(TX_METADATA_TOKEN_TRANSFER)+1, &result);
-    EXPECT_THAT(err, PARSER_TEMPLATE_ERROR);
+    EXPECT_THAT(err, PARSER_METADATA_ERROR);
 }
 
-TEST(tx_data, matchStoredCompressedTxData) {
+TEST(tx_data, matchStoreTxMetadata) {
     parser_error_t err;
     parsed_tx_metadata_t result;
 
@@ -171,7 +173,7 @@ TEST(tx_data, matchStoredCompressedTxData) {
     EXPECT_THAT(std::string(result.arguments[0].displayKey), "Amount");
     EXPECT_THAT(result.arguments[0].displayKeyLength, 6);
     EXPECT_THAT(result.arguments[0].argumentIndex, 0);
-    EXPECT_THAT(std::string(result.arguments[0].jsonExpectedType), "UInt64");
+    EXPECT_THAT(std::string(result.arguments[0].jsonExpectedType), "UFix64");
     EXPECT_THAT(result.arguments[0].jsonExpectedTypeLength, 6);
     EXPECT_THAT(result.arguments[0].jsonExpectedKind, JSMN_STRING);
     EXPECT_THAT(result.arguments[1].argumentType, ARGUMENT_TYPE_NORMAL);

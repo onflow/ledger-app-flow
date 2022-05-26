@@ -30,10 +30,15 @@ uint8_t pubkey_to_display[SECP256_PK_LEN];
 //In the second case this is used to count the number of pages
 //If displayIdx is negative, all other values are undefined
 zxerr_t addr_getItem_internal(int8_t *displayIdx,
-                                         char *outKey, uint16_t outKeyLen,
-                                         char *outVal, uint16_t outValLen,
-                                         uint8_t pageIdx, uint8_t *pageCount) {
+                             char *outKey, uint16_t outKeyLen,
+                             char *outVal, uint16_t outValLen,
+                             uint8_t pageIdx, uint8_t *pageCount) {
     zemu_log_stack("addr_getItem_internal");
+
+    MEMZERO(outKey, outKeyLen);
+    MEMZERO(outVal, outValLen);
+    snprintf(outKey, outKeyLen, "? %d", *displayIdx);
+    snprintf(outVal, outValLen, "?");
 
     #define SCREEN(condition) if ((condition) && ((*displayIdx)--==0) && pageCount && (*pageCount = 1))
 
@@ -78,7 +83,7 @@ zxerr_t addr_getItem_internal(int8_t *displayIdx,
                 pageHexString(outVal, outValLen, address_to_display.data, sizeof(address_to_display.data), pageIdx, pageCount);
                 return zxerr_ok;
             default:
-                return zxerr_no_data;
+                return zxerr_unknown;
         }
     }
 
@@ -143,9 +148,12 @@ zxerr_t addr_getNumItems(uint8_t *num_items) {
     return err;
 }
 
-zxerr_t addr_getItem(int8_t displayIdx,
+zxerr_t addr_getItem(uint8_t displayIdx,
                      char *outKey, uint16_t outKeyLen,
                      char *outVal, uint16_t outValLen,
                      uint8_t pageIdx, uint8_t *pageCount) {
-    return addr_getItem_internal(&displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
+    if (displayIdx > INT8_MAX) {
+        return zxerr_out_of_bounds;
+    }
+    return addr_getItem_internal((int8_t *) &displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
