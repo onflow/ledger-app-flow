@@ -26,21 +26,27 @@ bool hasPubkey;
 uint8_t pubkey_to_display[SECP256_PK_LEN];
 
 //Small trick to avoid duplicated code here which was quite error prone:
-//displayIdx is either the index of page to display, or may be a negative integer. 
+//displayIdx is either the index of page to display, or GET_NUM_ITEMS_DISPLAY_IDX_STARTING_VALUE
 //In the second case this is used to count the number of pages
-//If displayIdx is negative, all other values are undefined
+//If displayIdx is GET_NUM_ITEMS_DISPLAY_IDX_STARTING_VALUE, all other values are NULL/0
+//Their use should be hiden behind SCREEN macro
+#define GET_NUM_ITEMS_DISPLAY_IDX_STARTING_VALUE (-1)
+
 zxerr_t addr_getItem_internal(int8_t *displayIdx,
-                             char *outKey, uint16_t outKeyLen,
-                             char *outVal, uint16_t outValLen,
-                             uint8_t pageIdx, uint8_t *pageCount) {
+                              char *outKey, uint16_t outKeyLen,
+                              char *outVal, uint16_t outValLen,
+                              uint8_t pageIdx, uint8_t *pageCount) {
     zemu_log_stack("addr_getItem_internal");
 
-    MEMZERO(outKey, outKeyLen);
-    MEMZERO(outVal, outValLen);
-    snprintf(outKey, outKeyLen, "? %d", *displayIdx);
-    snprintf(outVal, outValLen, "?");
+    if ((*displayIdx)!=GET_NUM_ITEMS_DISPLAY_IDX_STARTING_VALUE && (*displayIdx)<0) {
+        return zxerr_unknown;
+    }
 
-    #define SCREEN(condition) if ((condition) && ((*displayIdx)--==0) && pageCount && (*pageCount = 1))
+    //(*displayIdx!=INT8_MIN) : this prevents displayIdx to loop around from negative valiues to positive ones
+    //(*displayIdx)--==0 : If displayIdx is positive (and not INT8_MAX), this finds the right screen in the end
+    //pageCount && (*pageCount = 1) : We need to set *pageCount (in case it is not set in the screen) but only if it is not NULL
+    //Do not forget to break after switch/case even if you return from within SCREEN(true) block
+    #define SCREEN(condition) if ((condition) && (*displayIdx!=INT8_MIN) && ((*displayIdx)--==0) && pageCount && (*pageCount = 1))
 
     uint8_t show_address_yes = (show_address == SHOW_ADDRESS_YES || show_address == SHOW_ADDRESS_YES_HASH_MISMATCH);
 
@@ -58,13 +64,16 @@ zxerr_t addr_getItem_internal(int8_t *displayIdx,
         return zxerr_ok;
     }
 
-    SCREEN(true) {
-        switch(show_address) {
-            case SHOW_ADDRESS_ERROR:
+    switch(show_address) {
+        case SHOW_ADDRESS_ERROR:
+            SCREEN(true) {
                 snprintf(outKey, outKeyLen, "Error reading");
                 pageString(outVal, outValLen, "account data.", pageIdx, pageCount);
                 return zxerr_ok;
-            case SHOW_ADDRESS_EMPTY_SLOT:
+            }
+            break;
+        case SHOW_ADDRESS_EMPTY_SLOT:
+            SCREEN(true) {
 #if defined(TARGET_NANOS)
                 snprintf(outKey, outKeyLen, "Account data");
                 pageString(outVal, outValLen, "not saved on the device.", pageIdx, pageCount);
@@ -73,15 +82,22 @@ zxerr_t addr_getItem_internal(int8_t *displayIdx,
                 pageString(outVal, outValLen, "Account data not saved on the device.", pageIdx, pageCount);
 #endif
                 return zxerr_ok;
-            case SHOW_ADDRESS_HDPATHS_NOT_EQUAL:
+            }
+            break;
+        case SHOW_ADDRESS_HDPATHS_NOT_EQUAL:
+            SCREEN(true) {
                 snprintf(outKey, outKeyLen, "Address:");
                 pageString(outVal, outValLen, "Other path is saved on the device.", pageIdx, pageCount);
                 return zxerr_ok;
-            case SHOW_ADDRESS_YES:
-            case SHOW_ADDRESS_YES_HASH_MISMATCH:
+            }
+            break;
+        case SHOW_ADDRESS_YES:
+        case SHOW_ADDRESS_YES_HASH_MISMATCH:
+            SCREEN(true) {
                 snprintf(outKey, outKeyLen, "Address:");
                 pageHexString(outVal, outValLen, address_to_display.data, sizeof(address_to_display.data), pageIdx, pageCount);
                 return zxerr_ok;
+            break;
             default:
                 return zxerr_unknown;
         }
@@ -124,15 +140,17 @@ zxerr_t addr_getItem_internal(int8_t *displayIdx,
     #undef SCREEN
 }
 
-
-#define ARBITRARY_NEGATIVE_INTEGER -1
 zxerr_t addr_getNumItems(uint8_t *num_items) {
-    int8_t displays = ARBITRARY_NEGATIVE_INTEGER;
+    int8_t displays = GET_NUM_ITEMS_DISPLAY_IDX_STARTING_VALUE;
     zxerr_t err = addr_getItem_internal(&displays, NULL, 0, NULL, 0, 0, NULL);
 
-    int8_t pages = ARBITRARY_NEGATIVE_INTEGER - displays;
+    if (displays == INT8_MIN) {
+        return zxerr_unknown;
+    }
 
-    if (pages < 0) {
+    int8_t pages = GET_NUM_ITEMS_DISPLAY_IDX_STARTING_VALUE - displays;
+
+    if (pages < 0) { 
         num_items = 0;
         return zxerr_unknown;
     }

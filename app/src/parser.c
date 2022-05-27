@@ -411,16 +411,28 @@ parser_error_t parser_printAuthorizer(const flow_proposal_authorizer_t *v,
 #define CREATE_ACCOUNT_MAX_PUB_KEYS 5
 #define SCO03_REGISTER_NODE_MAX_PUB_KEYS 3
 
+//Small trick to avoid duplicated code here which was quite error prone:
+//displayIdx is either the index of page to display, or GET_NUM_ITEMS_DISPLAY_IDX_STARTING_VALUE
+//In the second case this is used to count the number of pages
+//If displayIdx is GET_NUM_ITEMS_DISPLAY_IDX_STARTING_VALUE, all other values are NULL/0
+//Their use should be hiden behind SCREEN macro
+#define GET_NUM_ITEMS_DISPLAY_IDX_STARTING_VALUE (-1)
+
 parser_error_t parser_getItem_internal(__Z_UNUSED const parser_context_t *ctx, int8_t *displayIdx,
                                        char *outKey, uint16_t outKeyLen,
                                        char *outVal, uint16_t outValLen,
                                        uint8_t pageIdx, uint8_t *pageCount) {
-    MEMZERO(outKey, outKeyLen);
-    MEMZERO(outVal, outValLen);
-    snprintf(outKey, outKeyLen, "? %d", *displayIdx);
-    snprintf(outVal, outValLen, "?");
+    zemu_log_stack("parser_getItem_internal");
 
-    #define SCREEN(condition) if ((condition) && ((*displayIdx)--==0) && pageCount && (*pageCount = 1))
+    if ((*displayIdx)!=GET_NUM_ITEMS_DISPLAY_IDX_STARTING_VALUE && (*displayIdx)<0) {
+        return PARSER_UNEXPECTED_ERROR;
+    }
+
+    //(*displayIdx!=INT8_MIN) : this prevents displayIdx to loop around from negative valiues to positive ones
+    //(*displayIdx)--==0 : If displayIdx is positive (and not INT8_MAX), this finds the right screen in the end
+    //pageCount && (*pageCount = 1) : We need to set *pageCount (in case it is not set in the screen) but only if it is not NULL
+    //Do not forget to break after switch/case even if you return from within SCREEN(true) block
+    #define SCREEN(condition) if ((condition) && (*displayIdx!=INT8_MIN) && ((*displayIdx)--==0) && pageCount && (*pageCount = 1))
 
     SCREEN(true) {
         snprintf(outKey, outKeyLen, "Type");
@@ -575,11 +587,15 @@ parser_error_t parser_getItem_internal(__Z_UNUSED const parser_context_t *ctx, i
     #undef SCREEN
 }
 
-#define ARBITRARY_NEGATIVE_INTEGER -1
 parser_error_t parser_getNumItems(const parser_context_t *ctx, uint8_t *num_items) {
-    int8_t displays = ARBITRARY_NEGATIVE_INTEGER;
+    int8_t displays = GET_NUM_ITEMS_DISPLAY_IDX_STARTING_VALUE;
     parser_error_t err = parser_getItem_internal(ctx, &displays, NULL, 0, NULL, 0, 0, NULL);
-    int8_t pages = ARBITRARY_NEGATIVE_INTEGER - displays;
+
+    if (displays == INT8_MIN) {
+        return PARSER_UNEXPECTED_ERROR;
+    }
+
+    int8_t pages = GET_NUM_ITEMS_DISPLAY_IDX_STARTING_VALUE - displays;
 
     if (pages < 0) {
         *num_items = 0;
