@@ -418,13 +418,24 @@ parser_error_t parser_printAuthorizer(const flow_proposal_authorizer_t *v,
 //Their use should be hiden behind SCREEN macro
 #define GET_NUM_ITEMS_DISPLAY_IDX_STARTING_VALUE (-1)
 
-parser_error_t parser_getItem_internal(__Z_UNUSED const parser_context_t *ctx, int8_t *displayIdx,
+parser_error_t parser_getItem_internal(int8_t *displayIdx,
                                        char *outKey, uint16_t outKeyLen,
                                        char *outVal, uint16_t outValLen,
                                        uint8_t pageIdx, uint8_t *pageCount) {
     zemu_log_stack("parser_getItem_internal");
 
-    if ((*displayIdx)!=GET_NUM_ITEMS_DISPLAY_IDX_STARTING_VALUE && (*displayIdx)<0) {
+    //validate contract
+    if ((*displayIdx)>=0) {
+        if (outKey==NULL || outVal==NULL || pageCount==NULL) {
+            return PARSER_UNEXPECTED_ERROR;
+        }
+    }
+    else if ((*displayIdx) == GET_NUM_ITEMS_DISPLAY_IDX_STARTING_VALUE) {
+        if (outKey!=NULL || outVal!=NULL || pageCount!=NULL || outKeyLen!=0 || outValLen!=0 || pageIdx!=0) {
+            return PARSER_UNEXPECTED_ERROR;
+        }
+    }
+    else {
         return PARSER_UNEXPECTED_ERROR;
     }
 
@@ -587,9 +598,9 @@ parser_error_t parser_getItem_internal(__Z_UNUSED const parser_context_t *ctx, i
     #undef SCREEN
 }
 
-parser_error_t parser_getNumItems(const parser_context_t *ctx, uint8_t *num_items) {
+parser_error_t parser_getNumItems(__Z_UNUSED const parser_context_t *ctx, uint8_t *num_items) {
     int8_t displays = GET_NUM_ITEMS_DISPLAY_IDX_STARTING_VALUE;
-    parser_error_t err = parser_getItem_internal(ctx, &displays, NULL, 0, NULL, 0, 0, NULL);
+    parser_error_t err = parser_getItem_internal(&displays, NULL, 0, NULL, 0, 0, NULL);
 
     if (displays == INT8_MIN) {
         return PARSER_UNEXPECTED_ERROR;
@@ -613,12 +624,12 @@ parser_error_t parser_getNumItems(const parser_context_t *ctx, uint8_t *num_item
     return err;
 }
 
-parser_error_t parser_getItem(const parser_context_t *ctx, uint8_t displayIdx,
+parser_error_t parser_getItem(__Z_UNUSED const parser_context_t *ctx, uint8_t displayIdx,
                                char *outKey, uint16_t outKeyLen,
                                char *outVal, uint16_t outValLen,
                                uint8_t pageIdx, uint8_t *pageCount) {
     if (displayIdx > INT8_MAX) {
         return PARSER_DISPLAY_IDX_OUT_OF_RANGE;        
     }
-    return parser_getItem_internal(ctx, (int8_t *) &displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
+    return parser_getItem_internal((int8_t *) &displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }

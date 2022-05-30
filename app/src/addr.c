@@ -38,7 +38,18 @@ zxerr_t addr_getItem_internal(int8_t *displayIdx,
                               uint8_t pageIdx, uint8_t *pageCount) {
     zemu_log_stack("addr_getItem_internal");
 
-    if ((*displayIdx)!=GET_NUM_ITEMS_DISPLAY_IDX_STARTING_VALUE && (*displayIdx)<0) {
+    //validate contract
+    if ((*displayIdx)>=0) {
+        if (outKey==NULL || outVal==NULL || pageCount==NULL) {
+            return zxerr_unknown;
+        }
+    }
+    else if ((*displayIdx) == GET_NUM_ITEMS_DISPLAY_IDX_STARTING_VALUE) {
+        if (outKey!=NULL || outVal!=NULL || pageCount!=NULL || outKeyLen!=0 || outValLen!=0 || pageIdx!=0) {
+            return zxerr_unknown;
+        }
+    }
+    else {
         return zxerr_unknown;
     }
 
