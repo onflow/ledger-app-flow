@@ -3,7 +3,7 @@
 
 //Known tx metadata
 
-const uint8_t TX_METADATA_CREATE_ACCOUNT[] = {
+const static uint8_t TX_METADATA_CREATE_ACCOUNT[] = {
     1, //number of hashes + hashes
     0xee, 0xf2, 0xd0, 0x49, 0x44, 0x48, 0x55, 0x41, 0x77, 0x61, 0x2e, 0x63, 0x02, 0x62, 0x56, 0x25, 0x83, 0x39, 0x23, 0x0c, 0xbc, 0x69, 0x31, 0xde, 0xd7, 0x8d, 0x61, 0x49, 0x44, 0x3c, 0x61, 0x73,
     'C', 'r', 'e', 'a', 't', 'e', ' ', 'A', 'c', 'c', 'o', 'u', 'n', 't', 0,  //tx name (to display)
@@ -17,7 +17,7 @@ const uint8_t TX_METADATA_CREATE_ACCOUNT[] = {
     JSMN_STRING, //expected value json token type
 };
 
-const uint8_t TX_METADATA_ADD_NEW_KEY[] = {
+const static uint8_t TX_METADATA_ADD_NEW_KEY[] = {
     1, //number of hashes + hashes
     0x59, 0x5c, 0x86, 0x56, 0x14, 0x41, 0xb3, 0x2b, 0x2b, 0x91, 0xee, 0x03, 0xf9, 0xe1, 0x0c, 0xa6, 0xef, 0xa7, 0xb4, 0x1b, 0xcc, 0x99, 0x4f, 0x51, 0x31, 0x7e, 0xc0, 0xaa, 0x9d, 0x8f, 0x8a, 0x42,
     'A', 'd', 'd', ' ', 'N', 'e', 'w', ' ', 'K', 'e', 'y', 0,  //tx name (to display)
@@ -31,7 +31,7 @@ const uint8_t TX_METADATA_ADD_NEW_KEY[] = {
     JSMN_STRING, //expected value json token type
 };
 
-const uint8_t TX_METADATA_TOKEN_TRANSFER[] = {
+const static uint8_t TX_METADATA_TOKEN_TRANSFER[] = {
     3, //number of hashes + hashes
     0xca, 0x80, 0xb6, 0x28, 0xd9, 0x85, 0xb3, 0x58, 0xae, 0x1c, 0xb1, 0x36, 0xbc, 0xd9, 0x76, 0x99, 0x7c, 0x94, 0x2f, 0xa1, 0x0d, 0xba, 0xbf, 0xea, 0xfb, 0x4e, 0x20, 0xfa, 0x66, 0xa5, 0xa5, 0xe2,
     0xd5, 0x6f, 0x4e, 0x1d, 0x23, 0x55, 0xcd, 0xcf, 0xac, 0xfd, 0x01, 0xe4, 0x71, 0x45, 0x9c, 0x6e, 0xf1, 0x68, 0xbf, 0xdf, 0x84, 0x37, 0x1a, 0x68, 0x5c, 0xcf, 0x31, 0xcf, 0x3c, 0xde, 0xdc, 0x2d,
@@ -61,7 +61,7 @@ typedef struct {
     uint16_t metadataLength;
 } known_tx_metadata_entry_t;
 
-const known_tx_metadata_entry_t KNOWN_TX_METADATA[] = {
+const static known_tx_metadata_entry_t KNOWN_TX_METADATA[] = {
     {TX_METADATA_CREATE_ACCOUNT, sizeof(TX_METADATA_CREATE_ACCOUNT)},
     {TX_METADATA_ADD_NEW_KEY, sizeof(TX_METADATA_ADD_NEW_KEY)},
     {TX_METADATA_TOKEN_TRANSFER, sizeof(TX_METADATA_TOKEN_TRANSFER)},
@@ -179,7 +179,7 @@ parser_error_t matchStoredTxMetadata(uint8_t scriptHash[SCRIPT_HASH_SIZE], parse
             case PARSER_OK:
                 return parseTxMetadata(scriptHash, PIC(KNOWN_TX_METADATA[i].metadata), KNOWN_TX_METADATA[i].metadataLength, parsedTxTempate);
             case PARSER_UNEXPECTED_SCRIPT:
-                break;  //break switch
+                break;  //scripts do not match, we should try next one
             default:
                 return err;
         }
