@@ -57,7 +57,7 @@ typedef struct {
 
 #define SCRIPT_HASH_SIZE 32
 
-//It is planed that compressedData may be on flash, thus they are volatile (for NanoX and NanoSPlus)
+//It is planned that compressedData may be on flash, thus they are volatile (for NanoX and NanoSPlus)
 parser_error_t parseTxMetadata(uint8_t scriptHash[SCRIPT_HASH_SIZE], const NV_VOLATILE uint8_t *txMetadata, uint16_t txMetadataLength, 
                                parsed_tx_metadata_t *parsedTxMetadata);
 

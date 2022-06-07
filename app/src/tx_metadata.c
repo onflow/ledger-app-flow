@@ -61,7 +61,7 @@ typedef struct {
     uint16_t metadataLength;
 } known_tx_metadata_entry_t;
 
-const known_tx_metadata_entry_t KNOWN_TX_METADATA_[] = {
+const known_tx_metadata_entry_t KNOWN_TX_METADATA[] = {
     {TX_METADATA_CREATE_ACCOUNT, sizeof(TX_METADATA_CREATE_ACCOUNT)},
     {TX_METADATA_ADD_NEW_KEY, sizeof(TX_METADATA_ADD_NEW_KEY)},
     {TX_METADATA_TOKEN_TRANSFER, sizeof(TX_METADATA_TOKEN_TRANSFER)},
@@ -81,7 +81,7 @@ parser_error_t _validateHash(uint8_t scriptHash[SCRIPT_HASH_SIZE], const NV_VOLA
     for(size_t i=0; i<numberOfHashes; i++) {
         uint8_t thisHashMatches = 1;
         for(int j=0; j<SCRIPT_HASH_SIZE; j++) {
-            uint8_t hashByte = txMetadata[1+i*SCRIPT_HASH_SIZE+j];
+            uint8_t hashByte = txMetadata[1 + i * SCRIPT_HASH_SIZE + j];
             if (hashByte != scriptHash[j]) {
                 thisHashMatches = 0;
                 break;
@@ -105,7 +105,7 @@ parser_error_t parseTxMetadata(uint8_t scriptHash[SCRIPT_HASH_SIZE], const NV_VO
             if (!(parsed < txMetadataLength)) { \
                 return PARSER_TEMPLATE_ERROR; \
             } \
-            (*where) = txMetadata[parsed++]; \
+            *(where) = txMetadata[parsed++]; \
         } 
     #define READ_STRING(dest_pointer, len) { \
         *(len) = 0; \
@@ -129,7 +129,7 @@ parser_error_t parseTxMetadata(uint8_t scriptHash[SCRIPT_HASH_SIZE], const NV_VO
     //read number of hashes and validate script
     {
         uint8_t numberOfHashes = 0;
-        READ_CHAR(&numberOfHashes)
+        READ_CHAR(&numberOfHashes);
         if (numberOfHashes > MAX_TEMPLATE_NUMBER_OF_HASHES) {
             return PARSER_TEMPLATE_TOO_MANY_HASHES;
         }
@@ -137,7 +137,7 @@ parser_error_t parseTxMetadata(uint8_t scriptHash[SCRIPT_HASH_SIZE], const NV_VO
         if (err != PARSER_OK) {
             return err;
         }
-        READ_SKIP(numberOfHashes*SCRIPT_HASH_SIZE)
+        READ_SKIP(numberOfHashes*SCRIPT_HASH_SIZE);
     }
 
     //read tx name
@@ -152,9 +152,9 @@ parser_error_t parseTxMetadata(uint8_t scriptHash[SCRIPT_HASH_SIZE], const NV_VO
         STATIC_ASSERT(sizeof(parsedTxMetadata->arguments) >= PARSER_MAX_ARGCOUNT, "Too few arguments in parsed_tx_metadata_t.");
         for(int i=0; i<parsedTxMetadata->argCount; i++) {
             READ_CHAR(&parsedTxMetadata->arguments[i].argumentType);
-            READ_STRING(&parsedTxMetadata->arguments[i].displayKey, &parsedTxMetadata->arguments[i].displayKeyLength)
+            READ_STRING(&parsedTxMetadata->arguments[i].displayKey, &parsedTxMetadata->arguments[i].displayKeyLength);
             READ_CHAR(&parsedTxMetadata->arguments[i].argumentIndex);
-            READ_STRING(&parsedTxMetadata->arguments[i].jsonExpectedType, &parsedTxMetadata->arguments[i].jsonExpectedTypeLength)
+            READ_STRING(&parsedTxMetadata->arguments[i].jsonExpectedType, &parsedTxMetadata->arguments[i].jsonExpectedTypeLength);
             READ_CHAR(&parsedTxMetadata->arguments[i].jsonExpectedKind);
         }
     }
@@ -162,6 +162,7 @@ parser_error_t parseTxMetadata(uint8_t scriptHash[SCRIPT_HASH_SIZE], const NV_VO
 
     #undef READ_CHAR 
     #undef READ_STRING
+    #undef READ_SKIP
 
     if (parsed != txMetadataLength) {
         return PARSER_TEMPLATE_ERROR;
@@ -172,11 +173,11 @@ parser_error_t parseTxMetadata(uint8_t scriptHash[SCRIPT_HASH_SIZE], const NV_VO
 
 parser_error_t matchStoredTxMetadata(uint8_t scriptHash[SCRIPT_HASH_SIZE], parsed_tx_metadata_t *parsedTxTempate) {
     size_t i=0;
-    while(KNOWN_TX_METADATA_[i].metadata != NULL) {
-        parser_error_t err = _validateHash(scriptHash, PIC(KNOWN_TX_METADATA_[i].metadata), KNOWN_TX_METADATA_[i].metadataLength);
+    while(KNOWN_TX_METADATA[i].metadata != NULL) {
+        parser_error_t err = _validateHash(scriptHash, PIC(KNOWN_TX_METADATA[i].metadata), KNOWN_TX_METADATA[i].metadataLength);
         switch (err) {
             case PARSER_OK:
-                return parseTxMetadata(scriptHash, PIC(KNOWN_TX_METADATA_[i].metadata), KNOWN_TX_METADATA_[i].metadataLength, parsedTxTempate);
+                return parseTxMetadata(scriptHash, PIC(KNOWN_TX_METADATA[i].metadata), KNOWN_TX_METADATA[i].metadataLength, parsedTxTempate);
             case PARSER_UNEXPECTED_SCRIPT:
                 break;  //break switch
             default:
