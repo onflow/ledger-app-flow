@@ -37,8 +37,8 @@ typedef enum {
 //It is planed that all these strings may be on flash, thus they are volatile (for NanoX and NanoSPlus)
 typedef struct {
     argument_type_e argumentType;
-    uint8_t arrayMinElements; //defined only for ARGUMENT_TYPE_ARRAY and ARGUMENT_TYPE_OPTIOALARRAY
-    uint8_t arrayMaxElements; //defined only for ARGUMENT_TYPE_ARRAY and ARGUMENT_TYPE_OPTIOALARRAY
+    uint8_t arrayMinElements; //defined only for ARGUMENT_TYPE_ARRAY and ARGUMENT_TYPE_OPTIONALARRAY
+    uint8_t arrayMaxElements; //defined only for ARGUMENT_TYPE_ARRAY and ARGUMENT_TYPE_OPTIONALARRAY
     const NV_VOLATILE char *displayKey; 
     uint8_t displayKeyLength;
     uint8_t argumentIndex; //argument index within transaction

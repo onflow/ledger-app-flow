@@ -408,9 +408,6 @@ parser_error_t parser_printAuthorizer(const flow_proposal_authorizer_t *v,
 }
 
 
-#define CREATE_ACCOUNT_MAX_PUB_KEYS 5
-#define SCO03_REGISTER_NODE_MAX_PUB_KEYS 3
-
 //Small trick to avoid duplicated code here which was quite error prone:
 //displayIdx is either the index of page to display, or GET_NUM_ITEMS_DISPLAY_IDX_STARTING_VALUE
 //In the second case this is used to count the number of pages
