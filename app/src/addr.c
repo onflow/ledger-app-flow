@@ -28,7 +28,7 @@ bool hasPubkey;
 uint8_t pubkey_to_display[SECP256_PK_LEN];
 
 //this defines addr_internal function
-BEGIN_SCREENS_FUNCTION(addr, zxerr_t, zxerr_ok, zxerr_unknown)
+BEGIN_SCREENS_FUNCTION(addr, zxerr_t, zxerr_ok, zxerr_no_data, zxerr_no_data)
 
     uint8_t show_address_yes = (show_address == SHOW_ADDRESS_YES || show_address == SHOW_ADDRESS_YES_HASH_MISMATCH);
 

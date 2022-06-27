@@ -23,20 +23,21 @@
 
 #define MAX_DISPLAYS UINT8_MAX
 
-#define BEGIN_SCREENS_FUNCTION(functionNemePrefix_, errType_, okReturnValue_, errorReturnValue_)\
-    static errType_ functionNemePrefix_ ## _internal (uint8_t displayIdx,                       \
-                                                      char *outKey, uint16_t outKeyLen,         \
-                                                      char *outVal, uint16_t outValLen,         \
-                                                      uint8_t pageIdx, uint8_t *pageCount) {    \
-    errType_ okReturnValue = (okReturnValue_);                                                  \
-    errType_ errorReturnValue = (errorReturnValue_);                                            \
-    uint8_t isGetItemMode = (displayIdx != MAX_DISPLAYS);                                       \
-                                                                                                \
-    if ((isGetItemMode && !outKey) || (isGetItemMode && !outVal) || !pageCount) {               \
-        return errorReturnValue;                                                                \
-    };                                                                                          \
-                                                                                                \
-    uint8_t currentDisplay = 0;                                                                 \
+#define BEGIN_SCREENS_FUNCTION(functionNemePrefix_, errType_, okReturnValue_, errorReturnValue_, errorNoDataValue_) \
+    static errType_ functionNemePrefix_ ## _internal (uint8_t displayIdx,                                           \
+                                                      char *outKey, uint16_t outKeyLen,                             \
+                                                      char *outVal, uint16_t outValLen,                             \
+                                                      uint8_t pageIdx, uint8_t *pageCount) {                        \
+    errType_ okReturnValue = (okReturnValue_);                                                                      \
+    errType_ errorReturnValue = (errorReturnValue_);                                                                \
+    errType_ errorNoDataValue = (errorNoDataValue_);                                                                \
+    uint8_t isGetItemMode = (displayIdx != MAX_DISPLAYS);                                                           \
+                                                                                                                    \
+    if ((isGetItemMode && !outKey) || (isGetItemMode && !outVal) || !pageCount) {                                   \
+        return (errorReturnValue);                                                                                  \
+    };                                                                                                              \
+                                                                                                                    \
+    uint8_t currentDisplay = 0;                                                                                     \
     *pageCount = 1;                                                               
 
 #define BEGIN_SCREEN                                                        \
@@ -47,10 +48,10 @@
 
 #define END_SCREENS_FUNCTION                                \
         if (isGetItemMode) {                                \
-            return errorReturnValue;                        \
+            return (errorNoDataValue);                      \
         }                                                   \
         else {                                              \
             *pageCount = currentDisplay;                    \
-            return okReturnValue;                           \
+            return (okReturnValue);                         \
         }                                                   \
     }
