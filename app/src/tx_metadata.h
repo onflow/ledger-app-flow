@@ -21,9 +21,9 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-#include <parser_txdef.h>
 #include <parser_common.h>
 #include <jsmn.h>
+#include <zxmacros.h>
 
 typedef enum {
     ARGUMENT_TYPE_NORMAL = 1,
@@ -32,12 +32,13 @@ typedef enum {
     ARGUMENT_TYPE_OPTIONALARRAY = 4
 } argument_type_e;
 
-#define MAX_TEMPLATE_NUMBER_OF_HASHES 10
-#define MAX_TEMPLATE_STRING_LENGTH 100
+#define PARSER_MAX_ARGCOUNT 10
 
 //It is planed that all these strings may be on flash, thus they are volatile (for NanoX and NanoSPlus)
 typedef struct {
     argument_type_e argumentType;
+    uint8_t arrayMinElements; //defined only for ARGUMENT_TYPE_ARRAY and ARGUMENT_TYPE_OPTIONALARRAY
+    uint8_t arrayMaxElements; //defined only for ARGUMENT_TYPE_ARRAY and ARGUMENT_TYPE_OPTIONALARRAY
     const NV_VOLATILE char *displayKey; 
     uint8_t displayKeyLength;
     uint8_t argumentIndex; //argument index within transaction
@@ -47,7 +48,6 @@ typedef struct {
 } parsed_tx_metadata_argument_t;
 
 typedef struct {
-    script_type_e script;
     const NV_VOLATILE char *txName;
     uint8_t txNameLength;
     uint8_t argCount;
