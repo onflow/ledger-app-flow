@@ -212,8 +212,7 @@ TEST(JSON, OptionalArrayNull) {
     parsed_json_t parsedJson = {false};
 
     auto err = json_parse(&parsedJson, sendToken2, strlen(sendToken2));
-
-     // We could parse valid JSON
+    EXPECT_THAT(err, PARSER_OK);
 
     uint16_t internalTokenElementIdx;
     ASSERT_THAT(
@@ -226,8 +225,7 @@ TEST(JSON, OptionalArrayNotNull) {
     parsed_json_t parsedJson = {false};
 
     auto err = json_parse(&parsedJson, sendToken4, strlen(sendToken4));
-
-     // We could parse valid JSON
+    EXPECT_THAT(err, PARSER_OK);
 
     uint16_t internalTokenElementIdx;
     ASSERT_THAT(

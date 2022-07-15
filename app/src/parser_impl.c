@@ -125,7 +125,7 @@ __Z_INLINE char hexDigit(uint8_t v) {
     return '?';
 }
 
-parser_error_t json_validateToken(parsed_json_t *parsedJson, uint16_t tokenIdx) {
+parser_error_t json_validateToken(const parsed_json_t *parsedJson, uint16_t tokenIdx) {
     if (!parsedJson->isValid) {
         return PARSER_JSON_INVALID;
     }
@@ -146,7 +146,7 @@ parser_error_t json_validateToken(parsed_json_t *parsedJson, uint16_t tokenIdx) 
     return PARSER_OK;
 }
 
-parser_error_t json_extractToken(char *outVal, uint16_t outValLen, parsed_json_t *parsedJson, uint16_t tokenIdx) {
+parser_error_t json_extractToken(char *outVal, uint16_t outValLen, const parsed_json_t *parsedJson, uint16_t tokenIdx) {
     MEMZERO(outVal, outValLen);
     CHECK_PARSER_ERR(json_validateToken(parsedJson, tokenIdx))
 
@@ -159,7 +159,7 @@ parser_error_t json_extractToken(char *outVal, uint16_t outValLen, parsed_json_t
     return PARSER_OK;
 }
 
-parser_error_t json_matchToken(parsed_json_t *parsedJson, uint16_t tokenIdx, char *expectedValue) {
+parser_error_t json_matchToken(const parsed_json_t *parsedJson, uint16_t tokenIdx, const char *expectedValue) {
     CHECK_PARSER_ERR(json_validateToken(parsedJson, tokenIdx))
 
     const jsmntok_t token = parsedJson->tokens[tokenIdx];
@@ -178,7 +178,7 @@ parser_error_t json_matchToken(parsed_json_t *parsedJson, uint16_t tokenIdx, cha
     return PARSER_OK;
 }
 
-parser_error_t json_matchNull(parsed_json_t *parsedJson, uint16_t tokenIdx) {
+parser_error_t json_matchNull(const parsed_json_t *parsedJson, uint16_t tokenIdx) {
     CHECK_PARSER_ERR(json_validateToken(parsedJson, tokenIdx))
 
     const jsmntok_t token = parsedJson->tokens[tokenIdx];
@@ -197,8 +197,8 @@ parser_error_t json_matchNull(parsed_json_t *parsedJson, uint16_t tokenIdx) {
     return PARSER_OK;
 }
 
-parser_error_t json_matchKeyValue(parsed_json_t *parsedJson,
-                                  uint16_t tokenIdx, char *expectedType, jsmntype_t jsonType, uint16_t *valueTokenIdx) {
+parser_error_t json_matchKeyValue(const parsed_json_t *parsedJson,
+                                  uint16_t tokenIdx, const char *expectedType, jsmntype_t jsonType, uint16_t *valueTokenIdx) {
     CHECK_PARSER_ERR(json_validateToken(parsedJson, tokenIdx))
 
     if (! (tokenIdx + 4 < parsedJson->numberOfTokens)) {
@@ -228,8 +228,8 @@ parser_error_t json_matchKeyValue(parsed_json_t *parsedJson,
 }
 
 //valueTokenIdx is JSON_MATCH_VALUE_IDX_NONE if the optional is null
-parser_error_t json_matchOptionalKeyValue(parsed_json_t *parsedJson,
-                                  uint16_t tokenIdx, char *expectedType, jsmntype_t jsonType, uint16_t *valueTokenIdx) {
+parser_error_t json_matchOptionalKeyValue(const parsed_json_t *parsedJson,
+                                  uint16_t tokenIdx, const char *expectedType, jsmntype_t jsonType, uint16_t *valueTokenIdx) {
     CHECK_PARSER_ERR(json_validateToken(parsedJson, tokenIdx))
 
     if (!(tokenIdx + 4 < parsedJson->numberOfTokens)) {
@@ -263,7 +263,7 @@ parser_error_t json_matchOptionalKeyValue(parsed_json_t *parsedJson,
 }
 
 //valueTokenIdx is JSON_MATCH_VALUE_IDX_NONE if the optional is null
-parser_error_t json_matchOptionalArray(parsed_json_t *parsedJson,
+parser_error_t json_matchOptionalArray(const parsed_json_t *parsedJson,
                                   uint16_t tokenIdx, uint16_t *valueTokenIdx) {
     CHECK_PARSER_ERR(json_validateToken(parsedJson, tokenIdx))
 
@@ -324,18 +324,6 @@ parser_error_t formatStrUInt8AsHex(const char *decStr, char *hexStr) {
     hexStr[0] = hexDigit(v / 16);
     hexStr[1] = hexDigit(v % 16);
     hexStr[2] = 0;
-    return PARSER_OK;
-}
-
-parser_error_t json_extractString(char *outVal, uint16_t outValLen, parsed_json_t *parsedJson, uint16_t tokenIdx) {
-    MEMZERO(outVal, outValLen);
-
-    uint16_t internalTokenElemIdx;
-    CHECK_PARSER_ERR(json_matchKeyValue(
-            parsedJson, tokenIdx, (char *) "String", JSMN_STRING, &internalTokenElemIdx))
-
-    CHECK_PARSER_ERR(json_extractToken(outVal, outValLen, parsedJson, internalTokenElemIdx))
-
     return PARSER_OK;
 }
 

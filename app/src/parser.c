@@ -163,7 +163,7 @@ parser_error_t parser_printChainID(const flow_payer_t *v,
 }
 
 parser_error_t parser_printArgument(const flow_argument_list_t *v, uint8_t argIndex, 
-                                    char *expectedType, jsmntype_t jsonType,
+                                    const char *expectedType, jsmntype_t jsonType,
                                     char *outVal, uint16_t outValLen,
                                     uint8_t pageIdx, uint8_t *pageCount) {
     MEMZERO(outVal, outValLen);
@@ -190,9 +190,9 @@ parser_error_t parser_printArgument(const flow_argument_list_t *v, uint8_t argIn
 }
 
 parser_error_t parser_printOptionalArgument(const flow_argument_list_t *v, uint8_t argIndex,
-                                               char *expectedType, jsmntype_t jsonType,
-                                               char *outVal, uint16_t outValLen,
-                                               uint8_t pageIdx, uint8_t *pageCount) {
+                                            const char *expectedType, jsmntype_t jsonType,
+                                            char *outVal, uint16_t outValLen,
+                                            uint8_t pageIdx, uint8_t *pageCount) {
     MEMZERO(outVal, outValLen);
 
     if (argIndex >= v->argCount) {
@@ -221,7 +221,7 @@ parser_error_t parser_printOptionalArgument(const flow_argument_list_t *v, uint8
 }
 
 parser_error_t parser_printArgumentArray(const flow_argument_list_t *v, uint8_t argIndex, uint8_t arrayIndex,
-                                         char *expectedType, jsmntype_t jsonType,
+                                         const char *expectedType, jsmntype_t jsonType,
                                          char *outVal, uint16_t outValLen,
                                          uint8_t pageIdx, uint8_t *pageCount) {
     MEMZERO(outVal, outValLen);
@@ -255,7 +255,7 @@ parser_error_t parser_printArgumentArray(const flow_argument_list_t *v, uint8_t 
 }
 
 parser_error_t parser_printArgumentOptionalArray(const flow_argument_list_t *v, uint8_t argIndex, uint8_t arrayIndex,
-                                                 char *expectedType, jsmntype_t jsonType,
+                                                 const char *expectedType, jsmntype_t jsonType,
                                                  char *outVal, uint16_t outValLen,
                                                  uint8_t pageIdx, uint8_t *pageCount) {
     MEMZERO(outVal, outValLen);

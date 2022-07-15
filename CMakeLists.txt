@@ -96,6 +96,7 @@ file(GLOB_RECURSE LIB_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/app/src/hdpath.c
         ${CMAKE_CURRENT_SOURCE_DIR}/app/src/parser_impl.c
         ${CMAKE_CURRENT_SOURCE_DIR}/app/src/json/json_parser.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/app/src/tx_metadata.c
         app/src/base32.c
         app/src/crypto.c
         )
