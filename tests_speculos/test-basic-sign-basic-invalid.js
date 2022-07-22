@@ -26,9 +26,10 @@ const invalidMessage = Buffer.from(
 	"1234567890",
 	"hex",
 );
+const randomScriptHash = "ca80b628d985b358ae1cb136bcd976997c942fa10dbabfeafb4e20fa66a5a5e2"
 
 testStep(" - - -", "await app.sign() // path=" + path + " invalidMessage=..");
-const signResponse = await app.sign(path, invalidMessage, options);
+const signResponse = await app.sign(path, invalidMessage, options, randomScriptHash);
 assert.equal(signResponse.returnCode, 0x6984);
 assert.equal(signResponse.errorMessage, "Data is invalid");
 
@@ -37,10 +38,16 @@ hexExpected = "33020000162c0000801b0200800102008000000000000000000103";
 compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, path:20, options:2, unexpected:9999});
 hexExpected = "9000";
 compareInAPDU(transport, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
-hexExpected = "33020200051234567890";
+hexExpected = "33020100051234567890";
 compareOutAPDU(transport, hexExpected, "apdu response", {cla:1, ins:1, p1:1, p2:1, len:1, message:5, unexpected:9999});
+hexExpected = "9000";
+compareInAPDU(transport, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
+
+//there are further Merkle tree APDUs
+/*
 //Second incoming APDU not cached by SpyTransport as SpeculosTransport throws an exception.
 noMoreAPDUs(transport);
+*/
 
 await transport.close()
 testEnd(scriptName);

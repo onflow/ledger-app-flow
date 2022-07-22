@@ -21,6 +21,7 @@ EXAMPLE_VUE_DIR?=$(CURDIR)/example_vue
 TESTS_JS_PACKAGE?=
 TESTS_JS_DIR?=
 TESTS_GENERATE_DIR?=$(CURDIR)/tests/generate-transaction-tests
+METADATA_GENERATE_DIR?=$(CURDIR)/transaction_metadata
 
 LEDGER_SRC=$(CURDIR)/app
 DOCKER_APP_SRC=/project
@@ -397,6 +398,12 @@ ledger_test:
 	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-transaction-expert-mode.js
 	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-transactions.js
 	@echo "# ALL TESTS COMPLETED!"
+
+########################## TRANSACTION METADATA Section ###############################
+
+.PHONY: generate_transaction_metadata
+generate_transaction_metadata:
+	cd $(METADATA_GENERATE_DIR) && yarn run generate
 
 ########################## FUZZING Section ###############################
 

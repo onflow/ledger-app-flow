@@ -151,21 +151,22 @@ Each slot has the following structure
 
 #### Command
 
-| Field | Type     | Content                | Expected  |
-| ----- | -------- | ---------------------- | --------- |
-| CLA   | byte (1) | Application Identifier | 0x33      |
-| INS   | byte (1) | Instruction ID         | 0x02      |
-| P1    | byte (1) | Payload desc           | 0 = init  |
-|       |          |                        | 1 = add   |
-|       |          |                        | 2 = last  |
-| P2    | byte (1) | ----                   | not used  |
-| L     | byte (1) | Bytes in payload       | (depends) |
+| Field | Type     | Content                | Expected      |
+| ----- | -------- | ---------------------- | ------------- |
+| CLA   | byte (1) | Application Identifier | 0x33          |
+| INS   | byte (1) | Instruction ID         | 0x02          |
+| P1    | byte (1) | Payload desc           | 0 = init      |
+|       |          |                        | 1 = add       |
+|       |          |                        | 2 = template  |
+|       |          |                        | 3..6 = hashes |
+| P2    | byte (1) | ----                   | not used      |
+| L     | byte (1) | Bytes in payload       | (depends)     |
 
 The first packet/chunk includes only the derivation path
 
 All other packets/chunks contain data chunks that are described below
 
-##### First Packet
+##### Init Packet P1 = 0x00
 
 | Field   | Type     | Content              | Expected |
 | ------- | -------- | -------------------- | -------- |
@@ -176,7 +177,7 @@ All other packets/chunks contain data chunks that are described below
 | Path[4] | byte (4) | Derivation Path Data | ?        |
 | Options | byte (2) | Crypto options (LE)  | ?        |
 
-##### Other Chunks/Packets
+##### Add Packet P1 = 0x01
 
 | Field | Type     | Content | Expected |
 | ----- | -------- | ------- | -------- |
@@ -187,6 +188,64 @@ Data is defined as:
 | Field   | Type    | Content          | Expected |
 | ------- | ------- | ---------------- | -------- |
 | Message | bytes.. | RLP data to sign |          |
+
+##### Metadata Packet P1 = 0x03
+
+| Field | Type     | Content  | Expected |
+| ----- | -------- | -------- | -------- |
+| Data  | bytes... | Metadata |          |
+
+Metadata is defined as:
+
+| Field          | Type              | Content          | Expected |
+| -------------- | ----------------- | ---------------- | -------- |
+| Num. of hashes | byte (1)          | number of hashes |          |
+| Script hash 1  | byte (32)         | script hash      |          |
+| Script hash 2  | byte (32)         | script hash      |          |
+| ...            |                   |                  |          |
+| Script hash n  | byte (32)         | script hash      |          |
+| Tx name        | null term. string | name of tx       |          |
+| Num. of args   | byte (1)          | num. of tx args  |          |
+| Argument 1     | bytes             | argument 1       |          |
+| Argument 2     | bytes             | argument 2       |          |
+| ...            |                   |                  |          |
+| Argument m     | bytes             | argument m       |          |
+
+and argument is either normal argument
+
+| Field          | Type              | Content                       | Expected |
+| -------------- | ----------------- | ----------------------------- | -------- |
+| Argument type  | byte (1)          | 1 - normal                    |          |
+|                |                   | 2 - optional                  |          |
+| Arg. name      | null term. string |                               |          |
+| Arg. index     | byte (1)          | Order in which args are shown |          |
+| Value type     | null term. string | Expected JSON value type      |          |
+| JSON type      | byte (1)          |                               | 3-string |
+
+or array argument
+
+| Field          | Type              | Content                       | Expected |
+| -------------- | ----------------- | ----------------------------- | -------- |
+| Argument type  | byte (1)          | 3 - normal array              |          |
+|                |                   | 4 - optional array            |          |
+| Arr. min. len. | byte (1)          | Array min. length             |          |
+| Arr. min. len. | byte (1)          | Array max. length             |          |
+| Arg. name      | null term. string |                               |          |
+| Arg. index     | byte (1)          | Order in which args are shown |          |
+| Value type     | null term. string | Expected JSON value type      |          |
+| JSON type      | byte (1)          |                               | 3-string |
+
+##### Template Packet P1 = 0x04 and 0x05
+
+Four APDUs for four levels of merkle trees. APDU with P1=0x03 calculates metadata hash. three subsequent P1=0x04 calls have to contain hashes from previous calls (either P1=0x03 or P1=0x04).
+After three calls there is call with P1=0x05, which works the same as P1=0x04 call, but it inisiates transaction signing.
+
+| Field               | Type         | Content          | Expected |
+| ------------------- | ------------ | ---------------- | -------- |
+| Merkle tree hash 1  | byte (32)    | Merkle tree hash |          |
+| Merkle tree hash 2  | byte (32)    | Merkle tree hash |          |
+| ...                 |              |                  |          |
+| Merkle tree hash 7  | byte (32)    | Merkle tree hash |          |
 
 #### Response
 

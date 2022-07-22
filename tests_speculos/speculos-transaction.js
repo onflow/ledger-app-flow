@@ -12,7 +12,7 @@ function getKeyPath(sigAlgo, hashAlgo) {
     return path;
 }
 
-async function transactionTest(app, transport, device, txHexBlob, sigAlgo, hashAlgo, appVersion, givenPath = "") {
+async function transactionTest(app, transport, device, txHexBlob, scriptHash, sigAlgo, hashAlgo, appVersion, givenPath = "") {
 	let hexExpected = "";
 
     const path = givenPath ? givenPath : getKeyPath(sigAlgo.pathCode, hashAlgo.pathCode);
@@ -46,9 +46,9 @@ async function transactionTest(app, transport, device, txHexBlob, sigAlgo, hashA
 	const txBlob = Buffer.from(txHexBlob, "hex");
 
 	testStep(" - - -", "app.sign() // path=" + path + " txBlob=" + txBlob.length + ":" + txHexBlob.substring(0, 16));
-	const signPromise =  app.sign(path, txBlob, options);
+	const signPromise =  app.sign(path, txBlob, options, scriptHash);
 	//sign is multiAPDU operation. To help the snapshotter with synchronization we await last APDU beign sent
-	await transport.waitForAPDU(0x33, 0x02, 0x02);	
+//	await transport.waitForAPDU(0x33, 0x02, 0x05);	
     await device.review("Review transaction");
 	const signResponse = await signPromise;
 
@@ -77,18 +77,25 @@ async function transactionTest(app, transport, device, txHexBlob, sigAlgo, hashA
 	let txHexFromAPDUs = "";
 	const outLen = transport.hexApduCommandOut.length;
 	for(let p = 0; p < outLen; p++) {
-		const p1 = ((p + 1 == outLen) ? "02" : "01")
+		let p1 = "01"
+		if (p+1 == outLen) p1 = "05"
+		if (p+1 == outLen-1) p1 = "04"
+		if (p+1 == outLen-2) p1 = "04"
+		if (p+1 == outLen-3) p1 = "04"
+		if (p+1 == outLen-4) p1 = "03"
 		const hexOutgoing = transport.hexApduCommandOut.shift();
         assert.equal(hexOutgoing.substring(0, 8), "3302"+p1+"00")
-		const chunkLen = parseInt(hexOutgoing.substring(8, 10), 16)
-		assert.equal(hexOutgoing.length, 10 + 2*chunkLen)
-		txHexFromAPDUs = txHexFromAPDUs.concat(hexOutgoing.substring(10, 10 + 2*chunkLen))
+		if (p1 == "01") {
+			const chunkLen = parseInt(hexOutgoing.substring(8, 10), 16)
+			assert.equal(hexOutgoing.length, 10 + 2*chunkLen)
+			txHexFromAPDUs = txHexFromAPDUs.concat(hexOutgoing.substring(10, 10 + 2*chunkLen))	
+		}
 
-		if (p1 == "01") { // not last APDU
+		if (p1 == "01" || p1 == "03" || p1 == "04") { // not last APDU
 			hexExpected = "9000";
 			compareInAPDU(transport, hexExpected, "apdu response", {returnCode:2, unexpected:9999});	
 		}
-		if (p1 == "02") { // last APDU
+		if (p1 == "05") { // last APDU
 			const returnCodeLen = 2;
 			const signatureCompactLen = 65;
 			const signatureDERLen = transport.hexApduCommandIn[0].length / 2 - signatureCompactLen - returnCodeLen;

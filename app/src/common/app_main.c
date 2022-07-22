@@ -28,6 +28,7 @@
 #include "coin.h"
 #include "zxmacros.h"
 #include "hdpath.h"
+#include "tx_metadata.h"
 
 unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 
@@ -128,6 +129,7 @@ bool process_chunk(__Z_UNUSED volatile uint32_t *tx, uint32_t rx) {
             tx_initialize();
             tx_reset();
             extractHDPathAndCryptoOptions(rx, OFFSET_DATA);
+            initStoredTxMetadata();
             return false;
         case 1:
             added = tx_append(&(G_io_apdu_buffer[OFFSET_DATA]), rx - OFFSET_DATA);
@@ -136,9 +138,20 @@ bool process_chunk(__Z_UNUSED volatile uint32_t *tx, uint32_t rx) {
             }
             return false;
         case 2:
-            added = tx_append(&(G_io_apdu_buffer[OFFSET_DATA]), rx - OFFSET_DATA);
-            if (added != rx - OFFSET_DATA) {
-                THROW(APDU_CODE_OUTPUT_BUFFER_TOO_SMALL);
+            THROW(APDU_CODE_INVALIDP1P2);
+        case 3:
+            if (storeTxMetadata(&(G_io_apdu_buffer[OFFSET_DATA]), rx - OFFSET_DATA) != PARSER_OK) {
+                THROW(APDU_CODE_DATA_INVALID);
+            }
+            return false;
+        case 4:
+            if (validateStoredTxMetadataMerkleTreeLevel(&(G_io_apdu_buffer[OFFSET_DATA]), rx - OFFSET_DATA) != PARSER_OK) {
+                THROW(APDU_CODE_DATA_INVALID);
+            }
+            return false;
+        case 5:
+            if (validateStoredTxMetadataMerkleTreeLevel(&(G_io_apdu_buffer[OFFSET_DATA]), rx - OFFSET_DATA) != PARSER_OK) {
+                THROW(APDU_CODE_DATA_INVALID);
             }
             return true;
     }

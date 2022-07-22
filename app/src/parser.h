@@ -56,6 +56,6 @@ parser_error_t parser_printArgumentOptionalArray(const flow_argument_list_t *v, 
                                                  const char *expectedType, jsmntype_t jsonType,
                                                  char *outVal, uint16_t outValLen,
                                                  uint8_t pageIdx, uint8_t *pageCount);
-
-}
+} //end extern C
 #endif
+

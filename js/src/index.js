@@ -28,6 +28,8 @@ import {
   processErrorResponse,
   compareVersion,
 } from "./common";
+import { signSendChunkv2 } from "./helperV2";
+import { merkleIndex, merkleTree } from "./txMerkleTree"
 
 function processGetAddrResponse(response) {
   let partialResponse = response;
@@ -97,6 +99,28 @@ export default class FlowApp {
     const serializedPath = serializePathv1(path, pathSerializationVersion, options);
     return FlowApp.prepareChunks(serializedPath, message);
   }
+
+  async signGetChunksv2(path, options, pathSerializationVersion, message, scriptHash) {
+    const basicChunks = await this.signGetChunks(path, options, pathSerializationVersion, message)
+
+    //other chunks
+    const merkleI = merkleIndex[scriptHash.slice(0, 16)]
+    const metadata = merkleTree.children[merkleI[0]].children[merkleI[1]].children[merkleI[2]].children[merkleI[3]].children[0]
+    const merkleTreeLevel1 = merkleTree.children[merkleI[0]].children[merkleI[1]].children[merkleI[2]].children.map((ch) => ch.hash).join('')
+    const merkleTreeLevel2 = merkleTree.children[merkleI[0]].children[merkleI[1]].children.map((ch) => ch.hash).join('')
+    const merkleTreeLevel3 = merkleTree.children[merkleI[0]].children.map((ch) => ch.hash).join('')
+    const merkleTreeLevel4 = merkleTree.children.map((ch) => ch.hash).join('')
+
+    return [
+      ...basicChunks, 
+      Buffer.from(metadata, "hex"), 
+      Buffer.from(merkleTreeLevel1, "hex"),
+      Buffer.from(merkleTreeLevel2, "hex"),
+      Buffer.from(merkleTreeLevel3, "hex"),
+      Buffer.from(merkleTreeLevel4, "hex"),
+    ]
+  }
+  
 
   async getVersion() {
     return getVersion(this.transport)
@@ -186,14 +210,49 @@ export default class FlowApp {
     return signSendChunkv1(this, chunkIdx, chunkNum, chunk);
   }
 
-  async sign(path, message, cryptoOptions) {
+  async signSendChunkv2(chunkIdx, chunkNum, chunk) {
+    return signSendChunkv2(this, chunkIdx, chunkNum, chunk);
+  }
+
+  async sign(path, message, cryptoOptions, scriptHash) {
     validateCryptoOptions(cryptoOptions);
 
     const getVersionResponse = await this.getVersion();
     const pathSerializationVersion = (compareVersion(getVersionResponse, 0, 9, 12) <= 0) ? 0 : 1;
 
-    return this.signGetChunks(path, cryptoOptions, pathSerializationVersion, message).then((chunks) => {
+    // APDU call sequence without Merkle trees
+    if (compareVersion(getVersionResponse, 0, 10, 3) <= 0) {
+      return this.signGetChunks(path, cryptoOptions, pathSerializationVersion, message).then((chunks) => {
         return this.signSendChunk(1, chunks.length, chunks[0]).then(async (response) => {
+          let result = {
+            returnCode: response.returnCode,
+            errorMessage: response.errorMessage,
+            signatureCompact: null,
+            signatureDER: null,
+          };
+
+          for (let i = 1; i < chunks.length; i += 1) {
+            // eslint-disable-next-line no-await-in-loop
+            result = await this.signSendChunk(1 + i, chunks.length, chunks[i]);
+            if (result.returnCode !== ERROR_CODE.NoError) {
+              break;
+            }
+          }
+
+          return {
+            returnCode: result.returnCode,
+            errorMessage: result.errorMessage,
+            // ///
+            signatureCompact: result.signatureCompact,
+            signatureDER: result.signatureDER,
+          };
+        }, processErrorResponse);
+      }, processErrorResponse);      
+    }
+
+    // APDU call sequence with Merkle trees
+    return this.signGetChunksv2(path, cryptoOptions, pathSerializationVersion, message, scriptHash).then((chunks) => {
+        return this.signSendChunkv2(1, chunks.length, chunks[0]).then(async (response) => {
         let result = {
           returnCode: response.returnCode,
           errorMessage: response.errorMessage,
@@ -203,7 +262,7 @@ export default class FlowApp {
 
         for (let i = 1; i < chunks.length; i += 1) {
           // eslint-disable-next-line no-await-in-loop
-          result = await this.signSendChunk(1 + i, chunks.length, chunks[i]);
+          result = await this.signSendChunkv2(1 + i, chunks.length, chunks[i]); 
           if (result.returnCode !== ERROR_CODE.NoError) {
             break;
           }
@@ -218,6 +277,7 @@ export default class FlowApp {
         };
       }, processErrorResponse);
     }, processErrorResponse);
+
   }
 
   async slotStatus() {
