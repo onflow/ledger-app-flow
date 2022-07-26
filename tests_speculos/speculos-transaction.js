@@ -59,7 +59,7 @@ async function transactionTest(app, transport, device, txHexBlob, scriptHash, si
 
 	compareGetVersionAPDUs(transport);
 	//compare first APDU
-	if (appVersion <=12)  {
+	if (appVersion <= 12)  {
 		hexExpected = "33020000142c0000801b020080010200800000000000000000";
 		compareOutAPDU(transport, hexExpected, "apdu command", {cla:1, ins:1, p1:1, p2:1, len:1, do_not_compare_path:20, unexpected:9999});
 	}
@@ -73,38 +73,48 @@ async function transactionTest(app, transport, device, txHexBlob, scriptHash, si
 	compareInAPDU(transport, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 	assert.equal(transport.hexApduCommandOut.length, transport.hexApduCommandIn.length);
 
-    //compare other APDUs, let us calculate original txHexBlob
-	let txHexFromAPDUs = "";
-	const outLen = transport.hexApduCommandOut.length;
-	for(let p = 0; p < outLen; p++) {
-		let p1 = "01"
-		if (p+1 == outLen) p1 = "05"
-		if (p+1 == outLen-1) p1 = "04"
-		if (p+1 == outLen-2) p1 = "04"
-		if (p+1 == outLen-3) p1 = "04"
-		if (p+1 == outLen-4) p1 = "03"
-		const hexOutgoing = transport.hexApduCommandOut.shift();
-        assert.equal(hexOutgoing.substring(0, 8), "3302"+p1+"00")
-		if (p1 == "01") {
-			const chunkLen = parseInt(hexOutgoing.substring(8, 10), 16)
-			assert.equal(hexOutgoing.length, 10 + 2*chunkLen)
-			txHexFromAPDUs = txHexFromAPDUs.concat(hexOutgoing.substring(10, 10 + 2*chunkLen))	
-		}
+    //compare other APDUs, let us calculate original txHexBlob (only for most recent version
+	if (appVersion >= 14) {
+		let txHexFromAPDUs = "";
+		const outLen = transport.hexApduCommandOut.length;
+		for(let p = 0; p < outLen; p++) {
+			let p1 = "01"
+			if (p+1 == outLen) p1 = "05"
+			if (p+1 == outLen-1) p1 = "04"
+			if (p+1 == outLen-2) p1 = "04"
+			if (p+1 == outLen-3) p1 = "04"
+			if (p+1 == outLen-4) p1 = "03"
+			const hexOutgoing = transport.hexApduCommandOut.shift();
+			assert.equal(hexOutgoing.substring(0, 8), "3302"+p1+"00")
+			if (p1 == "01") {
+				const chunkLen = parseInt(hexOutgoing.substring(8, 10), 16)
+				assert.equal(hexOutgoing.length, 10 + 2*chunkLen)
+				txHexFromAPDUs = txHexFromAPDUs.concat(hexOutgoing.substring(10, 10 + 2*chunkLen))	
+			}
 
-		if (p1 == "01" || p1 == "03" || p1 == "04") { // not last APDU
-			hexExpected = "9000";
-			compareInAPDU(transport, hexExpected, "apdu response", {returnCode:2, unexpected:9999});	
+			if (p1 == "01" || p1 == "03" || p1 == "04") { // not last APDU
+				hexExpected = "9000";
+				compareInAPDU(transport, hexExpected, "apdu response", {returnCode:2, unexpected:9999});	
+			}
+			if (p1 == "05") { // last APDU
+				const returnCodeLen = 2;
+				const signatureCompactLen = 65;
+				const signatureDERLen = transport.hexApduCommandIn[0].length / 2 - signatureCompactLen - returnCodeLen;
+				const hexExpected = "01".repeat(signatureCompactLen) + "02".repeat(signatureDERLen) + "9000";
+				compareInAPDU(transport, hexExpected, "apdu response", {do_not_compare_signatureCompact:signatureCompactLen, do_not_compare_signatureDER:signatureDERLen, returnCode:returnCodeLen, unexpected:9999});
+			}
 		}
-		if (p1 == "05") { // last APDU
-			const returnCodeLen = 2;
-			const signatureCompactLen = 65;
-			const signatureDERLen = transport.hexApduCommandIn[0].length / 2 - signatureCompactLen - returnCodeLen;
-			const hexExpected = "01".repeat(signatureCompactLen) + "02".repeat(signatureDERLen) + "9000";
-			compareInAPDU(transport, hexExpected, "apdu response", {do_not_compare_signatureCompact:signatureCompactLen, do_not_compare_signatureDER:signatureDERLen, returnCode:returnCodeLen, unexpected:9999});
+		//Verify that the APDU's contain the correct tx
+		assert.equal(txHexFromAPDUs, txHexBlob);
+	}
+	else {
+		const outLen = transport.hexApduCommandOut.length;
+		//No detailed APDU verification for backward compatibility
+		for(let p = 0; p < outLen; p++) {
+			transport.hexApduCommandOut.shift();
+			transport.hexApduCommandIn.shift();
 		}
 	}
-	//Verify that the APDU's contain the correct tx
-	assert.equal(txHexFromAPDUs, txHexBlob);
 	noMoreAPDUs(transport);
 
 	// Prepare digest by hashing transaction

@@ -70,7 +70,7 @@ const exampleAddKeyScHash        = "595c86561441b32b2b91ee03f9e10ca6efa7b41bcc99
 					transactions[i].hash, 
 					sigAlgos[j],
 					hashAlgos[k],
-					13
+					14
 				);
 			}
 		}
@@ -101,7 +101,7 @@ const exampleAddKeyScHash        = "595c86561441b32b2b91ee03f9e10ca6efa7b41bcc99
 				scriptHash,
 				ECDSA_P256,
 				SHA3_256,
-				13
+				14
 			);
 		}
 	}

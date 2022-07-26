@@ -44,7 +44,7 @@ await transactionTest(
 	exampleTxScriptHash,
 	ECDSA_P256,
 	SHA3_256,
-	13,
+	14,
 	path,
 );
 
@@ -74,7 +74,7 @@ await transactionTest(
 	exampleTxScriptHash,
 	ECDSA_P256,
 	SHA3_256,
-	13,
+	14,
 	incorrectPath
 );
 
@@ -88,7 +88,7 @@ await transactionTest(
 	exampleTxScriptHash,
 	ECDSA_P256,
 	SHA3_256,
-	13,
+	14,
 	path
 );
 
@@ -119,7 +119,7 @@ for(let i=0; i<testTxBlobs.length; i++) {
 		exampleTxScriptHash,
 		ECDSA_P256,
 		SHA3_256,
-		13,
+		14,
 		path
 	);	
 }
@@ -135,7 +135,7 @@ await transactionTest(
 	exampleTxScriptHash,
 	ECDSA_P256,
 	SHA2_256,
-	13,
+	14,
 	path
 );
 

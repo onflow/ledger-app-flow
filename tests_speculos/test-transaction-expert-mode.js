@@ -41,7 +41,7 @@ await transactionTest(
 	exampleTxScriptHash,
 	ECDSA_P256,
 	SHA3_256,
-	13,
+	14,
 	path,
 );
 
@@ -54,7 +54,7 @@ await transactionTest(
 	exampleTxScriptHash,
 	ECDSA_SECP256K1,
 	SHA2_256,
-	13,
+	14,
 	path,
 );
 
