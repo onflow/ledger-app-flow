@@ -2,11 +2,17 @@
 # yarn lockfile v1
 
 
-"@onflow/encode@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@onflow/encode/-/encode-0.0.4.tgz#687a76306d292b475efc6321139ab36722a2ea58"
+"@onflow/encode@^0.0.8":
+  version "0.0.8"
+  resolved "https://registry.yarnpkg.com/@onflow/encode/-/encode-0.0.8.tgz#e1c4138c7341e4439bf0468583eb0103b2cb3381"
+  integrity sha512-I7p+/KNzsNCpA+AfIOKRKDnkc7kSW4Nr6Hapamh4ak8SDcNfcO4j8Dx+nTsRwhBuo/R/4XpxMpodC6V7+Vmw0w==
   dependencies:
-    rlp "^2.2.4"
+    "@onflow/rlp" "0.0.3"
+
+"@onflow/rlp@0.0.3":
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/@onflow/rlp/-/rlp-0.0.3.tgz#42e10944309732bfd9acca79710c8210b9aabd4c"
+  integrity sha512-oAf0VEiMjX8eC6Vd66j1BdGYTHOM6UBaS/sLSScnc7bKX5gICqe2gtEsCeJVE9rUzRk3GD3JqXRnPAW6YFWd/Q==
 
 bn.js@^4.11.1:
   version "4.11.9"
@@ -16,7 +22,12 @@ deepmerge@^4.2.2:
   version "4.2.2"
   resolved "https://registry.yarnpkg.com/deepmerge/-/deepmerge-4.2.2.tgz#44d2ea3679b8f4d4ffba33f03d865fc1e7bf4955"
 
-rlp@^2.2.4, rlp@^2.2.6:
+jssha@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/jssha/-/jssha-3.2.0.tgz#88ec50b866dd1411deaddbe6b3e3692e4c710f16"
+  integrity sha512-QuruyBENDWdN4tZwJbQq7/eAK85FqrI4oDbXjy5IBhYD+2pTJyBUWZe8ctWaCkrV0gy6AaelgOZZBMeswEa/6Q==
+
+rlp@^2.2.6:
   version "2.2.6"
   resolved "https://registry.yarnpkg.com/rlp/-/rlp-2.2.6.tgz#c80ba6266ac7a483ef1e69e8e2f056656de2fb2c"
   dependencies:

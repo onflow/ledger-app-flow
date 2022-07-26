@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "type": "module",
   "scripts": {
     "generate": "node ./index.js ../testvectors"
   },
   "dependencies": {
-    "@onflow/encode": "^0.0.4",
+    "@onflow/encode": "^0.0.8",
     "deepmerge": "^4.2.2",
+    "jssha": "^3.2.0",
     "rlp": "^2.2.6"
   }
 }
