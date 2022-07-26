@@ -95,4 +95,4 @@ node_modules/.yarn-integrity
 /tests_speculos/yarn.lock
 /tests_speculos/speculos-port*.log
 *.new.png
-
+app/output-scan-build
