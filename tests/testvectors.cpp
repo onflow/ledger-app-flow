@@ -46,7 +46,12 @@ void check_testcase(const testcase_t &testcase) {
     app_mode_set_expert(tc.expert);
 
     show_address = SHOW_ADDRESS_EMPTY_SLOT;
-    
+
+    uint8_t scriptHash[32];
+    sha256((const uint8_t *) tc.script.c_str(), tc.script.length(), scriptHash);
+
+    parsed_tx_metadata_t m;
+    _parseTxMetadata(scriptHash, tc.metadata.data(), tc.metadata.size(), &m);
 
 
     err = parser_parse(&ctx, tc.blob.data(), tc.blob.size());

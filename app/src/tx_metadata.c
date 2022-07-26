@@ -202,5 +202,10 @@ parser_error_t _parseTxMetadata(const uint8_t scriptHash[METADATA_HASH_SIZE], co
                                 parsed_tx_metadata_t *parsedTxMetadata) {
     memcpy(txMetadataState.buffer, txMetadata, txMetadataLength);
     txMetadataState.metadataLength = txMetadataLength;
+
+    //besides that, we want parseTxMetadata to pass
+    txMetadataState.metadataMerkleTreeValidationLevel = METADATA_MERKLE_TREE_LEVELS + 1;
+    memcpy(txMetadataState.metadataMerkleTreeValidationHash, merkleTreeRoot, METADATA_HASH_SIZE);
+
     return parseTxMetadataInternal(scriptHash, parsedTxMetadata);
 }

@@ -34,6 +34,8 @@ typedef struct {
     std::string payer;
     std::vector<std::string> authorizers;
 
+    std::vector<uint8_t> metadata;
+
     std::string encoded_tx;
     std::vector<uint8_t> blob;
     std::vector<std::string> expected_ui_output;
