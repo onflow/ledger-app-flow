@@ -170,6 +170,17 @@ There are also backward compatibility tests, but only for Nano S. They test if J
 
 When updating Build container/SDK/Speculos you want to change SDK parameter in speculos call in `deps/ledger-zxlib/dockerized_build.mk` 
 
+### Modifying the transaction list
+
+To modify the list of transaction known by Ledger, do the following:
+
+1. Add/modify the manifest files in `transaction_metadata` directory, modify the script to include new files.
+2. Copy the resulting `txMerkleTree.js` file to `js/src`.
+3. Take the top level hash from `txMerkleTree.js`  and move it to `merkleTreeRoot` variable of `app/src/tx_metadata.c` (you need to split the hex into C array of uint8_t's).
+4. You may want to modify the manifest for integration testing to include newly added changes into integration tests.
+
+This process will have to change slightly in the feature to support backward compatibility of JS.
+
 ## Using a real device for integration tests (Nano S and Nano S Plus)
 
 ### How to prepare your DEVELOPMENT! device:
