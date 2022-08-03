@@ -48,19 +48,19 @@ const path = `m/44'/539'/${0x201}'/0/0`;
 	hexExpected = "9000";
 	compareInAPDU(transport, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 	hexExpected = "33020400e027b42f7104fa842ba664b1c199325f8339dd65db575938cef8498d082727c3efcaf67b7d0995d18f289676386108de6b4c134059b000a6f1ec0c80b857b0ec380c538359a1be1553e729aad363de4eec2dcdcc666320eb85899c2f978c5fbf94033592e53bc3280098d0043e4770cfaf7675a56b9c56d836a5e2252de61dc3a85f7f784ed0a40905ed96c8b96588a84b025eb04d593a7662bb66b9eb3a7e962a12c65f0494d2165cbeaa141d705647d8071b528999782dd54a84a44ad2cf3d7b6730cd08974b8ccd1102dd2f5159a8181cc1ede512f6d537d8eea46556e16944";
-	compareOutAPDU(transport, hexExpected, "apdu response", {cla:1, ins:1, p1:1, p2:1, len:1, hashes:0xe0, unexpected:9999});
+	compareOutAPDU(transport, hexExpected, "apdu response", {cla:1, ins:1, p1:1, p2:1, len:1, do_not_compare_hashes:0xe0, unexpected:9999});
 	hexExpected = "9000";
 	compareInAPDU(transport, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 	hexExpected = "33020400e0aa44049d7eb26d667c3714b8fcf78380878e658e22268510ff9f72e69b29decd969676717f03d5697f4d83eda34ad3ae02eb547ac971f0a0b4e118d32db6ef73a1b4c2165e1fceba7324712485844e04e5e955706ae328f6cfd64c49686a810417009ee11f842f7783df52789f4ecaf8d689eb878a053167b43302678f4cd224c9967fd752058341822bc98880abb34e04d3afef58de0e256f2264991e54812353b33a3b57dd772b1dff0636374eb01bc7839efd7677d32399380c37f9a2d03604b126988dc8f00c41d922c13e0ae5a4e7d83f18b44935103cdbbd7c2229d53f";
-	compareOutAPDU(transport, hexExpected, "apdu response", {cla:1, ins:1, p1:1, p2:1, len:1, hashes:0xe0, unexpected:9999});
+	compareOutAPDU(transport, hexExpected, "apdu response", {cla:1, ins:1, p1:1, p2:1, len:1, do_not_compare_hashes:0xe0, unexpected:9999});
 	hexExpected = "9000";
 	compareInAPDU(transport, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 	hexExpected = "33020400e0d6f168b2ac8da11c1a93cc44fd3126eeb7fbd7046a11cd664fd4eafb51502e7788bd487007bf1a5be47cea944d797895181258aba33c77e8c75fe7e38ad9192988bd487007bf1a5be47cea944d797895181258aba33c77e8c75fe7e38ad9192988bd487007bf1a5be47cea944d797895181258aba33c77e8c75fe7e38ad9192988bd487007bf1a5be47cea944d797895181258aba33c77e8c75fe7e38ad9192988bd487007bf1a5be47cea944d797895181258aba33c77e8c75fe7e38ad9192988bd487007bf1a5be47cea944d797895181258aba33c77e8c75fe7e38ad91929";
-	compareOutAPDU(transport, hexExpected, "apdu response", {cla:1, ins:1, p1:1, p2:1, len:1, hashes:0xe0, unexpected:9999});
+	compareOutAPDU(transport, hexExpected, "apdu response", {cla:1, ins:1, p1:1, p2:1, len:1, do_not_compare_hashes:0xe0, unexpected:9999});
 	hexExpected = "9000";
 	compareInAPDU(transport, hexExpected, "apdu response", {returnCode:2, unexpected:9999});
 	hexExpected = "33020500e06edc3a498a77648f820dc3b2d563f74314480e8569c4efbcd69c600f59cec2d094a4bf5f458f2def50f807bf419501bfd5e77a084c30592aa3803a522a3c272e94a4bf5f458f2def50f807bf419501bfd5e77a084c30592aa3803a522a3c272e94a4bf5f458f2def50f807bf419501bfd5e77a084c30592aa3803a522a3c272e94a4bf5f458f2def50f807bf419501bfd5e77a084c30592aa3803a522a3c272e94a4bf5f458f2def50f807bf419501bfd5e77a084c30592aa3803a522a3c272e94a4bf5f458f2def50f807bf419501bfd5e77a084c30592aa3803a522a3c272e";
-	compareOutAPDU(transport, hexExpected, "apdu response", {cla:1, ins:1, p1:1, p2:1, len:1, hashes:0xe0, unexpected:9999});
+	compareOutAPDU(transport, hexExpected, "apdu response", {cla:1, ins:1, p1:1, p2:1, len:1, do_not_compare_hashes:0xe0, unexpected:9999});
 	//Second incoming APDU not cached by SpyTransport as SpeculosTransport throws an exception.
 	noMoreAPDUs(transport);
 }

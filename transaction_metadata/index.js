@@ -20,6 +20,23 @@ const uint8_to_buff = (n) => {
   return buff;
 }
 
+//This is to implement custom rules to make the labels shorter
+const legerifyTxName = (name) => {
+  const txNameTransforms = {
+    "":""
+  }
+  return txNameTransforms[name]?txNameTransforms[name]:name
+}
+
+const legerifyArgLabel = (name) => {
+  const txArgTransforms = {
+    "Networking Address":"Netw. Address",
+    "Networking Key":"Netw. Key",
+    "Public Keys":"Pub. Key",
+  }
+  return txArgTransforms[name]?txArgTransforms[name]:name
+}
+
 const readManifest = (testnetFile, mainnetFile) => {
   const sortFun = (template1, template2) => template1.id > template2.id ? 1 : (template1.id < template2.id ? -1 : 0);
   const testnetTemplates = [...JSON.parse(fs.readFileSync(testnetFile)).templates].sort(sortFun);
@@ -37,7 +54,7 @@ const readManifest = (testnetFile, mainnetFile) => {
       if (arg.type[0] !== '[' && arg.type[arg.type.length-1] !== '?') {
         return Buffer.concat([
           uint8_to_buff(ARGUMENT_TYPE_NORMAL),                            //argument type
-          Buffer.from(arg.label),                                         //argument label
+          Buffer.from(legerifyArgLabel(arg.label)),                       //argument label
           Buffer.from("00", "hex"),                                       //trailing 0
           uint8_to_buff(idx),                                             //order in which should arguments display
           Buffer.from(arg.type),                                          //argument type
@@ -48,7 +65,7 @@ const readManifest = (testnetFile, mainnetFile) => {
       if (arg.type[0] !== '[' && arg.type[arg.type.length-1] === '?') {
         return Buffer.concat([
           uint8_to_buff(ARGUMENT_TYPE_OPTIONAL),                          //argument type
-          Buffer.from(arg.label),                                         //argument label
+          Buffer.from(legerifyArgLabel(arg.label)),                       //argument label
           Buffer.from("00", "hex"),                                       //trailing 0
           uint8_to_buff(idx),                                             //order in which should arguments display
           Buffer.from(arg.type.slice(0, -1)),                             //argument type
@@ -61,7 +78,7 @@ const readManifest = (testnetFile, mainnetFile) => {
           uint8_to_buff(ARGUMENT_TYPE_ARRAY),                             //argument type
           uint8_to_buff(MIN_ARRAY_LENGTH),                                //min array length
           uint8_to_buff(MAX_ARRAY_LENGTH),                                //max array length
-          Buffer.from(arg.label),                                         //argument label
+          Buffer.from(legerifyArgLabel(arg.label)),                       //argument label
           Buffer.from("00", "hex"),                                       //trailing 0
           uint8_to_buff(idx),                                             //order in which should arguments display
           Buffer.from(arg.type.slice(1, -1)),                             //argument type
@@ -74,7 +91,7 @@ const readManifest = (testnetFile, mainnetFile) => {
           uint8_to_buff(ARGUMENT_TYPE_OPTIONALARRAY),                     //argument type
           uint8_to_buff(MIN_ARRAY_LENGTH),                                //min array length
           uint8_to_buff(MAX_ARRAY_LENGTH),                                //max array length
-          Buffer.from(arg.label),                                         //argument label
+          Buffer.from(legerifyArgLabel(arg.label)),                       //argument label
           Buffer.from("00", "hex"),                                       //trailing 0
           uint8_to_buff(idx),                                             //order in which should arguments display
           Buffer.from(arg.type.slice(1, -2)),                             //argument type
@@ -88,7 +105,7 @@ const readManifest = (testnetFile, mainnetFile) => {
       Buffer.from("02", "hex"),                           // number of hashes
       Buffer.from(templateTestnet.hash, "hex"),           // hash testnet
       Buffer.from(templateMainnet.hash, "hex"),           // hash mainnet
-      Buffer.from(templateMainnet.name),                  // transaction name
+      Buffer.from(legerifyTxName(templateMainnet.name)),  // transaction name
       Buffer.from("00", "hex"),                           // trailing 0 after name
       uint8_to_buff(templateMainnet.arguments.length),      // number of arguments
       Buffer.concat(templateMainnet.arguments.map((arg, idx) => processArg(arg, idx))),
