@@ -84,12 +84,6 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
     uint16_t item = 0;
     uint8_t dummy;
 
-    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-    std::cout << tcd.metadata.size() << "\n";
-    std::cout << (int)tcd.metadata[0]<<","<<(int)tcd.metadata[1]<<","<<(int)tcd.metadata[2]<<","
-              << (int)tcd.metadata[3]<<","<<(int)tcd.metadata[4]<<","<<(int)tcd.metadata[5]<<","
-              << "\n";
-    
     parsed_tx_metadata_t m;
     _parseTxMetadata(scriptHash, tcd.metadata.data(), tcd.metadata.size(), &m);
 

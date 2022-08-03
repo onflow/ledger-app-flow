@@ -58,4 +58,3 @@ parser_error_t parser_printArgumentOptionalArray(const flow_argument_list_t *v, 
                                                  uint8_t pageIdx, uint8_t *pageCount);
 } //end extern C
 #endif
-

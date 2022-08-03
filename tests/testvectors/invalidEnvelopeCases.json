@@ -1,6 +1,6 @@
 [
   {
-    "title": "Example Transaction - Invalid Envelope - Unapproved Script",
+    "title": "Example Transaction - Invalid Envelope - Script does not match template",
     "valid": false,
     "chainID": "Mainnet",
     "payloadMessage": {

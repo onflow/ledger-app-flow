@@ -736,8 +736,8 @@ const validPayloadCases = [
 
 const invalidEnvelopeCases = [
   [
-    "Example Transaction - Invalid Envelope - Unapproved Script",
-    buildEnvelopeTx(MAINNET, {script: TX_HELLO_WORLD}), // TX_HELLO_WORLD is not an approved transaction template
+    "Example Transaction - Invalid Envelope - Script does not match template",
+    buildEnvelopeTx(MAINNET, {script: TX_HELLO_WORLD}),
     MAINNET,
     calculateHash(TX_ADD_NEW_KEY),
   ],

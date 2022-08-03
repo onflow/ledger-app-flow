@@ -105,6 +105,9 @@ export default class FlowApp {
 
     //other chunks
     const merkleI = merkleIndex[scriptHash.slice(0, 16)]
+    if (merkleI === undefined) {
+        return undefined
+    }
     const metadata = merkleTree.children[merkleI[0]].children[merkleI[1]].children[merkleI[2]].children[merkleI[3]].children[0]
     const merkleTreeLevel1 = merkleTree.children[merkleI[0]].children[merkleI[1]].children[merkleI[2]].children.map((ch) => ch.hash).join('')
     const merkleTreeLevel2 = merkleTree.children[merkleI[0]].children[merkleI[1]].children.map((ch) => ch.hash).join('')
@@ -252,7 +255,16 @@ export default class FlowApp {
 
     // APDU call sequence with Merkle trees
     return this.signGetChunksv2(path, cryptoOptions, pathSerializationVersion, message, scriptHash).then((chunks) => {
-        return this.signSendChunkv2(1, chunks.length, chunks[0]).then(async (response) => {
+      if (chunks === undefined) {
+        return {
+          returnCode: 0xffff,  //used for JS errors
+          errorMessage: "Script hash not known",
+          signatureCompact: null,
+          signatureDER: null,
+        }
+      }
+
+      return this.signSendChunkv2(1, chunks.length, chunks[0]).then(async (response) => {
         let result = {
           returnCode: response.returnCode,
           errorMessage: response.errorMessage,
@@ -277,7 +289,6 @@ export default class FlowApp {
         };
       }, processErrorResponse);
     }, processErrorResponse);
-
   }
 
   async slotStatus() {
