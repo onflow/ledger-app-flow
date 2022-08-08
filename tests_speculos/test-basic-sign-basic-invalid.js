@@ -72,7 +72,7 @@ const path = `m/44'/539'/${0x201}'/0/0`;
 	testStep(" - - -", "await app.sign() // hash not in merkle tree");
 	const signResponse = await app.sign(path, correctMessage, options, incorrectScriptHash);	
 	assert.equal(signResponse.returnCode, 0xffff);
-	assert.equal(signResponse.errorMessage, "Script hash not known");
+	assert.equal(signResponse.errorMessage, "Script hash not in the list of known scripts.");
 }
 
 //Argument missing
