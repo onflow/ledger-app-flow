@@ -234,7 +234,7 @@ parser_error_t parser_printArgumentArray(const flow_argument_list_t *v, uint8_t 
     CHECK_PARSER_ERR(json_matchKeyValue(&parsedJson, 0, (char *) "Array", JSMN_ARRAY, &internalTokenElementIdx));
     uint16_t arrayTokenCount;
     CHECK_PARSER_ERR(array_get_element_count(&parsedJson, internalTokenElementIdx, &arrayTokenCount));
-    if (arrayTokenCount > MAX_JSON_ARRAY_TOKEN_COUNT) {  //indirectly limits the maximum number of public keys
+    if (arrayIndex >= arrayTokenCount) {  
         return PARSER_UNEXPECTED_NUMBER_ITEMS;
     }
 
@@ -280,7 +280,7 @@ parser_error_t parser_printArgumentOptionalArray(const flow_argument_list_t *v, 
     else {
         uint16_t arrayTokenCount;
         CHECK_PARSER_ERR(array_get_element_count(&parsedJson, internalTokenElementIdx, &arrayTokenCount));
-        if (arrayTokenCount > MAX_JSON_ARRAY_TOKEN_COUNT) { //indirectly limits the maximum number of public keys
+        if (arrayIndex >= arrayTokenCount) {  
             return PARSER_UNEXPECTED_NUMBER_ITEMS;
         }
 

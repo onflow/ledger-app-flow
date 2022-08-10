@@ -46,14 +46,36 @@ parser_error_t parser_getItem(__Z_UNUSED const parser_context_t *ctx, uint8_t di
 
 #ifdef __cplusplus
 ////for testing purposes
+parser_error_t parser_printArgument(const flow_argument_list_t *v, uint8_t argIndex, 
+                                    const char *expectedType, jsmntype_t jsonType,
+                                    char *outVal, uint16_t outValLen,
+                                    uint8_t pageIdx, uint8_t *pageCount);
+
 parser_error_t parser_printOptionalArgument(const flow_argument_list_t *v, uint8_t argIndex,
                                             const char *expectedType, jsmntype_t jsonType,
                                             char *outVal, uint16_t outValLen,
                                             uint8_t pageIdx, uint8_t *pageCount);
 
+parser_error_t parser_printArgumentArray(const flow_argument_list_t *v, uint8_t argIndex, uint8_t arrayIndex,
+                                         const char *expectedType, jsmntype_t jsonType,
+                                         char *outVal, uint16_t outValLen,
+                                         uint8_t pageIdx, uint8_t *pageCount);
+
 parser_error_t parser_printArgumentOptionalArray(const flow_argument_list_t *v, uint8_t argIndex, uint8_t arrayIndex,
                                                  const char *expectedType, jsmntype_t jsonType,
                                                  char *outVal, uint16_t outValLen,
                                                  uint8_t pageIdx, uint8_t *pageCount);
+
+parser_error_t parser_printArbitrary(const flow_argument_list_t *v, uint8_t argIndex, 
+                                     uint16_t *furtherScreens, uint16_t *arrayJsonToken,
+                                     char *outKey, uint16_t outKeyLen,
+                                     char *outVal, uint16_t outValLen,
+                                     uint8_t pageIdx, uint8_t *pageCount);
+
+parser_error_t parser_printArbitraryArrayElements(const flow_argument_list_t *v, uint8_t argIndex, 
+                                     uint16_t arrayIndex, uint16_t arrayJsonToken,
+                                     char *outKey, uint16_t outKeyLen,
+                                     char *outVal, uint16_t outValLen,
+                                     uint8_t pageIdx, uint8_t *pageCount);
 } //end extern C
 #endif
