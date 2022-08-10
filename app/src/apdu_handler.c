@@ -81,11 +81,12 @@ __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx,
 }
 
 __Z_INLINE void handleSign(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
-    if (!process_chunk(tx, rx)) {
+    process_chunk_response_t callType = process_chunk(tx, rx);
+    if (callType == PROCESS_CHUNK_NOT_FINISHED) {
         THROW(APDU_CODE_OK);
     }
 
-    const char *error_msg = tx_parse();
+    const char *error_msg = tx_parse(callType);
 
     if (error_msg != NULL) {
         int error_msg_length = strlen(error_msg);
@@ -94,16 +95,17 @@ __Z_INLINE void handleSign(volatile uint32_t *flags, volatile uint32_t *tx, uint
         THROW(APDU_CODE_DATA_INVALID);
     }
 
-    show_address = SHOW_ADDRESS_NONE;
-    loadAddressCompareHdPathFromSlot();    
 
+    show_address = SHOW_ADDRESS_NONE;
+    loadAddressCompareHdPathFromSlot();
+    
     //if we found matching hdPath on slot 0
     if (show_address == SHOW_ADDRESS_YES || show_address == SHOW_ADDRESS_YES_HASH_MISMATCH) {
         checkAddressUsedInTx();
     }
     else {
         addressUsedInTx = 0;
-    }    
+    }
 
     CHECK_APP_CANARY()
     view_review_init(tx_getItem, tx_getNumItems, app_sign);

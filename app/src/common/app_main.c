@@ -112,7 +112,9 @@ void extractHDPathAndCryptoOptions(uint32_t rx, uint32_t offset) {
     MEMCPY(&cryptoOptions, G_io_apdu_buffer + offset + sizeof(hdPath.data), sizeof(cryptoOptions));
 }
 
-bool process_chunk(__Z_UNUSED volatile uint32_t *tx, uint32_t rx) {
+
+
+process_chunk_response_t process_chunk(__Z_UNUSED volatile uint32_t *tx, uint32_t rx) {
     const uint8_t payloadType = G_io_apdu_buffer[OFFSET_PAYLOAD_TYPE];
 
     if (G_io_apdu_buffer[OFFSET_P2] != 0) {
@@ -130,33 +132,37 @@ bool process_chunk(__Z_UNUSED volatile uint32_t *tx, uint32_t rx) {
             tx_reset();
             extractHDPathAndCryptoOptions(rx, OFFSET_DATA);
             initStoredTxMetadata();
-            return false;
+            return PROCESS_CHUNK_NOT_FINISHED;
         case 1:
             added = tx_append(&(G_io_apdu_buffer[OFFSET_DATA]), rx - OFFSET_DATA);
             if (added != rx - OFFSET_DATA) {
                 THROW(APDU_CODE_OUTPUT_BUFFER_TOO_SMALL);
             }
-            return false;
+            return PROCESS_CHUNK_NOT_FINISHED;
         case 2:
-            THROW(APDU_CODE_INVALIDP1P2);
+            added = tx_append(&(G_io_apdu_buffer[OFFSET_DATA]), rx - OFFSET_DATA);
+            if (added != rx - OFFSET_DATA) {
+                THROW(APDU_CODE_OUTPUT_BUFFER_TOO_SMALL);
+            }
+            return PROCESS_CHUNK_FINISHED_NO_METADATA;
         case 3:
             if (storeTxMetadata(&(G_io_apdu_buffer[OFFSET_DATA]), rx - OFFSET_DATA) != PARSER_OK) {
                 initStoredTxMetadata(); //delete merkle tree proof on error for redundant security
                 THROW(APDU_CODE_DATA_INVALID);
             }
-            return false;
+            return PROCESS_CHUNK_NOT_FINISHED;
         case 4:
             if (validateStoredTxMetadataMerkleTreeLevel(&(G_io_apdu_buffer[OFFSET_DATA]), rx - OFFSET_DATA) != PARSER_OK) {
                 initStoredTxMetadata(); //delete merkle tree proof on error for redundant security
                 THROW(APDU_CODE_DATA_INVALID);
             }
-            return false;
+            return PROCESS_CHUNK_NOT_FINISHED;
         case 5:
             if (validateStoredTxMetadataMerkleTreeLevel(&(G_io_apdu_buffer[OFFSET_DATA]), rx - OFFSET_DATA) != PARSER_OK) {
                 initStoredTxMetadata(); //delete merkle tree proof on error for redundant security
                 THROW(APDU_CODE_DATA_INVALID);
             }
-            return true;
+            return PROCESS_CHUNK_FINISHED_WITH_METADATA;
     }
 
     THROW(APDU_CODE_INVALIDP1P2);

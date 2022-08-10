@@ -45,7 +45,6 @@ parser_error_t parser_getItem(__Z_UNUSED const parser_context_t *ctx, uint8_t di
 
 
 #ifdef __cplusplus
-
 ////for testing purposes
 parser_error_t parser_printOptionalArgument(const flow_argument_list_t *v, uint8_t argIndex,
                                             const char *expectedType, jsmntype_t jsonType,

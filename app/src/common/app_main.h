@@ -45,7 +45,13 @@ void app_main();
 
 void extractHDPathAndCryptoOptions(uint32_t rx, uint32_t offset);
 
-bool process_chunk(volatile uint32_t *tx, uint32_t rx);
+typedef enum {
+    PROCESS_CHUNK_NOT_FINISHED = 0,
+    PROCESS_CHUNK_FINISHED_WITH_METADATA,
+    PROCESS_CHUNK_FINISHED_NO_METADATA,
+} process_chunk_response_t;
+
+process_chunk_response_t process_chunk(volatile uint32_t *tx, uint32_t rx);
 
 void handleApdu(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx);
 

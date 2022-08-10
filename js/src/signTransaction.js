@@ -49,11 +49,13 @@ function signGetChunksv2(path, options, getVersionResponse, message, scriptHash)
     const serializedPath = serializePath(path, getVersionResponse, options);
     const basicChunks = prepareBasicChunks(serializedPath, message)
 
-    //other chunks
+    // We try to find hash in the merkle tree. If it is not there, we send the tx without metadata (arbitrary tx signing in expert mode)
     const merkleI = merkleIndex[scriptHash.slice(0, 16)]
     if (merkleI === undefined) {
-        return "Script hash not in the list of known scripts.";
+        basicChunks[basicChunks.length-1].type = PAYLOAD_TYPE.LAST
+        return basicChunks;
     }
+    // other chunks
     const metadata = merkleTree.children[merkleI[0]].children[merkleI[1]].children[merkleI[2]].children[merkleI[3]].children[0]
     const merkleTreeLevel1 = merkleTree.children[merkleI[0]].children[merkleI[1]].children[merkleI[2]].children.map((ch) => ch.hash).join('')
     const merkleTreeLevel2 = merkleTree.children[merkleI[0]].children[merkleI[1]].children.map((ch) => ch.hash).join('')
@@ -74,5 +76,6 @@ export function signGetChunks(path, options, getVersionResponse, message, script
     if (compareVersion(getVersionResponse, 0, 10, 3) <= 0) {
         return signGetChunksv1(path, options, getVersionResponse, message)
     }
+
     return signGetChunksv2(path, options, getVersionResponse, message, scriptHash);
 }
