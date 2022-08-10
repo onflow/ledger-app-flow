@@ -601,6 +601,11 @@ parser_error_t parser_getItem_internal(int8_t *displayIdx,
     //Arguments
     if (parser_tx_obj.metadataInitialized) {
         uint8_t screenCount = 0;
+
+        if (parser_tx_obj.metadata.argCount != parser_tx_obj.arguments.argCount) {
+            return PARSER_UNEXPECTED_NUMBER_ITEMS;
+        }
+
         for(size_t i=0; i<parser_tx_obj.metadata.argCount; i++) {
             parsed_tx_metadata_argument_t *marg = &parser_tx_obj.metadata.arguments[i];
             switch(marg->argumentType) {
