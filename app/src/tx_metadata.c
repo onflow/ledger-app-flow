@@ -5,7 +5,6 @@
 
 #define MAX_METADATA_NUMBER_OF_HASHES 10
 #define MAX_METADATA_STRING_LENGTH 100
-#define MAX_METADATA_MAX_ARRAY_ITEMS 20
 
 #define METADATA_MERKLE_TREE_LEVELS 4
 
@@ -150,7 +149,7 @@ static parser_error_t parseTxMetadataInternal(const uint8_t scriptHash[METADATA_
     {
         READ_CHAR(&parsedTxMetadata->argCount)
         if (parsedTxMetadata->argCount > PARSER_MAX_ARGCOUNT) {
-            return PARSER_METADATA_TOO_MANY_ARGUMENTS;
+            return PARSER_TOO_MANY_ARGUMENTS;
         }
         STATIC_ASSERT(sizeof(parsedTxMetadata->arguments) >= PARSER_MAX_ARGCOUNT, "Too few arguments in parsed_tx_metadata_t.");
         for(int i=0; i<parsedTxMetadata->argCount; i++) {
@@ -197,7 +196,7 @@ parser_error_t parseTxMetadata(const uint8_t scriptHash[METADATA_HASH_SIZE], par
     return parseTxMetadataInternal(scriptHash, parsedTxMetadata);
 }
 
-//For C++ testing purposes - we circumnavihate the hashing mechanism to test metadata parsing
+//For C++ testing purposes - we circumnavigate the hashing mechanism to test metadata parsing
 parser_error_t _parseTxMetadata(const uint8_t scriptHash[METADATA_HASH_SIZE], const uint8_t *txMetadata, size_t txMetadataLength, 
                                 parsed_tx_metadata_t *parsedTxMetadata) {
     memcpy(txMetadataState.buffer, txMetadata, txMetadataLength);

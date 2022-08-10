@@ -346,7 +346,8 @@ speculos_port_5001_test_internal:
 speculos_port_5002_test_internal:
 	$(call run_announce,$@)
 	$(call run_nodejs_test,5002,40002,test-slot-transaction-interaction.js)	
-	$(call run_nodejs_test,5002,40002,test-transaction-expert-mode.js)	
+	$(call run_nodejs_test,5002,40002,test-transaction-expert-mode.js)
+	$(call run_nodejs_test,5002,40002,test-transaction-arbitrary.js)
 	$(call run_nodejs_test,5002,40002,test-transactions.js)
 	@echo "# ALL TESTS COMPLETED!" | tee -a $(TESTS_SPECULOS_DIR)/speculos-port-5002.log
 

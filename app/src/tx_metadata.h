@@ -34,22 +34,23 @@ typedef enum {
 
 #define PARSER_MAX_ARGCOUNT 10
 #define METADATA_HASH_SIZE 32 //CX_SHA256_SIZE
+#define MAX_METADATA_MAX_ARRAY_ITEMS 20
 
 //It is planed that all these strings may be on flash, thus they are volatile (for NanoX and NanoSPlus)
 typedef struct {
     argument_type_e argumentType;
     uint8_t arrayMinElements; //defined only for ARGUMENT_TYPE_ARRAY and ARGUMENT_TYPE_OPTIONALARRAY
     uint8_t arrayMaxElements; //defined only for ARGUMENT_TYPE_ARRAY and ARGUMENT_TYPE_OPTIONALARRAY
-    const NV_VOLATILE char *displayKey; 
+    const char *displayKey; 
     uint8_t displayKeyLength;
     uint8_t argumentIndex; //argument index within transaction
-    const NV_VOLATILE char *jsonExpectedType; //pointer to null terminated string
+    const char *jsonExpectedType; //pointer to null terminated string
     uint8_t jsonExpectedTypeLength;
     jsmntype_t jsonExpectedKind;
 } parsed_tx_metadata_argument_t;
 
 typedef struct {
-    const NV_VOLATILE char *txName;
+    const char *txName;
     uint8_t txNameLength;
     uint8_t argCount;
     parsed_tx_metadata_argument_t arguments[PARSER_MAX_ARGCOUNT]; //order of arguments in which they should be displayed

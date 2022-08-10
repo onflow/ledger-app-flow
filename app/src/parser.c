@@ -222,6 +222,10 @@ parser_error_t parser_printArgumentArray(const flow_argument_list_t *v, uint8_t 
                                          uint8_t pageIdx, uint8_t *pageCount) {
     MEMZERO(outVal, outValLen);
 
+    if (argIndex >= v->argCount) {
+        return PARSER_UNEXPECTED_NUMBER_ITEMS;
+    }
+
     parsed_json_t parsedJson = {false};
     CHECK_PARSER_ERR(json_parse(&parsedJson, (char *) v->argCtx[argIndex].buffer, v->argCtx[argIndex].bufferLen));
 
@@ -255,6 +259,10 @@ parser_error_t parser_printArgumentOptionalArray(const flow_argument_list_t *v, 
                                                  char *outVal, uint16_t outValLen,
                                                  uint8_t pageIdx, uint8_t *pageCount) {
     MEMZERO(outVal, outValLen);
+
+    if (argIndex >= v->argCount) {
+        return PARSER_UNEXPECTED_NUMBER_ITEMS;
+    }
 
     parsed_json_t parsedJson = {false};
     CHECK_PARSER_ERR(json_parse(&parsedJson, (char *) v->argCtx[argIndex].buffer, v->argCtx[argIndex].bufferLen));
@@ -292,6 +300,129 @@ parser_error_t parser_printArgumentOptionalArray(const flow_argument_list_t *v, 
 
     return PARSER_OK;
 }
+
+// Prepares first screen of an argument. If it is an array/non-empty optional array it prepares a screen with its length.
+// Array token value undefined if *furtherScreens == 0
+// *pageCount may be NULL - in that case the caller is interested only in furtherScreens and *arrayJsonToken
+parser_error_t parser_printArbitrary(const flow_argument_list_t *v, uint8_t argIndex, 
+                                     uint16_t *furtherScreens, uint16_t *arrayJsonToken,
+                                     char *outKey, uint16_t outKeyLen,
+                                     char *outVal, uint16_t outValLen,
+                                     uint8_t pageIdx, uint8_t *pageCount) {
+    if (argIndex >= v->argCount) {
+        return PARSER_UNEXPECTED_NUMBER_ITEMS;
+    }
+
+    parsed_json_t parsedJson = {false};
+    CHECK_PARSER_ERR(json_parse(&parsedJson, (char *) v->argCtx[argIndex].buffer, v->argCtx[argIndex].bufferLen));
+
+    jsmntype_t valueJsonType = JSMN_UNDEFINED;
+    uint16_t keyTokenElementIdx = 0;
+    uint16_t valueTokenElementIdx = 0;
+    CHECK_PARSER_ERR(json_matchArbitraryKeyValue(&parsedJson, 0, &valueJsonType, 
+                                                 &keyTokenElementIdx, &valueTokenElementIdx));
+    char bufferUI[ARGUMENT_BUFFER_SIZE_STRING];
+
+    switch (valueJsonType) {
+        case JSMN_ARRAY: //array
+            CHECK_PARSER_ERR(json_matchToken(&parsedJson, keyTokenElementIdx, "Array"));
+            CHECK_PARSER_ERR(array_get_element_count(&parsedJson, valueTokenElementIdx, furtherScreens));
+            if (*furtherScreens > MAX_METADATA_MAX_ARRAY_ITEMS) {
+                return PARSER_TOO_MANY_ARGUMENTS;
+            }
+            snprintf(outKey, outKeyLen, "%d: Array", (int)(argIndex+1));
+            snprintf(outVal, outValLen, "Length: %d", (int)(*furtherScreens));
+            *arrayJsonToken = valueTokenElementIdx;
+            return PARSER_OK;    
+        case JSMN_STRING: //value
+            CHECK_PARSER_ERR(json_extractToken(bufferUI, sizeof(bufferUI), &parsedJson, keyTokenElementIdx))
+            snprintf(outKey, outKeyLen, "%d: %s", (int)(argIndex+1), bufferUI);
+            CHECK_PARSER_ERR(json_extractToken(bufferUI, sizeof(bufferUI), &parsedJson, valueTokenElementIdx))
+            if (pageCount != NULL) {
+                pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
+            }
+            *furtherScreens = 0;
+            return PARSER_OK;
+        case JSMN_PRIMITIVE: //optional null
+            CHECK_PARSER_ERR(json_matchNull(&parsedJson, valueTokenElementIdx))
+            snprintf(outKey, outKeyLen, "%d: Optional", (int)(argIndex+1));
+            snprintf(outVal, outValLen, "None");
+            *furtherScreens = 0;
+            return PARSER_OK;
+        case JSMN_OBJECT: //optional not null
+            CHECK_PARSER_ERR(json_matchArbitraryKeyValue(&parsedJson, valueTokenElementIdx, &valueJsonType, 
+                                                         &keyTokenElementIdx, &valueTokenElementIdx));
+            switch (valueJsonType) {
+                case JSMN_ARRAY: //array
+                    CHECK_PARSER_ERR(json_matchToken(&parsedJson, keyTokenElementIdx, "Array"));
+                    CHECK_PARSER_ERR(array_get_element_count(&parsedJson, valueTokenElementIdx, furtherScreens));
+                    if (*furtherScreens > MAX_METADATA_MAX_ARRAY_ITEMS) {
+                        return PARSER_TOO_MANY_ARGUMENTS;
+                    }
+                    snprintf(outKey, outKeyLen, "%d: Opt. array", (int)(argIndex+1));
+                    snprintf(outVal, outValLen, "Length: %d", (int)(*furtherScreens));
+                    *arrayJsonToken = valueTokenElementIdx;
+                    return PARSER_OK;    
+                case JSMN_STRING: //value
+                    CHECK_PARSER_ERR(json_extractToken(bufferUI, sizeof(bufferUI), &parsedJson, keyTokenElementIdx))
+                    snprintf(outKey, outKeyLen, "%d: %s?", (int)(argIndex+1), bufferUI);
+                    CHECK_PARSER_ERR(json_extractToken(bufferUI, sizeof(bufferUI), &parsedJson, valueTokenElementIdx))
+                    if (pageCount != NULL) {
+                        pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
+                    }
+                    *furtherScreens = 0;
+                    return PARSER_OK;
+                default:
+                    return PARSER_JSON_INVALID;
+            }
+        default:
+            return PARSER_JSON_INVALID;
+    }
+}
+
+parser_error_t parser_printArbitraryArrayElements(const flow_argument_list_t *v, uint8_t argIndex, 
+                                     uint16_t arrayIndex, uint16_t arrayJsonToken,
+                                     char *outKey, uint16_t outKeyLen,
+                                     char *outVal, uint16_t outValLen,
+                                     uint8_t pageIdx, uint8_t *pageCount) {
+    if (argIndex >= v->argCount) {
+        return PARSER_UNEXPECTED_NUMBER_ITEMS;
+    }
+
+    parsed_json_t parsedJson = {false};
+    CHECK_PARSER_ERR(json_parse(&parsedJson, (char *) v->argCtx[argIndex].buffer, v->argCtx[argIndex].bufferLen));
+    if (arrayJsonToken >= parsedJson.numberOfTokens) {
+        return PARSER_JSON_INVALID_TOKEN_IDX;
+    }
+
+    uint16_t arrayLen = 0;
+    CHECK_PARSER_ERR(array_get_element_count(&parsedJson, arrayJsonToken, &arrayLen));
+    if (arrayIndex >= arrayLen) {
+        return PARSER_JSON_INVALID_TOKEN_IDX;
+    }
+
+    uint16_t arrayElementToken = 0;
+    CHECK_PARSER_ERR(array_get_nth_element(&parsedJson, arrayJsonToken, arrayIndex, &arrayElementToken))
+
+    jsmntype_t valueJsonType = JSMN_UNDEFINED;
+    uint16_t keyTokenElementIdx = 0;
+    uint16_t valueTokenElementIdx = 0;
+    CHECK_PARSER_ERR(json_matchArbitraryKeyValue(&parsedJson, arrayElementToken, &valueJsonType, 
+                                                 &keyTokenElementIdx, &valueTokenElementIdx));
+
+    if (valueJsonType != JSMN_STRING) {
+        return PARSER_JSON_INVALID;
+    }
+
+    char bufferUI[ARGUMENT_BUFFER_SIZE_STRING];
+    
+    CHECK_PARSER_ERR(json_extractToken(bufferUI, sizeof(bufferUI), &parsedJson, keyTokenElementIdx))
+    snprintf(outKey, outKeyLen, "%d: %s %d", (int)(argIndex+1), bufferUI, (int)(arrayIndex + 1));
+    CHECK_PARSER_ERR(json_extractToken(bufferUI, sizeof(bufferUI), &parsedJson, valueTokenElementIdx))
+    pageString(outVal, outValLen, bufferUI, pageIdx, pageCount);
+    return PARSER_OK;
+}
+
 
 parser_error_t parser_printBlockId(const flow_reference_block_id_t *v,
                                    char *outVal, uint16_t outValLen,
@@ -442,10 +573,24 @@ parser_error_t parser_getItem_internal(int8_t *displayIdx,
     //Do not forget to break after switch/case even if you return from within SCREEN(true) block
     #define SCREEN(condition) if ((condition) && (*displayIdx!=INT8_MIN) && ((*displayIdx)--==0) && pageCount && (*pageCount = 1))
 
-    SCREEN(true) {
-        snprintf(outKey, outKeyLen, "Type");
-        snprintf(outVal, outValLen, "%s", parser_tx_obj.metadata.txName);
-        return PARSER_OK;
+    if (parser_tx_obj.metadataInitialized) {
+        SCREEN(true) {
+            snprintf(outKey, outKeyLen, "Type");
+            snprintf(outVal, outValLen, "%s", parser_tx_obj.metadata.txName);
+            return PARSER_OK;
+        }
+    }
+    else {
+        SCREEN(true) {
+            snprintf(outKey, outKeyLen, "Script hash");
+            pageHexString(outVal, outValLen, parser_tx_obj.hash.digest, sizeof(parser_tx_obj.hash.digest), pageIdx, pageCount);
+            return PARSER_OK;
+        }
+        SCREEN(true) {
+            snprintf(outKey, outKeyLen, "Verify script hash");
+            snprintf(outVal, outValLen, "on a secure device.");
+            return PARSER_OK;
+        }
     }
 
     SCREEN(true) {
@@ -454,55 +599,82 @@ parser_error_t parser_getItem_internal(int8_t *displayIdx,
     }
 
     //Arguments
-    uint8_t screenCount = 0;
-    for(size_t i=0; i<parser_tx_obj.metadata.argCount; i++) {
-        parsed_tx_metadata_argument_t *marg = &parser_tx_obj.metadata.arguments[i];
-        switch(marg->argumentType) {
-            case ARGUMENT_TYPE_NORMAL:
-                SCREEN(true) {
-                    snprintf(outKey, outKeyLen, "%s", marg->displayKey);
-                    return parser_printArgument(&parser_tx_obj.arguments, marg->argumentIndex, 
-                                                marg->jsonExpectedType, marg->jsonExpectedKind,
-                                                outVal, outValLen, pageIdx, pageCount);                
-                }
-                break;
-            case ARGUMENT_TYPE_OPTIONAL:
-                SCREEN(true) {
-                    snprintf(outKey, outKeyLen, "%s", marg->displayKey);
-                    return parser_printOptionalArgument(&parser_tx_obj.arguments, marg->argumentIndex, 
-                                                        marg->jsonExpectedType, marg->jsonExpectedKind,
-                                                        outVal, outValLen, pageIdx, pageCount);                
-                }
-                break;
-            case ARGUMENT_TYPE_ARRAY:
-                CHECK_PARSER_ERR(_countArgumentItems(&parser_tx_obj.arguments, marg->argumentIndex, 
-                                                     marg->arrayMinElements, marg->arrayMaxElements, &screenCount));
-                for(size_t j=0; j<screenCount; j++) {
+    if (parser_tx_obj.metadataInitialized) {
+        uint8_t screenCount = 0;
+        for(size_t i=0; i<parser_tx_obj.metadata.argCount; i++) {
+            parsed_tx_metadata_argument_t *marg = &parser_tx_obj.metadata.arguments[i];
+            switch(marg->argumentType) {
+                case ARGUMENT_TYPE_NORMAL:
                     SCREEN(true) {
-                        snprintf(outKey, outKeyLen, "%s %d", marg->displayKey, (int)(j+1));
-                        return parser_printArgumentArray(&parser_tx_obj.arguments, marg->argumentIndex, j,
-                                                         marg->jsonExpectedType, marg->jsonExpectedKind,
-                                                         outVal, outValLen, pageIdx, pageCount);
-
+                        snprintf(outKey, outKeyLen, "%s", marg->displayKey);
+                        return parser_printArgument(&parser_tx_obj.arguments, marg->argumentIndex, 
+                                                    marg->jsonExpectedType, marg->jsonExpectedKind,
+                                                    outVal, outValLen, pageIdx, pageCount);                
                     }
-                }
-                break;
-            case ARGUMENT_TYPE_OPTIONALARRAY:
-                CHECK_PARSER_ERR(_countArgumentOptionalItems(&parser_tx_obj.arguments, marg->argumentIndex, 
-                                                             marg->arrayMinElements, marg->arrayMaxElements, &screenCount));
-                for(size_t j=0; j<screenCount; j++) {
+                    break;
+                case ARGUMENT_TYPE_OPTIONAL:
                     SCREEN(true) {
-                        snprintf(outKey, outKeyLen, "%s %d", marg->displayKey, (int)(j+1));
-                        return parser_printArgumentOptionalArray(&parser_tx_obj.arguments, marg->argumentIndex, j,
-                                                                 marg->jsonExpectedType, marg->jsonExpectedKind,
-                                                                 outVal, outValLen, pageIdx, pageCount);
-
+                        snprintf(outKey, outKeyLen, "%s", marg->displayKey);
+                        return parser_printOptionalArgument(&parser_tx_obj.arguments, marg->argumentIndex, 
+                                                            marg->jsonExpectedType, marg->jsonExpectedKind,
+                                                            outVal, outValLen, pageIdx, pageCount);                
                     }
-                }
-                break;
-            default:
-                return PARSER_METADATA_ERROR;
+                    break;
+                case ARGUMENT_TYPE_ARRAY:
+                    CHECK_PARSER_ERR(_countArgumentItems(&parser_tx_obj.arguments, marg->argumentIndex, 
+                                                        marg->arrayMinElements, marg->arrayMaxElements, &screenCount));
+                    for(size_t j=0; j<screenCount; j++) {
+                        SCREEN(true) {
+                            snprintf(outKey, outKeyLen, "%s %d", marg->displayKey, (int)(j+1));
+                            return parser_printArgumentArray(&parser_tx_obj.arguments, marg->argumentIndex, j,
+                                                            marg->jsonExpectedType, marg->jsonExpectedKind,
+                                                            outVal, outValLen, pageIdx, pageCount);
+
+                        }
+                    }
+                    break;
+                case ARGUMENT_TYPE_OPTIONALARRAY:
+                    CHECK_PARSER_ERR(_countArgumentOptionalItems(&parser_tx_obj.arguments, marg->argumentIndex, 
+                                                                marg->arrayMinElements, marg->arrayMaxElements, &screenCount));
+                    for(size_t j=0; j<screenCount; j++) {
+                        SCREEN(true) {
+                            snprintf(outKey, outKeyLen, "%s %d", marg->displayKey, (int)(j+1));
+                            return parser_printArgumentOptionalArray(&parser_tx_obj.arguments, marg->argumentIndex, j,
+                                                                    marg->jsonExpectedType, marg->jsonExpectedKind,
+                                                                    outVal, outValLen, pageIdx, pageCount);
+                        }
+                    }
+                    break;
+                default:
+                    return PARSER_METADATA_ERROR;
+            }
         }
+    }
+    else { // No metadata
+        SCREEN(true) {
+            snprintf(outKey, outKeyLen, "Script arguments");
+            snprintf(outVal, outValLen, "Number of arguments: %d", parser_tx_obj.arguments.argCount);
+            return PARSER_OK;
+        }
+        for(size_t i=0; i<parser_tx_obj.arguments.argCount; i++) {
+            uint16_t furtherScreens = 0;
+            uint16_t arrayJsonTokenIndex = 0;
+            //to calculate further screens and arrayJsonTokenIndex
+            CHECK_PARSER_ERR(parser_printArbitrary(&parser_tx_obj.arguments, i, &furtherScreens, &arrayJsonTokenIndex,
+                                                    outKey, outKeyLen, outVal, outValLen, pageIdx, NULL));
+            SCREEN(true) {
+                return parser_printArbitrary(&parser_tx_obj.arguments, i, &furtherScreens, &arrayJsonTokenIndex,
+                                             outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
+            }
+
+            for(size_t j=0; j<furtherScreens; j++) {
+                SCREEN(true) {
+                    return parser_printArbitraryArrayElements(&parser_tx_obj.arguments, i, j, arrayJsonTokenIndex,
+                                                              outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
+                }
+            }
+        }
+            
     }
 
     SCREEN(true) {

@@ -114,7 +114,7 @@ const char *parser_getErrorDescription(parser_error_t err) {
             return "Metadata too many hashes";
         case PARSER_METADATA_ERROR:
             return "Metadata unknown error";
-        case PARSER_METADATA_TOO_MANY_ARGUMENTS:
+        case PARSER_TOO_MANY_ARGUMENTS:
             return "Metadata too many arguments";
         default:
             return "Unrecognized error code";
@@ -311,6 +311,37 @@ parser_error_t json_matchOptionalArray(const parsed_json_t *parsedJson,
     return PARSER_UNEXPECTED_VALUE;
 }
 
+parser_error_t json_matchArbitraryKeyValue(const parsed_json_t *parsedJson,
+                                           uint16_t tokenIdx, jsmntype_t *valueJsonType, uint16_t *keyTokenIdx, uint16_t *valueTokenIdx) {
+    CHECK_PARSER_ERR(json_validateToken(parsedJson, tokenIdx))
+
+    if (! (tokenIdx + 4 < parsedJson->numberOfTokens)) {
+        // we need this token and 4 more
+        return PARSER_JSON_INVALID_TOKEN_IDX;
+    }
+
+    if (parsedJson->tokens[tokenIdx].type != JSMN_OBJECT) {
+        return PARSER_UNEXPECTED_TYPE;
+    }
+
+    if (parsedJson->tokens[tokenIdx].size != 2) {
+        return PARSER_UNEXPECTED_NUMBER_ITEMS;
+    }
+
+    // Type key/value
+    CHECK_PARSER_ERR(json_matchToken(parsedJson, tokenIdx + 1, (char *) "type"))
+    if (parsedJson->tokens[tokenIdx + 2].type != JSMN_STRING) {
+        return PARSER_UNEXPECTED_TYPE;
+    }
+    CHECK_PARSER_ERR(json_matchToken(parsedJson, tokenIdx + 3, (char *) "value"))
+
+    *keyTokenIdx = tokenIdx + 2;
+    *valueJsonType = parsedJson->tokens[tokenIdx + 4].type;
+    *valueTokenIdx = tokenIdx + 4;
+
+    return PARSER_OK;
+}
+
 parser_error_t formatStrUInt8AsHex(const char *decStr, char *hexStr) {
     uint16_t decLen = strnlen(decStr, 5);
     if (decLen > 3 || decLen == 0) {
@@ -333,21 +364,17 @@ parser_error_t formatStrUInt8AsHex(const char *decStr, char *hexStr) {
     return PARSER_OK;
 }
 
-parser_error_t _readScript(parser_context_t *c, parsed_tx_metadata_t *m) {
+parser_error_t _readScript(parser_context_t *c, flow_script_hash_t *s) {
     rlp_kind_e kind;
     parser_context_t script;
     uint32_t bytesConsumed;
-    uint8_t digest[CX_SHA256_SIZE];
 
     CHECK_PARSER_ERR(rlp_decode(c, &script, &kind, &bytesConsumed));
     CTX_CHECK_AND_ADVANCE(c, bytesConsumed)
     CHECK_KIND(kind, RLP_KIND_STRING)
 
-    MEMZERO(digest, sizeof(digest));
-    sha256(script.buffer, script.bufferLen, digest);
-
-    MEMZERO(m, sizeof(parsed_tx_metadata_t));
-    CHECK_PARSER_ERR(parseTxMetadata(digest, m));
+    MEMZERO(s->digest, sizeof(s->digest));
+    sha256(script.buffer, script.bufferLen, s->digest);
 
     return PARSER_OK;
 }
@@ -522,8 +549,9 @@ parser_error_t _read(parser_context_t *c, parser_tx_t *v) {
     CTX_CHECK_AND_ADVANCE(&ctx_rootList, bytesConsumed)
     CHECK_KIND(kind, RLP_KIND_LIST)
 
+    
     // Go through the inner list
-    CHECK_PARSER_ERR(_readScript(&ctx_rootInnerList, &v->metadata))
+    CHECK_PARSER_ERR(_readScript(&ctx_rootInnerList, &v->hash))
     CHECK_PARSER_ERR(_readArguments(&ctx_rootInnerList, &v->arguments))
     CHECK_PARSER_ERR(_readReferenceBlockId(&ctx_rootInnerList, &v->referenceBlockId))
     CHECK_PARSER_ERR(_readGasLimit(&ctx_rootInnerList, &v->gasLimit))
@@ -621,4 +649,10 @@ void checkAddressUsedInTx() {
             }
         }
     }
+}
+
+parser_error_t parseMetadata() {
+    MEMZERO(&parser_tx_obj.metadata , sizeof(parser_tx_obj.metadata));
+    CHECK_PARSER_ERR(parseTxMetadata(parser_tx_obj.hash.digest, &parser_tx_obj.metadata));
+    return PARSER_OK;
 }

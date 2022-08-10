@@ -16,7 +16,7 @@
  ******************************************************************************* */
 
 import { serializePath, validateCryptoOptions, printBIP44Path} from "./serializePath";
-import { signGetChunks, signIsLastAPDU } from "./signStoredTransaction";
+import { signGetChunks, signIsLastAPDU } from "./signTransaction";
 import { CLA, ERROR_CODE, errorCodeToString, getVersion, INS, P1_VALUES, PKLEN, processErrorResponse } from "./common";
 
 function processGetAddrResponse(response) {

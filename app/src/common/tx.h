@@ -18,6 +18,7 @@
 #include "os.h"
 #include "coin.h"
 #include "zxerror.h"
+#include "app_main.h"
 
 void tx_initialize();
 
@@ -51,7 +52,7 @@ uint8_t *get_signable();
 /// Parse message stored in transaction buffer
 /// This function should be called as soon as full buffer data is loaded.
 /// \return It returns NULL if data is valid or error message otherwise.
-const char *tx_parse();
+const char *tx_parse(process_chunk_response_t typeOfCall);
 
 /// Release zbuffer memory
 void tx_parse_reset();

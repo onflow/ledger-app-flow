@@ -30,7 +30,7 @@ class SpyTransport {
 	}
 
 	//this.transport.send(_common.CLA, _common.INS.SET_SLOT, 0, 0, payload).then(...)
-	async send(cla, ins, p1, p2, pay) {
+	async send(cla, ins, p1, p2, pay, noThrowErrorCodes) {
 		const len = (typeof pay === 'undefined') ? 0 : pay.length;
 		const hex_cla = cla.toString(16).padStart(2, '0'); if (process.env.TEST_DEBUG >= 1) { console.log(humanTime() + " .send() cla: 0x" + hex_cla); } // e.g. 33
 		const hex_ins = ins.toString(16).padStart(2, '0'); if (process.env.TEST_DEBUG >= 1) { console.log(humanTime() + " .send() ins: 0x" + hex_ins); } // e.g. 12
@@ -44,7 +44,7 @@ class SpyTransport {
 
 		//Now we actually send
 		testStep(" >    ", "APDU out");
-		const sendPromise = this.transport.send(cla, ins, p1, p2, pay)
+		const sendPromise = this.transport.send(cla, ins, p1, p2, pay, noThrowErrorCodes)
 
 		//If we are waiting for this APDU we resolve the promise
 		if (!!this.APDUToWait && cla == this.APDUToWait.cla && ins == this.APDUToWait.ins && p1 == this.APDUToWait.p1) {
