@@ -75,12 +75,14 @@ TEST(parser, printArgumentArray) {
     EXPECT_THAT(pageCountVar, 4);
     EXPECT_STREQ(outValBuf, "e845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb");
 
+    pageCountVar = 0;
     err = parser_printArgumentArray(&arg_list, 5, 0, "String", JSMN_STRING,
                                                outValBuf, 40, 1, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_THAT(pageCountVar, 4);
     EXPECT_STREQ(outValBuf, "29feaeb4559fdb71a97e2fd0438565310e87670");
 
+    pageCountVar = 0;
     err = parser_printArgumentArray(&arg_list, 5, 1, "String", JSMN_STRING,
                                                outValBuf, 40, 0, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
@@ -133,71 +135,84 @@ TEST(parser, printOptionalArray) {
     EXPECT_THAT(pageCountVar, 1);
     EXPECT_STREQ(outValBuf, "None");
 
+    pageCountVar = 0;
     err = parser_printArgumentOptionalArray(&arg_list, 2, 0, "String", JSMN_STRING,
                                                outValBuf, 40, 0, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_STREQ(outValBuf, "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb");
     EXPECT_THAT(pageCountVar, 4);
 
+    pageCountVar = 0;
     err = parser_printArgumentOptionalArray(&arg_list, 2, 0, "String", JSMN_STRING,
                                                outValBuf, 40, 1, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_STREQ(outValBuf, "29feaeb4559fdb71a97e2fd0438565310e87670");
     EXPECT_THAT(pageCountVar, 4);
 
+    pageCountVar = 0;
     err = parser_printArgumentOptionalArray(&arg_list, 2, 0, "String", JSMN_STRING,
                                                outValBuf, 40, 2, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_STREQ(outValBuf, "035d83bc10fe67fe314dba5363c81654595d648");
     EXPECT_THAT(pageCountVar, 4);
 
+    pageCountVar = 0;
     err = parser_printArgumentOptionalArray(&arg_list, 2, 0, "String", JSMN_STRING,
                                                outValBuf, 40, 3, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_STREQ(outValBuf, "84b1ecad1512a64e65e020164");
     EXPECT_THAT(pageCountVar, 4);
 
+    pageCountVar = 0;
     err = parser_printArgumentOptionalArray(&arg_list, 3, 0, "String", JSMN_STRING,
                                                outValBuf, 40, 0, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_STREQ(outValBuf, "e845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb");
     EXPECT_THAT(pageCountVar, 4);
 
+    pageCountVar = 0;
     err = parser_printArgumentOptionalArray(&arg_list, 3, 0, "String", JSMN_STRING,
                                                outValBuf, 40, 1, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_STREQ(outValBuf, "29feaeb4559fdb71a97e2fd0438565310e87670");
     EXPECT_THAT(pageCountVar, 4);
 
+    pageCountVar = 0;
     err = parser_printArgumentOptionalArray(&arg_list, 3, 0, "String", JSMN_STRING,
                                                outValBuf, 40, 2, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_STREQ(outValBuf, "035d83bc10fe67fe314dba5363c81654595d648");
     EXPECT_THAT(pageCountVar, 4);
 
+    pageCountVar = 0;
     err = parser_printArgumentOptionalArray(&arg_list, 3, 0, "String", JSMN_STRING,
                                                outValBuf, 40, 3, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_STREQ(outValBuf, "84b1ecad1512a64e65e020164");
     EXPECT_THAT(pageCountVar, 4);
 
+    pageCountVar = 0;
     err = parser_printArgumentOptionalArray(&arg_list, 3, 1, "String", JSMN_STRING,
                                                outValBuf, 40, 0, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_STREQ(outValBuf, "d845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb");
     EXPECT_THAT(pageCountVar, 4);
+
+    pageCountVar = 0;
     err = parser_printArgumentOptionalArray(&arg_list, 3, 1, "String", JSMN_STRING,
                                                outValBuf, 40, 1, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_STREQ(outValBuf, "29feaeb4559fdb71a97e2fd0438565310e87670");
     EXPECT_THAT(pageCountVar, 4);
 
+    pageCountVar = 0;
     err = parser_printArgumentOptionalArray(&arg_list, 3, 1, "String", JSMN_STRING,
                                                outValBuf, 40, 2, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_STREQ(outValBuf, "035d83bc10fe67fe314dba5363c81654595d648");
     EXPECT_THAT(pageCountVar, 4);
 
+    pageCountVar = 0;
     err = parser_printArgumentOptionalArray(&arg_list, 3, 1, "String", JSMN_STRING,
                                                outValBuf, 40, 3, &pageCountVar);
     EXPECT_THAT(err, PARSER_OK);
@@ -209,3 +224,101 @@ TEST(parser, printOptionalArray) {
     EXPECT_THAT(err, PARSER_UNEXPECTED_VALUE);
 }
 
+
+TEST(parser, printArbitraryPrepareToDisplay) {
+    uint16_t jsonToken = 0;
+    uint16_t flags = 0;
+
+    parser_error_t err = parser_printArbitraryPrepareToDisplay(&arg_list, 0, &flags, &jsonToken);
+    EXPECT_THAT(err, PARSER_OK);
+    EXPECT_THAT(jsonToken, 0);
+    EXPECT_THAT(flags, 0x1000);
+
+    err = parser_printArbitraryPrepareToDisplay(&arg_list, 1, &flags, &jsonToken);
+    EXPECT_THAT(err, PARSER_OK);
+    EXPECT_THAT(jsonToken, 4);
+    EXPECT_THAT(flags, 0x2000);
+
+    err = parser_printArbitraryPrepareToDisplay(&arg_list, 2, &flags, &jsonToken);
+    EXPECT_THAT(err, PARSER_OK);
+    EXPECT_THAT(jsonToken, 8);
+    EXPECT_THAT(flags, 0x2000 | 0x4000 | 0x0001);
+
+    err = parser_printArbitraryPrepareToDisplay(&arg_list, 3, &flags, &jsonToken);
+    EXPECT_THAT(err, PARSER_OK);
+    EXPECT_THAT(jsonToken, 8);
+    EXPECT_THAT(flags, 0x2000 | 0x4000 | 0x0002);
+
+    err = parser_printArbitraryPrepareToDisplay(&arg_list, 4, &flags, &jsonToken);
+    EXPECT_THAT(err, PARSER_OK);
+    EXPECT_THAT(jsonToken, 0);
+    EXPECT_THAT(flags, 0);
+
+    err = parser_printArbitraryPrepareToDisplay(&arg_list, 5, &flags, &jsonToken);
+    EXPECT_THAT(err, PARSER_OK);
+    EXPECT_THAT(jsonToken, 4);
+    EXPECT_THAT(flags, 0x4000 | 0x0002);
+}
+
+TEST(parser, parser_printArbitraryArgumentFirstScreen) {
+    char outKeyBuf[20];
+    char outValBuf[40];
+    uint8_t pageCountVar = 0;
+
+    parser_error_t err = parser_printArbitraryArgumentFirstScreen(&arg_list, 0, 0x1000, 0,
+                                                                  outKeyBuf, 40, outValBuf, 40, 0, &pageCountVar);
+    EXPECT_THAT(err, PARSER_OK);
+    EXPECT_THAT(pageCountVar, 1);
+    EXPECT_STREQ(outKeyBuf, "1: Optional");
+    EXPECT_STREQ(outValBuf, "None");
+
+    pageCountVar = 0;
+    err = parser_printArbitraryArgumentFirstScreen(&arg_list, 1, 0x2000, 4,
+                                                   outKeyBuf, 40, outValBuf, 40, 0, &pageCountVar);                                                                  
+    EXPECT_THAT(err, PARSER_OK);
+    EXPECT_THAT(pageCountVar, 1);
+    EXPECT_STREQ(outKeyBuf, "2: UFix64?");
+    EXPECT_STREQ(outValBuf, "545.77");
+
+    pageCountVar = 0;
+    err = parser_printArbitraryArgumentFirstScreen(&arg_list, 2, 0x2000 | 0x4000 | 0x0001, 8,
+                                                   outKeyBuf, 40, outValBuf, 40, 0, &pageCountVar);                                                                  
+    EXPECT_THAT(err, PARSER_OK);
+    EXPECT_STREQ(outKeyBuf, "3: Opt. Array");
+    EXPECT_STREQ(outValBuf, "Length: 1");
+
+    pageCountVar = 0;
+    err = parser_printArbitraryArgumentFirstScreen(&arg_list, 3, 0x2000 | 0x4000 | 0x0002, 8,
+                                                   outKeyBuf, 40, outValBuf, 40, 0, &pageCountVar);                                                                  
+    EXPECT_THAT(err, PARSER_OK);
+    EXPECT_STREQ(outKeyBuf, "4: Opt. Array");
+    EXPECT_STREQ(outValBuf, "Length: 2");
+
+    pageCountVar = 0;
+    err = parser_printArbitraryArgumentFirstScreen(&arg_list, 4, 0, 0,
+                                                   outKeyBuf, 40, outValBuf, 40, 0, &pageCountVar);                                                                  
+    EXPECT_THAT(err, PARSER_OK);
+    EXPECT_STREQ(outKeyBuf, "5: UFix64");
+    EXPECT_STREQ(outValBuf, "545.77");
+
+    pageCountVar = 0;
+    err = parser_printArbitraryArgumentFirstScreen(&arg_list, 5, 0x4000 | 0x0002, 8,
+                                                   outKeyBuf, 40, outValBuf, 40, 0, &pageCountVar);                                                                  
+    EXPECT_THAT(err, PARSER_OK);
+    EXPECT_STREQ(outKeyBuf, "6: Array");
+    EXPECT_STREQ(outValBuf, "Length: 2");
+}
+
+
+TEST(parser, parser_printArbitraryArrayElements) {
+    char outKeyBuf[20];
+    char outValBuf[40];
+    uint8_t pageCountVar = 0;
+
+    parser_error_t err = parser_printArbitraryArrayElements(&arg_list, 3, 1, 8,
+                                                            outKeyBuf, 40, outValBuf, 40, 3, &pageCountVar);
+    EXPECT_THAT(err, PARSER_OK);
+    EXPECT_STREQ(outKeyBuf, "4: String 2");
+    EXPECT_STREQ(outValBuf, "84b1ecad1512a64e65e020164");
+    EXPECT_THAT(pageCountVar, 4);
+}

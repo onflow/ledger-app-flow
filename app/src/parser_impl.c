@@ -76,6 +76,18 @@ const char *parser_getErrorDescription(parser_error_t err) {
             return "parser_rlp_error_buffer_too_small";
         case PARSER_RLP_ERROR_INVALID_PAGE:
             return "parser_rlp_error_invalid_page";
+        case PARSER_JSON_INVALID:
+            return "parser_json_invalid";
+        case PARSER_JSON_INVALID_TOKEN_IDX:
+            return "parser_json_invalid_token_idx";
+        case PARSER_JSON_TOO_MANY_TOKENS:
+            return "parser_json_too_many_tokens";
+        case PARSER_JSON_INCOMPLETE_JSON:
+            return "parser_json_incomplete_json";
+        case PARSER_JSON_UNEXPECTED_ERROR:
+            return "parser_json_unex[ected_error";
+        case PARSER_JSON_ZERO_TOKENS:
+            return "parser_json_zero_tokens";
         case PARSER_UNEXPECTED_TX_VERSION:
             return "tx version is not supported";
         case PARSER_UNEXPECTED_TYPE:
