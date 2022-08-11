@@ -66,11 +66,14 @@ parser_error_t parser_printArgumentOptionalArray(const flow_argument_list_t *v, 
                                                  char *outVal, uint16_t outValLen,
                                                  uint8_t pageIdx, uint8_t *pageCount);
 
-parser_error_t parser_printArbitrary(const flow_argument_list_t *v, uint8_t argIndex, 
-                                     uint16_t *furtherScreens, uint16_t *arrayJsonToken,
-                                     char *outKey, uint16_t outKeyLen,
-                                     char *outVal, uint16_t outValLen,
-                                     uint8_t pageIdx, uint8_t *pageCount);
+parser_error_t parser_printArbitraryPrepareToDisplay(const flow_argument_list_t *v, uint8_t argIndex, 
+                                                     uint16_t *flags, uint16_t *jsonToken);
+
+parser_error_t parser_printArbitraryArgumentFirstScreen(const flow_argument_list_t *v, uint8_t argIndex, 
+                                                        uint16_t flags, uint16_t jsonToken,
+                                                        char *outKey, uint16_t outKeyLen,
+                                                        char *outVal, uint16_t outValLen,
+                                                        uint8_t pageIdx, uint8_t *pageCount);
 
 parser_error_t parser_printArbitraryArrayElements(const flow_argument_list_t *v, uint8_t argIndex, 
                                      uint16_t arrayIndex, uint16_t arrayJsonToken,
