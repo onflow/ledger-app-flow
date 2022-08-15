@@ -258,6 +258,12 @@ TEST(parser, printArbitraryPrepareToDisplay) {
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_THAT(jsonToken, 4);
     EXPECT_THAT(flags, 0x4000 | 0x0002);
+
+    const auto token = "{\"type\":\"Optional\",\"value\":}";
+    parser_context_t context = {(const uint8_t *)token, (uint16_t)(strlen(token)), 0};
+    flow_argument_list_t arg_list2 = {{},{context}, 1};
+    err = parser_printArbitraryPrepareToDisplay(&arg_list2, 0, &flags, &jsonToken);
+    EXPECT_THAT(err, PARSER_JSON_INVALID_TOKEN_IDX);
 }
 
 TEST(parser, parser_printArbitraryArgumentFirstScreen) {
@@ -302,11 +308,22 @@ TEST(parser, parser_printArbitraryArgumentFirstScreen) {
     EXPECT_STREQ(outValBuf, "545.77");
 
     pageCountVar = 0;
-    err = parser_printArbitraryArgumentFirstScreen(&arg_list, 5, 0x4000 | 0x0002, 8,
+    err = parser_printArbitraryArgumentFirstScreen(&arg_list, 5, 0x4000 | 0x0002, 4,
                                                    outKeyBuf, 40, outValBuf, 40, 0, &pageCountVar);                                                                  
     EXPECT_THAT(err, PARSER_OK);
     EXPECT_STREQ(outKeyBuf, "6: Array");
     EXPECT_STREQ(outValBuf, "Length: 2");
+
+    pageCountVar = 0;
+    err = parser_printArbitraryArgumentFirstScreen(&arg_list, 5, 0x0002, 4,
+                                                   outKeyBuf, 40, outValBuf, 40, 0, &pageCountVar);                                                                  
+    EXPECT_THAT(err, PARSER_UNEXPECTED_TYPE);
+
+    pageCountVar = 0;
+    err = parser_printArbitraryArgumentFirstScreen(&arg_list, 1, 0x0002, 0,
+                                                   outKeyBuf, 40, outValBuf, 40, 0, &pageCountVar);                                                                  
+    EXPECT_THAT(err, PARSER_JSON_INVALID);
+
 }
 
 
@@ -321,4 +338,19 @@ TEST(parser, parser_printArbitraryArrayElements) {
     EXPECT_STREQ(outKeyBuf, "4: String 2");
     EXPECT_STREQ(outValBuf, "84b1ecad1512a64e65e020164");
     EXPECT_THAT(pageCountVar, 4);
+
+    pageCountVar = 0;
+    err = parser_printArbitraryArrayElements(&arg_list, 5, 0, 8,
+                                                            outKeyBuf, 40, outValBuf, 40, 3, &pageCountVar);
+    EXPECT_THAT(err, PARSER_JSON_INVALID_TOKEN_IDX);
+
+    pageCountVar = 0;
+    err = parser_printArbitraryArrayElements(&arg_list, 5, 2, 4,
+                                                            outKeyBuf, 40, outValBuf, 40, 3, &pageCountVar);
+    EXPECT_THAT(err, PARSER_JSON_INVALID_TOKEN_IDX);
+
+    pageCountVar = 0;
+    err = parser_printArbitraryArrayElements(&arg_list, 4, 0, 0,
+                                                            outKeyBuf, 40, outValBuf, 40, 3, &pageCountVar);
+    EXPECT_THAT(err, PARSER_JSON_INVALID_TOKEN_IDX);
 }

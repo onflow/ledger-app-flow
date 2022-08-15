@@ -231,7 +231,7 @@ parser_error_t parser_printArgumentArray(const flow_argument_list_t *v, uint8_t 
     CHECK_PARSER_ERR(json_matchKeyValue(&parsedJson, 0, (char *) "Array", JSMN_ARRAY, &internalTokenElementIdx));
     uint16_t arrayTokenCount;
     CHECK_PARSER_ERR(array_get_element_count(&parsedJson, internalTokenElementIdx, &arrayTokenCount));
-    if (arrayIndex >= arrayTokenCount) {  
+    if (arrayTokenCount >= MAX_JSON_ARRAY_TOKEN_COUNT || arrayIndex >= arrayTokenCount) {  
         return PARSER_UNEXPECTED_NUMBER_ITEMS;
     }
 
@@ -277,7 +277,7 @@ parser_error_t parser_printArgumentOptionalArray(const flow_argument_list_t *v, 
     else {
         uint16_t arrayTokenCount;
         CHECK_PARSER_ERR(array_get_element_count(&parsedJson, internalTokenElementIdx, &arrayTokenCount));
-        if (arrayIndex >= arrayTokenCount) {  
+        if (arrayTokenCount >= MAX_JSON_ARRAY_TOKEN_COUNT || arrayIndex >= arrayTokenCount) {  
             return PARSER_UNEXPECTED_NUMBER_ITEMS;
         }
 
@@ -302,11 +302,11 @@ parser_error_t parser_printArgumentOptionalArray(const flow_argument_list_t *v, 
 #define FLAG_IS_OPTIONAL_NOT_NONE 0x2000
 #define FLAG_IS_ARRAY 0x4000
 #define FLAGS_FURTHER_SCREENS 0x0FFF
-// jsonToken points to things that is going to be displayed: 
-//     JSMN_ARRAY if it is an array or optional array, 
+// jsonToken points to thing that is going to be displayed: 
+//     JSMN_ARRAY that contains actual array if it is an array or optional array, 
 //     root JSMN_OBJECT it is optional none or non-optional scalar argument
 //     nested JSMN_OBJECT for optional scalar arguments
-// The function validates json till jsonToken (excluded) but guarantees  jsonToken type
+// The function validates json till jsonToken (excluded) but guarantees jsonToken type
 parser_error_t parser_printArbitraryPrepareToDisplay(const flow_argument_list_t *v, uint8_t argIndex, 
                                                      uint16_t *flags, uint16_t *jsonToken) {
     if (argIndex >= v->argCount) {
@@ -328,8 +328,8 @@ parser_error_t parser_printArbitraryPrepareToDisplay(const flow_argument_list_t 
         case JSMN_ARRAY: //array
             CHECK_PARSER_ERR(json_matchToken(&parsedJson, keyTokenElementIdx, "Array"));
             CHECK_PARSER_ERR(array_get_element_count(&parsedJson, valueTokenElementIdx, flags));
-            STATIC_ASSERT(FLAGS_FURTHER_SCREENS > MAX_METADATA_MAX_ARRAY_ITEMS, "Flags for further screens too small");
-            if (*flags > MAX_METADATA_MAX_ARRAY_ITEMS) {
+            STATIC_ASSERT(FLAGS_FURTHER_SCREENS > MAX_JSON_ARRAY_TOKEN_COUNT, "Flags for further screens too small");
+            if (*flags > MAX_JSON_ARRAY_TOKEN_COUNT) {
                 return PARSER_TOO_MANY_ARGUMENTS;
             }
             *flags = (*flags & FLAGS_FURTHER_SCREENS) | FLAG_IS_ARRAY;
@@ -344,6 +344,7 @@ parser_error_t parser_printArbitraryPrepareToDisplay(const flow_argument_list_t 
             *jsonToken = 0;
             return PARSER_OK;
         case JSMN_OBJECT: //optional not null
+            CHECK_PARSER_ERR(json_matchToken(&parsedJson, keyTokenElementIdx, "Optional"));
             CHECK_PARSER_ERR(json_matchArbitraryKeyValue(&parsedJson, baseValueTokenIndex, &valueJsonType, 
                                                          &keyTokenElementIdx, &valueTokenElementIdx));
             switch (valueJsonType) {
