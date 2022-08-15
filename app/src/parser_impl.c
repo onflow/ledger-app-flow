@@ -127,7 +127,7 @@ const char *parser_getErrorDescription(parser_error_t err) {
         case PARSER_METADATA_ERROR:
             return "Metadata unknown error";
         case PARSER_TOO_MANY_ARGUMENTS:
-            return "Metadata too many arguments";
+            return "Too many arguments";
         default:
             return "Unrecognized error code";
     }
