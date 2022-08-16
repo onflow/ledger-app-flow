@@ -9,10 +9,11 @@ const PAYLOAD_TYPE = {
     TX_METADATA: 0x03,
     MERKLE_TREE: 0x04,
     MERKLE_TREE_LAST: 0x05,
+    MESSAGE_LAST: 0x10,
 }
 
 export function signIsLastAPDU(type) {
-    return (type === PAYLOAD_TYPE.LAST || type === PAYLOAD_TYPE.MERKLE_TREE_LAST)
+    return (type === PAYLOAD_TYPE.LAST || type === PAYLOAD_TYPE.MERKLE_TREE_LAST || PAYLOAD_TYPE.MESSAGE_LAST)
 }
   
 /*
@@ -45,11 +46,21 @@ function signGetChunksv1(path, options, getVersionResponse, message) {
   return chunks;
 }
 
-function signGetChunksv2(path, options, getVersionResponse, message, scriptHash) {
+//ExtraInfo is either
+// - script hash from merkleIndex - initiates transaction signing with metadata
+// - "Sign message" - initiates message signing
+// - anything else - initiates transaction sining without metadata
+function signGetChunksv2(path, options, getVersionResponse, message, extraInfo) {
     const serializedPath = serializePath(path, getVersionResponse, options);
     const basicChunks = prepareBasicChunks(serializedPath, message)
 
+    if (extraInfo == "Sign message") {
+      basicChunks[basicChunks.length-1].type = PAYLOAD_TYPE.MESSAGE_LAST
+      return basicChunks;
+    }
+
     // We try to find hash in the merkle tree. If it is not there, we send the tx without metadata (arbitrary tx signing in expert mode)
+    const scriptHash = extraInfo
     const merkleI = merkleIndex[scriptHash.slice(0, 16)]
     if (merkleI === undefined) {
         basicChunks[basicChunks.length-1].type = PAYLOAD_TYPE.LAST

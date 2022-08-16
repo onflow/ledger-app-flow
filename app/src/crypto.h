@@ -52,6 +52,7 @@ zxerr_t crypto_sign(
     const uint16_t options,
     const uint8_t *message,
     uint16_t messageLen,
+    const uint8_t domainTag[DOMAIN_TAG_LENGTH],
     uint8_t *signature,
     uint16_t signatureMaxlen,
     uint16_t *sigSize
