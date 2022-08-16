@@ -55,6 +55,8 @@ typedef struct {
 
 #define MAIN_SLOT 0
 
+#define DOMAIN_TAG_LENGTH 32
+
 #ifdef __cplusplus
 }
 #endif

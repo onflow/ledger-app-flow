@@ -24,7 +24,6 @@
 #if defined(TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 #include "cx.h"
 
-
 __Z_INLINE digest_type_e get_hash_type(const uint16_t options) {
     const uint8_t hash_type = (uint8_t) (options & 0xFF);
     switch(hash_type) {
@@ -118,7 +117,8 @@ void sha256(const uint8_t *message, uint16_t messageLen, uint8_t message_digest[
     cx_hash_sha256(message, messageLen, message_digest, CX_SHA256_SIZE);
 }
 
-zxerr_t digest_message(const uint8_t *message, uint16_t messageLen, digest_type_e hash_kind, uint8_t *digest, uint16_t digestMax,  uint16_t* digest_size) {
+zxerr_t digest_message(const uint8_t *message, uint16_t messageLen, const uint8_t domainTag[DOMAIN_TAG_LENGTH],
+                       digest_type_e hash_kind, uint8_t *digest, uint16_t digestMax,  uint16_t* digest_size) {
     switch(hash_kind) {
         case HASH_SHA2_256: {
             zemu_log_stack("sha2_256");
@@ -126,20 +126,23 @@ zxerr_t digest_message(const uint8_t *message, uint16_t messageLen, digest_type_
                 zemu_log_stack("digest_message: zxerr_buffer_too_small");
                 return zxerr_buffer_too_small;
             }
-            sha256(message, messageLen, digest);
+            cx_sha256_t sha2;
+            cx_sha256_init(&sha2);
+            cx_hash((cx_hash_t*) &sha2, 0, domainTag, DOMAIN_TAG_LENGTH, NULL, 0);
+            cx_hash((cx_hash_t*) &sha2, CX_LAST, message, messageLen, digest, CX_SHA256_SIZE);
             *digest_size = CX_SHA256_SIZE;
             return zxerr_ok;
         }
         case HASH_SHA3_256: {
-            if (digestMax < 32) {
+            zemu_log_stack("sha3_256");
+            if (digestMax < CX_SHA256_SIZE) {
                 return zxerr_buffer_too_small;
             }
-            zemu_log_stack("sha3_256");
             cx_sha3_t sha3;
             cx_sha3_init(&sha3, 256);
-            cx_hash((cx_hash_t*)&sha3, CX_LAST, message, messageLen, digest, 32);
-            zemu_log_stack("sha3_256 ready");
-            *digest_size = 32;
+            cx_hash((cx_hash_t*) &sha3, 0, domainTag, DOMAIN_TAG_LENGTH, NULL, 0);
+            cx_hash((cx_hash_t*) &sha3, CX_LAST, message, messageLen, digest, CX_SHA256_SIZE);
+            *digest_size = CX_SHA256_SIZE;
             return zxerr_ok;
         }
         default: {
@@ -149,7 +152,9 @@ zxerr_t digest_message(const uint8_t *message, uint16_t messageLen, digest_type_
     }
 }
 
-zxerr_t crypto_sign(const hd_path_t path, const uint16_t options, const uint8_t *message, uint16_t messageLen, uint8_t *buffer, uint16_t bufferSize,  uint16_t *sigSize) {    
+zxerr_t crypto_sign(const hd_path_t path, const uint16_t options, 
+                    const uint8_t *message, uint16_t messageLen, const uint8_t domainTag[DOMAIN_TAG_LENGTH],
+                    uint8_t *buffer, uint16_t bufferSize,  uint16_t *sigSize) {    
     zemu_log_stack("crypto_sign");
 
     cx_curve_t curve = get_cx_curve(options);
@@ -163,7 +168,7 @@ zxerr_t crypto_sign(const hd_path_t path, const uint16_t options, const uint8_t 
     uint8_t messageDigest[32];
     uint16_t messageDigestSize = 0;
 
-    CHECK_ZXERR(digest_message(message, messageLen, cx_hash_kind, messageDigest, sizeof(messageDigest), &messageDigestSize));
+    CHECK_ZXERR(digest_message(message, messageLen, domainTag, cx_hash_kind, messageDigest, sizeof(messageDigest), &messageDigestSize));
     
     if (messageDigestSize != 32) {
         zemu_log_stack("crypto_sign: zxerr_out_of_bounds");

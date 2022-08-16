@@ -164,10 +164,11 @@ Each slot has the following structure
 
 The first packet/chunk includes only the derivation path
 
-All other packets/chunks contain data chunks that are described below. There are two workflows as of now (typical sequences here, the app allows other combination of commands, too):
+All other packets/chunks contain data chunks that are described below. There are three workflows as of now (typical sequences here, the app allows other combination of commands, too):
 
 Merkle tree workflow - Init packet, several add packets, metadata packet, four Merkle tree packets (3x 0x04 and finaly 0x05).
-Arbitrary transaction signing - Init packer, several add packets, final packet.
+Arbitrary transaction signing - Init packet, several add packets, final packet.
+Message signing workflow - Init packet, several add packets, final message packet (P1=0x10).
 
 ##### Init Packet P1 = 0x00
 
@@ -180,7 +181,7 @@ Arbitrary transaction signing - Init packer, several add packets, final packet.
 | Path[4] | byte (4) | Derivation Path Data | ?        |
 | Options | byte (2) | Crypto options (LE)  | ?        |
 
-This clears tx data and sets detivation path and crypto options variable
+This clears data and sets detivation path and crypto options variable
 
 ##### Add Packet P1 = 0x01
 
@@ -190,11 +191,11 @@ This clears tx data and sets detivation path and crypto options variable
 
 Data is defined as:
 
-| Field   | Type    | Content          | Expected |
-| ------- | ------- | ---------------- | -------- |
-| Message | bytes.. | RLP data to sign |          |
+| Field   | Type    | Content                  | Expected |
+| ------- | ------- | ------------------------ | -------- |
+| Message | bytes.. | RLP data/message to sign |          |
 
-Appends to transaction data
+Appends to data (transaction or message)
 
 ##### Fimal Packet P1 = 0x02
 
@@ -208,7 +209,7 @@ Data is defined as:
 | ------- | ------- | ---------------- | -------- |
 | Message | bytes.. | RLP data to sign |          |
 
-Appends to transaction data and initiates signing without metadata (requires expert mode).
+Appends to transaction data and initiates transaction signing without metadata (requires expert mode).
 
 ##### Metadata Packet P1 = 0x03
 
@@ -271,6 +272,20 @@ After three calls there is call with P1=0x05, which works the same as P1=0x04 ca
 | Merkle tree hash 7  | byte (32)    | Merkle tree hash |          |
 
 Validates merkle tree node. Validates that previous hash (metadata hash or merkle tree node hash) is in the list of hashes. Computes new hash and increments merkle tree counter. Call with P1 = 0x05 starts the signing process with metadata. This requires that we are at the root of the merkle tree and that the hash value matches the one stored in the app.
+
+##### Final message signing Packet P1 = 0x10
+
+| Field | Type     | Content | Expected |
+| ----- | -------- | ------- | -------- |
+| Data  | bytes... | Message |          |
+
+Data is defined as:
+
+| Field   | Type    | Content             | Expected |
+| ------- | ------- | ------------------- | -------- |
+| Message | bytes.. | Mesage data to sign |          |
+
+Appends to data to message and initiates message signing.
 
 #### Response
 
