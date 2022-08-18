@@ -20,6 +20,9 @@
 extern "C" {
 #endif
 
+extern bool hasPubkey;
+extern uint8_t pubkey_to_display[SECP256_PK_LEN];
+
 /// Return the number of items in the address view
 zxerr_t addr_getNumItems(uint8_t *num_items);
 

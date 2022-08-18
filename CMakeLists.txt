@@ -28,6 +28,11 @@ string(APPEND CMAKE_C_FLAGS " -fno-omit-frame-pointer -g")
 string(APPEND CMAKE_CXX_FLAGS " -fno-omit-frame-pointer -g")
 string(APPEND CMAKE_LINKER_FLAGS " -fno-omit-frame-pointer -g")
 
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+    # prevent undefined hdPath upon linking: https://stackoverflow.com/questions/25421479/clang-and-undefined-symbols-when-building-a-library
+    string(APPEND CMAKE_EXE_LINKER_FLAGS " -undefined dynamic_lookup")
+endif()
+
 add_definitions(-DAPP_STANDARD)
 
 if(ENABLE_FUZZING)
@@ -88,6 +93,7 @@ file(GLOB_RECURSE LIB_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/app/src/rlp.c
         ${CMAKE_CURRENT_SOURCE_DIR}/app/src/uint256.c
         ${CMAKE_CURRENT_SOURCE_DIR}/app/src/parser.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/app/src/hdpath.c
         ${CMAKE_CURRENT_SOURCE_DIR}/app/src/parser_impl.c
         ${CMAKE_CURRENT_SOURCE_DIR}/app/src/json/json_parser.c
         app/src/base32.c

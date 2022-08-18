@@ -24,6 +24,7 @@
 #include <app_mode.h>
 #include "parser.h"
 #include "utils/common.h"
+#include "hdpath.h"
 
 using ::testing::TestWithParam;
 
@@ -34,15 +35,19 @@ void check_testcase(const testcase_t &testcase) {
     parser_error_t err;
 
     // Define mainnet or testnet through derivation path
-    hdPath[0] = HDPATH_0_DEFAULT;
-    hdPath[1] = HDPATH_1_DEFAULT;
+    hdPath.data[0] = HDPATH_0_DEFAULT;
+    hdPath.data[1] = HDPATH_1_DEFAULT;
 
     if (tc.chainID == "Testnet" || tc.chainID == "Emulator") {
-        hdPath[0] = HDPATH_0_TESTNET;
-        hdPath[1] = HDPATH_1_TESTNET;
+        hdPath.data[0] = HDPATH_0_TESTNET;
+        hdPath.data[1] = HDPATH_1_TESTNET;
     }
 
     app_mode_set_expert(tc.expert);
+
+    show_address = SHOW_ADDRESS_EMPTY_SLOT;
+    
+
 
     err = parser_parse(&ctx, tc.blob.data(), tc.blob.size());
     if (tc.valid) {

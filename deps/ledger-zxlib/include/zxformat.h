@@ -20,6 +20,7 @@ extern "C" {
 #endif
 
 #include "zxmacros.h"
+#include "zxerror.h"
 
 #define NUM_TO_STR(TYPE) __Z_INLINE const char * TYPE##_to_str(char *data, int dataLen, TYPE##_t number) { \
     if (dataLen < 2) return "Buffer too small";     \
@@ -43,21 +44,28 @@ extern "C" {
     return NULL;                                    \
 }
 
+NUM_TO_STR(int32)
+
 NUM_TO_STR(int64)
 
 NUM_TO_STR(uint64)
 
-__Z_INLINE void bip32_to_str(char *s, uint32_t max, const uint32_t *path, uint8_t pathLen) {
+size_t z_strlen(const char *buffer, size_t maxSize);
+
+zxerr_t z_str3join(char *buffer, size_t bufferSize, const char *prefix, const char *suffix);
+
+//returns 0 in case of error, otherwise returns the length of the string.
+__Z_INLINE uint32_t bip32_to_str(char *s, uint32_t max, const uint32_t *path, uint8_t pathLen) {
     MEMZERO(s, max);
 
     if (pathLen == 0) {
         snprintf(s, max, "EMPTY PATH");
-        return;
+        return 0;
     }
 
     if (pathLen > 5) {
         snprintf(s, max, "ERROR");
-        return;
+        return 0;
     }
 
     uint32_t offset = 0;
@@ -65,12 +73,11 @@ __Z_INLINE void bip32_to_str(char *s, uint32_t max, const uint32_t *path, uint8_
         size_t written;
 
         // Warning: overcomplicated because Ledger's snprintf does not return number of written bytes
-
         snprintf(s + offset, max - offset, "%d", path[i] & 0x7FFFFFFFu);
         written = strlen(s + offset);
         if (written == 0 || written >= max - offset) {
             snprintf(s, max, "ERROR");
-            return;
+            return 0;
         }
         offset += written;
 
@@ -79,7 +86,7 @@ __Z_INLINE void bip32_to_str(char *s, uint32_t max, const uint32_t *path, uint8_
             written = strlen(s + offset);
             if (written == 0 || written >= max - offset) {
                 snprintf(s, max, "ERROR");
-                return;
+                return 0;
             }
             offset += written;
         }
@@ -89,15 +96,87 @@ __Z_INLINE void bip32_to_str(char *s, uint32_t max, const uint32_t *path, uint8_
             written = strlen(s + offset);
             if (written == 0 || written >= max - offset) {
                 snprintf(s, max, "ERROR");
-                return;
+                return 0;
             }
             offset += written;
         }
+
     }
+
+    return offset;
 }
 
-__Z_INLINE void bip44_to_str(char *s, uint32_t max, const uint32_t path[5]) {
-    bip32_to_str(s, max, path, 5);
+__Z_INLINE uint32_t bip44_to_str(char *s, uint32_t max, const uint32_t path[5]) {
+    return bip32_to_str(s, max, path, 5);
+};
+
+#define SECP256R1_STRING " SECP256R1"
+#define SECP256K1_STRING " SECP256K1"
+#define SHA2_256_STRING " SHA-2"
+#define SHA3_256_STRING " SHA-3"
+#define DESIRED_HD_PATH_LENGTH 17
+
+__Z_INLINE uint32_t add_options_to_path(char *s, uint32_t max, uint16_t options) {
+    uint32_t written = strlen(s);
+    uint8_t curve = (options >> 8) & 0xFF;
+    uint8_t hash = options & 0xFF;
+
+    //For better UI if path is short, we add one or two spaces
+    if (written < DESIRED_HD_PATH_LENGTH && max >= DESIRED_HD_PATH_LENGTH+1) {
+        for(;written <= DESIRED_HD_PATH_LENGTH; written++) {
+            s[written] = ' ';
+        }
+        s[written] = 0;
+        written--;
+    }
+
+    if (curve != 0) {
+        if (written + sizeof(SECP256R1_STRING) > max || written + sizeof(SECP256K1_STRING) > max) {
+            snprintf(s, max, "ERROR");
+            return 0;
+        }
+        switch(curve) {
+            case 0x02:
+                snprintf(s+written, max, SECP256R1_STRING);
+                written += sizeof(SECP256R1_STRING) - 1;
+                break;
+            case 0x03:
+                snprintf(s+written, max, SECP256K1_STRING);
+                written += sizeof(SECP256K1_STRING) - 1;
+                break;
+            default:
+                snprintf(s, max, "ERROR");
+                return 0;
+        }
+    }
+
+    if (hash != 0) {
+        if (written + sizeof(SHA2_256_STRING) > max || written + sizeof(SHA3_256_STRING) > max) {
+            snprintf(s, max, "ERROR");
+            return 0;
+        }
+        switch(hash) {
+            case 0x01:
+                snprintf(s+written, max, SHA2_256_STRING);
+                written += sizeof(SHA2_256_STRING) - 1;
+                break;
+            case 0x03:
+                snprintf(s+written, max, SHA3_256_STRING);
+                written += sizeof(SHA3_256_STRING) - 1;
+                break;
+            default:
+                snprintf(s, max, "ERROR");
+                return 0;
+        }
+    }
+    return written;
+}
+
+__Z_INLINE void path_options_to_string(char *s, uint32_t max, const uint32_t *path, uint8_t pathLen, uint16_t cryptoOptions) {
+    uint32_t len = bip32_to_str(s, max, path, pathLen);
+    if (len != 0) {
+        add_options_to_path(s, max, cryptoOptions); 
+    }                    
 }
 
 __Z_INLINE int8_t str_to_int8(const char *start, const char *end, char *error) {
@@ -140,11 +219,11 @@ __Z_INLINE int64_t str_to_int64(const char *start, const char *end, char *error)
     }
 
     int64_t value = 0;
-    uint64_t multiplier = 1;
+    int64_t multiplier = 1;
     for (const char *s = end - 1; s >= start; s--) {
-        int delta = (*s - '0');
+        int64_t delta = (*s - '0');
         if (delta >= 0 && delta <= 9) {
-            value += (delta * multiplier);
+            value += delta * multiplier;
             multiplier *= 10;
         } else {
             if (error != NULL) {
@@ -167,48 +246,69 @@ __Z_INLINE uint8_t fpstr_to_str(char *out, uint16_t outLen, const char *number, 
         if (digits == 0) {
             snprintf(out, outLen, "0");
             return 0;
-        } else if (outLen < digits) {
+        }
+
+        if (outLen < digits) {
             snprintf(out, outLen, "ERR");
             return 1;
         }
-        strcpy(out, number);
+
+        // No need for formatting
+        snprintf(out, outLen, "%s", number);
         return 0;
     }
 
-    if ((outLen < decimals + 2) ||
-        (outLen < digits + 1)) {
+    if ((outLen < decimals + 2)) {
+        snprintf(out, outLen, "ERR");
+        return 1;
+    }
+
+    if (outLen < digits + 2) {
         snprintf(out, outLen, "ERR");
         return 1;
     }
 
     if (digits <= decimals) {
+        if (outLen <= decimals + 2) {
+            snprintf(out, outLen, "ERR");
+            return 1;
+        }
+
         // First part
-        strcpy(out, "0.");
+        snprintf(out, outLen, "0.");
         out += 2;
+        outLen -= 2;
+
         MEMSET(out, '0', decimals - digits);
         out += decimals - digits;
-    } else {
-        const size_t shift = digits - decimals;
-        strcpy(out, number);
-        number += shift;
-        out += shift;
-        *out++ = '.';
+        outLen -= decimals - digits;
+
+        snprintf(out, outLen, "%s", number);
+        return 0;
     }
 
-    strcpy(out, number);
+    const size_t shift = digits - decimals;
+    snprintf(out, outLen, "%s", number);
+    number += shift;
+
+    out += shift;
+    outLen -= shift;
+
+    *out++ = '.';
+    outLen--;
+    snprintf(out, outLen, "%s", number);
     return 0;
 }
 
 __Z_INLINE uint16_t fpuint64_to_str(char *out, uint16_t outLen, const uint64_t value, uint8_t decimals) {
     char buffer[30];
     MEMZERO(buffer, sizeof(buffer));
-    int64_to_str(buffer, sizeof(buffer), value);
+    uint64_to_str(buffer, sizeof(buffer), value);
     fpstr_to_str(out, outLen, buffer, decimals);
-    uint16_t len = (uint16_t) strlen(out);
-    return len;
+    return (uint16_t) strlen(out);
 }
 
-__Z_INLINE void number_inplace_trimming(char *s) {
+__Z_INLINE void number_inplace_trimming(char *s, uint8_t non_trimmed) {
     const size_t len = strlen(s);
     if (len == 0 || len == 1 || len > 1024) {
         return;
@@ -224,7 +324,8 @@ __Z_INLINE void number_inplace_trimming(char *s) {
         return;
     }
 
-    for (int16_t i = (int16_t) (len - 1); i > (dec_point + 1) && s[i] == '0'; i--) {
+    const size_t limit = (size_t) dec_point + non_trimmed;
+    for (size_t i = (len - 1); i > limit && s[i] == '0'; i--) {
         s[i] = 0;
     }
 }
@@ -239,7 +340,7 @@ __Z_INLINE uint64_t uint64_from_BEarray(const uint8_t data[8]) {
 }
 
 __Z_INLINE uint32_t array_to_hexstr(char *dst, uint16_t dstLen, const uint8_t *src, uint8_t count) {
-
+    MEMZERO(dst, dstLen);
     if (dstLen < (count * 2 + 1)) {
         return 0;
     }
@@ -289,6 +390,72 @@ __Z_INLINE void pageString(char *outValue, uint16_t outValueLen,
                            const char *inValue,
                            uint8_t pageIdx, uint8_t *pageCount) {
     pageStringExt(outValue, outValueLen, inValue, (uint16_t) strlen(inValue), pageIdx, pageCount);
+}
+
+__Z_INLINE void pageHexString(char *outValue, uint16_t outValueLen,
+                              const uint8_t *inValue, uint16_t inValueLen,
+                              uint8_t pageIdx, uint8_t *pageCount) {
+    MEMZERO(outValue, outValueLen);
+    *pageCount = 0;
+
+    uint16_t availableLen = (outValueLen - 1)/2;  //leave space for NULL termination
+
+    if (availableLen == 0) {
+        return;
+    }
+
+    *pageCount = (uint8_t) (inValueLen / availableLen);  //we need two characters on out per one character in int
+    const uint16_t lastChunkLen = (inValueLen % availableLen);
+
+    if (lastChunkLen > 0) {
+        (*pageCount)++;
+    }
+
+    if (pageIdx < *pageCount) {
+        if (lastChunkLen > 0 && pageIdx == *pageCount - 1) {
+            array_to_hexstr(outValue, outValueLen, inValue + (pageIdx * availableLen), lastChunkLen); 
+        } else {
+            array_to_hexstr(outValue, outValueLen, inValue + (pageIdx * availableLen), availableLen); 
+        }
+    }
+}
+
+__Z_INLINE zxerr_t formatBufferData(
+        const uint8_t *ptr,
+        uint64_t len,
+        char *outValue,
+        uint16_t outValueLen,
+        uint8_t pageIdx,
+        uint8_t *pageCount) {
+    char bufferUI[500 + 1];
+    MEMZERO(bufferUI, sizeof(bufferUI));
+    MEMZERO(outValue, 0);
+    CHECK_APP_CANARY()
+
+    if (len >= sizeof(bufferUI)) {
+        return zxerr_buffer_too_small;
+    }
+    memcpy(bufferUI, ptr, len);
+
+    // Check we have all ascii
+    uint8_t allAscii = 1;
+    for (size_t i = 0; i < len && allAscii; i++) {
+        if (bufferUI[i] < 32 || bufferUI[i] > 127) {
+            allAscii = 0;
+        }
+    }
+
+    if (!allAscii) {
+        bufferUI[0] = '0';
+        bufferUI[1] = 'x';
+        if (array_to_hexstr(bufferUI + 2, sizeof(bufferUI) - 2, ptr, len) == 0) {
+            return zxerr_buffer_too_small;
+        }
+    }
+
+    pageString(outValue, outValueLen, bufferUI, pageIdx, pageCount);
+
+    return zxerr_ok;
 }
 
 size_t asciify(char *utf8_in);

@@ -47,15 +47,15 @@ In order to keep these public keys separated, the second items in the derivation
 | ------- | -------- | -------------------- | ----------- |
 | Path[0] | byte (4) | Derivation Path Data | 44'         |
 | Path[1] | byte (4) | Derivation Path Data | 539'        |
-| Path[2] | byte (4) | Derivation Path Data | Scheme/Hash |
+| Path[2] | byte (4) | Derivation Path Data | ?           |
 | Path[3] | byte (4) | Derivation Path Data | ?           |
 | Path[4] | byte (4) | Derivation Path Data | ?           |
 
-The scheme/hash field in encoded in a uint32 value:
+Path hardening in item3 and item4 is optional. In case the device contains app version <= 0.9.12 two least significant bytes of Path[2] contain cryptooptions, but the codes of P-256 and secp256k1 curves are reversed.
 
-`[reserved - 16 bits][ signature - 8 bits ][ hash - 8 bits ]`
+## Crypto options
 
-As describe in the following table:
+Crypto options are stored as 16-bit integer, more significant byte stores curve, less significant byte stores hash.
 
 ### Signatures
 
@@ -71,18 +71,6 @@ As describe in the following table:
 | SHA-2     | 256         | SHA2_256 | 1    |
 | SHA-3     | 256         | SHA3_256 | 3    |
 
-As an example, `ECDSA_secp256k1` + `SHA2_256` is encoded as `0x0000_0301`
-
-This results in a derivation path in the form:
-
-m/`44`'/`???`'/ `0x0000 0301`' / `[item3]` / `[item4]`
-
-Taking into account path hardening:
-
-m/`0x8000002c`/`0x8000????`/ `0x8000 0301` / `[item3]` / `[item4]`
-
-Path hardening in item3 and item4 is optional
-
 ---
 
 ## Account Slots
@@ -93,10 +81,13 @@ Only a 1:1 account/path relation can be stored per slot.
 
 Each slot has the following structure
 
-| Field   | Type    |                    |
-| ------- | ------- | ------------------ |
-| Account | byte(8) | Account Identifier |
-| Path    | u32 (5) | Derivation Path    |
+| Field   | Type    |                       |
+| ------- | ------- | --------------------- |
+| Account | byte(8) | Account Identifier    |
+| Path    | u32 (5) | Derivation Path       |
+| Options | byte(2) | Crypto options (LE)   |
+
+
 
 ---
 
@@ -143,6 +134,7 @@ Each slot has the following structure
 | Path[2] | byte (4) | Derivation Path Data      | ?                  |
 | Path[3] | byte (4) | Derivation Path Data      | ?                  |
 | Path[4] | byte (4) | Derivation Path Data      | ?                  |
+| Options | byte (2) | CryptoOptions (LE)        | ?                  |
 
 #### Response
 
@@ -182,6 +174,7 @@ All other packets/chunks contain data chunks that are described below
 | Path[2] | byte (4) | Derivation Path Data | ?        |
 | Path[3] | byte (4) | Derivation Path Data | ?        |
 | Path[4] | byte (4) | Derivation Path Data | ?        |
+| Options | byte (2) | Crypto options (LE)  | ?        |
 
 ##### Other Chunks/Packets
 
@@ -248,6 +241,7 @@ Data is defined as:
 | Path[2] | byte (4) | Derivation Path Data | ?                  |
 | Path[3] | byte (4) | Derivation Path Data | ?                  |
 | Path[4] | byte (4) | Derivation Path Data | ?                  |
+| Options | byte (2) | Crypto options (LE)  | ?                  |
 
 Note:
 Setting the slot to all zeros, will remove the data, otherwise,
@@ -271,3 +265,4 @@ the slot needs to have a valid derivation path
 | Path[2] | byte (4) | Derivation Path Data   | ?        |
 | Path[3] | byte (4) | Derivation Path Data   | ?        |
 | Path[4] | byte (4) | Derivation Path Data   | ?        |
+| Options | byte (2) | Crypto options (LE)    | ?        |

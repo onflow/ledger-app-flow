@@ -116,3 +116,10 @@ export async function getVersion(transport) {
     };
   }, processErrorResponse);
 }
+
+export function compareVersion(getVersionResponse, major, minor, patch) {
+  if (getVersionResponse.major !== major) return getVersionResponse.major < major ? -1 : 1;
+  if (getVersionResponse.minor !== minor) return getVersionResponse.minor < minor ? -1 : 1;
+  if (getVersionResponse.patch !== patch) return getVersionResponse.patch < patch ? -1 : 1;
+  return 0;
+}

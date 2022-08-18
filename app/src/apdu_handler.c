@@ -29,14 +29,45 @@
 #include "coin.h"
 #include "account.h"
 #include "zxmacros.h"
+#include "zxformat.h"
+#include "hdpath.h"
+#include "parser_impl.h"
 
 __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
-    extractHDPath(rx, OFFSET_DATA);
+    hasPubkey = false;
+    show_address = SHOW_ADDRESS_NONE;
 
+    //extract hdPath to hdPath global variable
+    extractHDPathAndCryptoOptions(rx, OFFSET_DATA);
     uint8_t requireConfirmation = G_io_apdu_buffer[OFFSET_P1];
 
+    //extract pubkey to pubkey_to_display global variable
+    MEMZERO(pubkey_to_display, sizeof(pubkey_to_display));
+    zxerr_t err = crypto_extractPublicKey(hdPath, cryptoOptions, pubkey_to_display, sizeof(pubkey_to_display));
+    if (err !=  zxerr_ok) {
+        zemu_log_stack("Public key extraction erorr");
+        THROW(APDU_CODE_UNKNOWN);
+    }
+    hasPubkey = true;
+
+    //We prepare apdu response, as of now, it is pubkey and pubkey in hex ...
+    STATIC_ASSERT(sizeof(G_io_apdu_buffer) > SECP256_PK_LEN + 2*SECP256_PK_LEN+1, "IO Buffer too small");
+    STATIC_ASSERT(sizeof(pubkey_to_display) == SECP256_PK_LEN, "Buffer too small");
+    memmove(G_io_apdu_buffer, pubkey_to_display, sizeof(pubkey_to_display)); 
+    const uint16_t remainingLength = sizeof(G_io_apdu_buffer) - SECP256_PK_LEN;
+    uint32_t len = array_to_hexstr((char *)(G_io_apdu_buffer + SECP256_PK_LEN), remainingLength, pubkey_to_display, sizeof(pubkey_to_display));
+    if (len != 2*SECP256_PK_LEN) {
+        zemu_log_stack("Error converting pubkey to hex");
+        THROW(APDU_CODE_UNKNOWN);
+    }
+    STATIC_ASSERT(GET_PUB_KEY_RESPONSE_LENGTH == 3*SECP256_PK_LEN, "Response length too small");
+
     if (requireConfirmation) {
-        app_fill_address();
+        loadAddressCompareHdPathFromSlot();
+        if (show_address == SHOW_ADDRESS_ERROR || show_address == SHOW_ADDRESS_NONE) {
+            zemu_log_stack("Unknown slot error");
+            THROW(APDU_CODE_UNKNOWN);           
+        }
 
         view_review_init(addr_getItem, addr_getNumItems, app_reply_address);
         view_review_show();
@@ -45,7 +76,7 @@ __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx,
         return;
     }
 
-    *tx = app_fill_address();
+    *tx =  GET_PUB_KEY_RESPONSE_LENGTH;
     THROW(APDU_CODE_OK);
 }
 
@@ -63,13 +94,24 @@ __Z_INLINE void handleSign(volatile uint32_t *flags, volatile uint32_t *tx, uint
         THROW(APDU_CODE_DATA_INVALID);
     }
 
+    show_address = SHOW_ADDRESS_NONE;
+    loadAddressCompareHdPathFromSlot();    
+
+    //if we found matching hdPath on slot 0
+    if (show_address == SHOW_ADDRESS_YES || show_address == SHOW_ADDRESS_YES_HASH_MISMATCH) {
+        checkAddressUsedInTx();
+    }
+    else {
+        addressUsedInTx = 0;
+    }    
+
     CHECK_APP_CANARY()
     view_review_init(tx_getItem, tx_getNumItems, app_sign);
     view_review_show();
     *flags |= IO_ASYNCH_REPLY;
 }
 
-__Z_INLINE void handleSlotStatus(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+__Z_INLINE void handleSlotStatus(__Z_UNUSED volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     if (rx != 5) {
         THROW(APDU_CODE_DATA_INVALID);
     }
@@ -81,7 +123,7 @@ __Z_INLINE void handleSlotStatus(volatile uint32_t *flags, volatile uint32_t *tx
     THROW(APDU_CODE_OK);
 }
 
-__Z_INLINE void handleGetSlot(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
+__Z_INLINE void handleGetSlot(__Z_UNUSED volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     if (rx != 6) {
         THROW(APDU_CODE_DATA_INVALID);
     }
@@ -92,7 +134,7 @@ __Z_INLINE void handleGetSlot(volatile uint32_t *flags, volatile uint32_t *tx, u
     snprintf(buffer, sizeof(buffer), "%d", slotIdx);
     zemu_log_stack(buffer);
 
-    zxerr_t err = slot_getSlot(slotIdx, G_io_apdu_buffer, IO_APDU_BUFFER_SIZE);
+    zxerr_t err = slot_getSlot(slotIdx, &tmp_slot);
     snprintf(buffer, sizeof(buffer), "err: %d", err);
     zemu_log_stack(buffer);
 
@@ -105,12 +147,19 @@ __Z_INLINE void handleGetSlot(volatile uint32_t *flags, volatile uint32_t *tx, u
         THROW(APDU_CODE_EXECUTION_ERROR);
     }
 
-    *tx = sizeof(account_slot_t);
+    uint16_t slotBufLen = IO_APDU_BUFFER_SIZE;
+    err = slot_serializeSlot(&tmp_slot, G_io_apdu_buffer, &slotBufLen);
+
+    if (err != zxerr_ok) {
+        THROW(APDU_CODE_EXECUTION_ERROR);
+    }
+
+    *tx = (uint32_t)slotBufLen;
     THROW(APDU_CODE_OK);
 }
 
-__Z_INLINE void handleSetSlot(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
-    if (rx != 5 + 1 + 8 + 20) {
+__Z_INLINE void handleSetSlot(volatile uint32_t *flags, __Z_UNUSED volatile uint32_t *tx, uint32_t rx) {
+    if (rx != 5 + 1 + 8 + 20 + 2) {
         THROW(APDU_CODE_DATA_INVALID);
     }
 

@@ -1,0 +1,25 @@
+{
+  "name": "speculos-integration-tests",
+  "version": "1.0.0",
+  "description": "",
+  "license": "Apache-2.0",
+  "main": "index.js",
+  "type": "module",
+  "dependencies": {
+    "@ledgerhq/hw-transport-node-speculos": "^6.20.0",
+    "@onflow/ledger": "file:../js"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.11.6",
+    "@babel/core": "^7.11.6",
+    "@babel/node": "^7.10.5",
+    "@babel/plugin-transform-runtime": "^7.11.5",
+    "@babel/preset-env": "^7.11.5",
+    "@babel/runtime": "^7.10.5",
+    "@ledgerhq/hw-transport-node-hid": "^6.27.1",
+    "babel-eslint": "^10.1.0",
+    "elliptic": "^6.5.3",
+    "jssha": "^3.1.1",
+    "wait-console-input": "^0.1.7"
+  }
+}

@@ -1218,12 +1218,51 @@
       "source": "import NonFungibleToken from 0x1d7e57aa55817448\nimport TopShot from 0x0b2a3299cc857e29\n\n// This transaction transfers a moment to a recipient\n\n// This transaction is how a topshot user would transfer a moment\n// from their account to another account\n// The recipient must have a TopShot Collection object stored\n// and a public MomentCollectionPublic capability stored at\n// `/public/MomentCollection`\n\n// Parameters:\n//\n// recipient: The Flow address of the account to receive the moment.\n// withdrawID: The id of the moment to be transferred\n\ntransaction(recipient: Address, withdrawID: UInt64) {\n\n    // local variable for storing the transferred token\n    let transferToken: @NonFungibleToken.NFT\n    \n    prepare(acct: AuthAccount) {\n\n        // borrow a reference to the owner's collection\n        let collectionRef = acct.borrow\u003c\u0026TopShot.Collection\u003e(from: /storage/MomentCollection)\n            ?? panic(\"Could not borrow a reference to the stored Moment collection\")\n        \n        // withdraw the NFT\n        self.transferToken \u003c- collectionRef.withdraw(withdrawID: withdrawID)\n    }\n\n    execute {\n        \n        // get the recipient's public account object\n        let recipient = getAccount(recipient)\n\n        // get the Collection reference for the receiver\n        let receiverRef = recipient.getCapability(/public/MomentCollection).borrow\u003c\u0026{TopShot.MomentCollectionPublic}\u003e()!\n\n        // deposit the NFT in the receivers collection\n        receiverRef.deposit(token: \u003c-self.transferToken)\n    }\n}",
       "arguments": [
         {
+          "type": "Address",
+          "name": "recipient",
+          "label": "Recipient",
+          "sampleValues": [
+            {
+              "type": "Address",
+              "value": "0xe467b9dd11fa00df"
+            }
+          ]
+        },
+        {
           "type": "UInt64",
           "name": "withdrawID",
           "label": "Moment ID",
           "sampleValues": [
             {
               "type": "UInt64",
+              "value": "42"
+            }
+          ]
+        }
+      ],
+      "network": "mainnet",
+      "hash": "09d5ad21bf70dfe4f8d800db9e61a77f2f64837ae0e818c3cd67e9cea837a1cf"
+    },
+    {
+      "id": "USDC.01",
+      "name": "Setup USDC Vault",
+      "source": "import FungibleToken from 0xf233dcee88fe0abe\nimport FiatToken from 0xb19436aae4d94622\n\ntransaction {\n\n    prepare(signer: AuthAccount) {\n\n        // Return early if the account already stores a FiatToken Vault\n        if signer.borrow\u003c\u0026FiatToken.Vault\u003e(from: FiatToken.VaultStoragePath) != nil {\n            return\n        }\n\n        // Create a new ExampleToken Vault and put it in storage\n        signer.save(\n            \u003c-FiatToken.createEmptyVault(),\n            to: FiatToken.VaultStoragePath\n        )\n\n        // Create a public capability to the Vault that only exposes\n        // the deposit function through the Receiver interface\n        signer.link\u003c\u0026FiatToken.Vault{FungibleToken.Receiver}\u003e(\n            FiatToken.VaultReceiverPubPath,\n            target: FiatToken.VaultStoragePath\n        )\n\n        // Create a public capability to the Vault that only exposes\n        // the UUID() function through the VaultUUID interface\n        signer.link\u003c\u0026FiatToken.Vault{FiatToken.ResourceId}\u003e(\n            FiatToken.VaultUUIDPubPath,\n            target: FiatToken.VaultStoragePath\n        )\n\n        // Create a public capability to the Vault that only exposes\n        // the balance field through the Balance interface\n        signer.link\u003c\u0026FiatToken.Vault{FungibleToken.Balance}\u003e(\n            FiatToken.VaultBalancePubPath,\n            target: FiatToken.VaultStoragePath\n        )\n\n    }\n}\n",
+      "arguments": [],
+      "network": "mainnet",
+      "hash": "887673892a2e2c12337394570dfa30c5669e93f537ae426690f402799514a9a1"
+    },
+    {
+      "id": "USDC.02",
+      "name": "Transfer USDC",
+      "source": "import FungibleToken from 0xf233dcee88fe0abe\nimport FiatToken from 0xb19436aae4d94622\n\ntransaction(amount: UFix64, to: Address) {\n\n    // The Vault resource that holds the tokens that are being transferred\n    let sentVault: @FungibleToken.Vault\n\n    prepare(signer: AuthAccount) {\n\n        // Get a reference to the signer's stored vault\n        let vaultRef = signer.borrow\u003c\u0026FiatToken.Vault\u003e(from: FiatToken.VaultStoragePath)\n            ?? panic(\"Could not borrow reference to the owner's Vault!\")\n\n        // Withdraw tokens from the signer's stored vault\n        self.sentVault \u003c- vaultRef.withdraw(amount: amount)\n    }\n\n    execute {\n\n        // Get the recipient's public account object\n        let recipient = getAccount(to)\n\n        // Get a reference to the recipient's Receiver\n        let receiverRef = recipient.getCapability(FiatToken.VaultReceiverPubPath)\n            .borrow\u003c\u0026{FungibleToken.Receiver}\u003e()\n            ?? panic(\"Could not borrow receiver reference to the recipient's Vault\")\n\n        // Deposit the withdrawn tokens in the recipient's receiver\n        receiverRef.deposit(from: \u003c-self.sentVault)\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount",
+          "sampleValues": [
+            {
+              "type": "UFix64",
               "value": "42"
             }
           ]
@@ -1241,7 +1280,189 @@
         }
       ],
       "network": "mainnet",
-      "hash": "09d5ad21bf70dfe4f8d800db9e61a77f2f64837ae0e818c3cd67e9cea837a1cf"
+      "hash": "7ff4d9f53ba5eebda556d0ead0ca13911bc8996e2c91c5147f8787d10a324483"
+    },
+    {
+      "id": "SCO.03",
+      "name": "Register Node",
+      "source": "import Crypto\nimport FlowStakingCollection from 0x8d0e87b65159ae63\n\n/// Registers a delegator in the staking collection resource\n/// for the specified node information and the amount of tokens to commit\n\ntransaction(id: String,\n            role: UInt8,\n            networkingAddress: String,\n            networkingKey: String,\n            stakingKey: String,\n            amount: UFix64,\n            publicKeys: [Crypto.KeyListEntry]?) {\n    \n    let stakingCollectionRef: \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: AuthAccount) {\n        self.stakingCollectionRef = account.borrow\u003c\u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n\n        if let machineAccount = self.stakingCollectionRef.registerNode(\n            id: id,\n            role: role,\n            networkingAddress: networkingAddress,\n            networkingKey: networkingKey,\n            stakingKey: stakingKey,\n            amount: amount,\n            payer: account) \n        {\n            if publicKeys == nil || publicKeys!.length == 0 {\n                panic(\"Cannot provide zero keys for the machine account\")\n            }\n            for key in publicKeys! {\n                machineAccount.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)\n            }\n        }\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "String",
+          "name": "id",
+          "label": "Node ID",
+          "sampleValues": [
+            {
+              "type": "String",
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+            }
+          ]
+        },
+        {
+          "type": "UInt8",
+          "name": "role",
+          "label": "Node Role",
+          "sampleValues": [
+            {
+              "type": "UInt8",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "type": "String",
+          "name": "networkingAddress",
+          "label": "Networking Address",
+          "sampleValues": [
+            {
+              "type": "String",
+              "value": "flow-node.test:3569"
+            }
+          ]
+        },
+        {
+          "type": "String",
+          "name": "networkingKey",
+          "label": "Networking Key",
+          "sampleValues": [
+            {
+              "type": "String",
+              "value": "1348307bc77c688e80049de9d081aa09755da33e6997605fa059db2144fc85e560cbe6f7da8d74b453f5916618cb8fd392c2db856f3e78221dc68db1b1d914e4"
+            }
+          ]
+        },
+        {
+          "type": "String",
+          "name": "stakingKey",
+          "label": "Staking Key",
+          "sampleValues": [
+            {
+              "type": "String",
+              "value": "9e9ae0d645fd5fd9050792e0b0daa82cc1686d9133afa0f81a784b375c42ae48567d1545e7a9e1965f2c1a32f73cf8575ebb7a967f6e4d104d2df78eb8be409135d12da0499b8a00771f642c1b9c49397f22b440439f036c3bdee82f5309dab3"
+            }
+          ]
+        },
+        {
+          "type": "UFix64",
+          "name": "amount",
+          "label": "Amount",
+          "sampleValues": [
+            {
+              "type": "UFix64",
+              "value": "92233720368.54775808"
+            }
+          ]
+        },
+        {
+          "type": "[String]?",
+          "name": "publicKeys",
+          "label": "Public Keys",
+          "sampleValues": [
+            {
+              "type": "Optional",
+              "value": null
+            },
+            {
+              "type": "Optional",
+              "value": {
+                "type": "Array",
+                "value": []
+              }
+            },
+            {
+              "type": "Optional",
+              "value": {
+                "type": "Array",
+                "value": [
+                  {
+                    "type": "String",
+                    "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Optional",
+              "value": {
+                "type": "Array",
+                "value": [
+                  {
+                    "type": "String",
+                    "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                  },
+                  {
+                    "type": "String",
+                    "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                  },
+                  {
+                    "type": "String",
+                    "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "network": "mainnet",
+      "hash": "79de7119aea61bdafb39cc3d1f4fa17ca802c2732726a86d2c636dbc19808b68"
+    },
+    {
+      "id": "SCO.04",
+      "name": "Create Machine Account",
+      "source": "import Crypto\nimport FlowStakingCollection from 0x8d0e87b65159ae63\n\n/// Creates a machine account for a node that is already in the staking collection\n/// and adds public keys to the new account\n\ntransaction(nodeID: String, publicKeys: [Crypto.KeyListEntry]) {\n    \n    let stakingCollectionRef: \u0026FlowStakingCollection.StakingCollection\n\n    prepare(account: AuthAccount) {\n        self.stakingCollectionRef = account.borrow\u003c\u0026FlowStakingCollection.StakingCollection\u003e(from: FlowStakingCollection.StakingCollectionStoragePath)\n            ?? panic(\"Could not borrow ref to StakingCollection\")\n\n        if let machineAccount = self.stakingCollectionRef.createMachineAccountForExistingNode(nodeID: nodeID, payer: account) {\n            if publicKeys == nil || publicKeys!.length == 0 {\n                panic(\"Cannot provide zero keys for the machine account\")\n            }\n            for key in publicKeys {\n                machineAccount.keys.add(publicKey: key.publicKey, hashAlgorithm: key.hashAlgorithm, weight: key.weight)\n            }\n        } else {\n            panic(\"Could not create a machine account for the node\")\n        }\n    }\n}\n",
+      "arguments": [
+        {
+          "type": "String",
+          "name": "id",
+          "label": "Node ID",
+          "sampleValues": [
+            {
+              "type": "String",
+              "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+            }
+          ]
+        },
+        {
+          "type": "[String]",
+          "name": "publicKeys",
+          "label": "Public Keys",
+          "sampleValues": [
+            {
+              "type": "Array",
+              "value": []
+            },
+            {
+              "type": "Array",
+              "value": [
+                {
+                  "type": "String",
+                  "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                }
+              ]
+            },
+            {
+              "type": "Array",
+              "value": [
+                {
+                  "type": "String",
+                  "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                },
+                {
+                  "type": "String",
+                  "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                },
+                {
+                  "type": "String",
+                  "value": "f845b8406e4f43f79d3c1d8cacb3d5f3e7aeedb29feaeb4559fdb71a97e2fd0438565310e87670035d83bc10fe67fe314dba5363c81654595d64884b1ecad1512a64e65e020164"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "network": "mainnet",
+      "hash": "dd3b327b09087ea7f8e92a22a6b04a3c6ca33b868b430c4f15f251658c38c1b7"
     }
   ]
 }

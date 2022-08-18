@@ -15,7 +15,7 @@
  *  limitations under the License.
  ******************************************************************************* */
 
-import {serializePathv1, printBIP44Path, signSendChunkv1} from "./helperV1";
+import {serializePathv1, printBIP44Path, signSendChunkv1, validateCryptoOptions} from "./helperV1";
 import {
   CHUNK_SIZE,
   CLA,
@@ -26,6 +26,7 @@ import {
   P1_VALUES,
   PKLEN,
   processErrorResponse,
+  compareVersion,
 } from "./common";
 
 function processGetAddrResponse(response) {
@@ -60,8 +61,8 @@ export default class FlowApp {
 
   static get Signature() {
     return {
-      SECP256K1: 0x0200,
-      P256: 0x0300,
+      P256: 0x0200,
+      SECP256K1: 0x0300,
     }
   }
 
@@ -92,8 +93,9 @@ export default class FlowApp {
     return chunks;
   }
 
-  async signGetChunks(path, message) {
-    return FlowApp.prepareChunks(serializePathv1(path), message);
+  async signGetChunks(path, options, pathSerializationVersion, message) {
+    const serializedPath = serializePathv1(path, pathSerializationVersion, options);
+    return FlowApp.prepareChunks(serializedPath, message);
   }
 
   async getVersion() {
@@ -154,17 +156,26 @@ export default class FlowApp {
     }, processErrorResponse);
   }
 
-  async getAddressAndPubKey(path) {
-    const serializedPath = serializePathv1(path);
-    console.log(serializedPath);
+  async getAddressAndPubKey(path, cryptoOptions) {
+    validateCryptoOptions(cryptoOptions);
+
+    const getVersionResponse = await this.getVersion();
+    const pathSerializationVersion = (compareVersion(getVersionResponse, 0, 9, 12) <= 0) ? 0 : 1;
+
+    const serializedPath = serializePathv1(path, pathSerializationVersion, cryptoOptions);
 
     return this.transport
       .send(CLA, INS.GET_PUBKEY, P1_VALUES.ONLY_RETRIEVE, 0, serializedPath, [0x9000])
       .then(processGetAddrResponse, processErrorResponse);
   }
 
-  async showAddressAndPubKey(path) {
-    const serializedPath = serializePathv1(path);
+  async showAddressAndPubKey(path, cryptoOptions) {
+    validateCryptoOptions(cryptoOptions);
+
+    const getVersionResponse = await this.getVersion();
+    const pathSerializationVersion = (compareVersion(getVersionResponse, 0, 9, 12) <= 0) ? 0 : 1;
+
+    const serializedPath = serializePathv1(path, pathSerializationVersion, cryptoOptions);
 
     return this.transport
       .send(CLA, INS.GET_PUBKEY, P1_VALUES.SHOW_ADDRESS_IN_DEVICE, 0, serializedPath, [0x9000])
@@ -175,9 +186,14 @@ export default class FlowApp {
     return signSendChunkv1(this, chunkIdx, chunkNum, chunk);
   }
 
-  async sign(path, message) {
-    return this.signGetChunks(path, message).then((chunks) => {
-      return this.signSendChunk(1, chunks.length, chunks[0]).then(async (response) => {
+  async sign(path, message, cryptoOptions) {
+    validateCryptoOptions(cryptoOptions);
+
+    const getVersionResponse = await this.getVersion();
+    const pathSerializationVersion = (compareVersion(getVersionResponse, 0, 9, 12) <= 0) ? 0 : 1;
+
+    return this.signGetChunks(path, cryptoOptions, pathSerializationVersion, message).then((chunks) => {
+        return this.signSendChunk(1, chunks.length, chunks[0]).then(async (response) => {
         let result = {
           returnCode: response.returnCode,
           errorMessage: response.errorMessage,
@@ -227,7 +243,6 @@ export default class FlowApp {
 
     const payload = Buffer.from([slotIdx]);
     return this.transport.send(CLA, INS.GET_SLOT, 0, 0, payload).then((response) => {
-      console.log(response);
 
       const errorCodeData = response.slice(-2);
       const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
@@ -239,12 +254,13 @@ export default class FlowApp {
         errorMessage: errorCodeToString(returnCode),
         slotIdx: slotIdx,
         account: response.slice(0, 8).toString("hex"),
-        path: pathStr
+        path: pathStr,
+        options: response.length >= 32 ? response.readInt16LE(28) : null, //ledger app versions <0.9.12 do not return options
       };
     }, processErrorResponse);
   }
 
-  async setSlot(slotIdx, account, path) {
+  async setSlot(slotIdx, account, path, cryptoOptions) {
     if (isNaN(slotIdx) || slotIdx < 0 || slotIdx > 63) {
       return {
         returnCode: 0,
@@ -252,9 +268,15 @@ export default class FlowApp {
       };
     }
 
+    validateCryptoOptions(cryptoOptions);
+
     const serializedSlotIdx = Buffer.from([slotIdx]);
     const serializedAccount = Buffer.from(account, "hex");
-    const serializedPath = serializePathv1(path);
+  
+    const getVersionResponse = await this.getVersion();
+    const pathSerializationVersion = (compareVersion(getVersionResponse, 0, 9, 12) <= 0) ? 0 : 1;
+
+    const serializedPath = serializePathv1(path, pathSerializationVersion, cryptoOptions);
 
     if (serializedAccount.length !== 8) {
       return {
@@ -263,12 +285,7 @@ export default class FlowApp {
       };
     }
 
-    console.log(serializedSlotIdx)
-    console.log(serializedAccount)
-    console.log(serializedPath)
-
     const payload = Buffer.concat([ serializedSlotIdx, serializedAccount, serializedPath]);
-    console.log(payload)
 
     return this.transport.send(CLA, INS.SET_SLOT, 0, 0, payload).then((response) => {
       const errorCodeData = response.slice(-2);

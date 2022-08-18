@@ -21,6 +21,7 @@
 #include <iomanip>
 #include "testcases.h"
 #include "zxmacros.h"
+#include "zxformat.h"
 
 bool TestcaseIsValid(const Json::Value &) {
     return true;
@@ -403,8 +404,20 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
         case SCRIPT_TS02_TRANSFER_TOP_SHOT_MOMENT: {
             addTo(answer, "{} | Type : Transfer Top Shot Moment", item++);
             addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
-            addTo(answer, "{} | Moment ID : {}", item++, tcd.arguments[0]["value"].asString());
-            addMultiStringArgumentTo(answer, "Address", item++, tcd.arguments[1]["value"]);
+            addTo(answer, "{} | Moment ID : {}", item++, tcd.arguments[1]["value"].asString());
+            addMultiStringArgumentTo(answer, "Address", item++, tcd.arguments[0]["value"]);
+            break;
+        }
+        case SCRIPT_USDC01_SETUP_USDC_VAULT: {
+            addTo(answer, "{} | Type : Setup USDC Vault", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            break;
+        }
+        case SCRIPT_USDC02_TRANSFER_USDC: {
+            addTo(answer, "{} | Type : Transfer USDC", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[0]["value"].asString());
+            addMultiStringArgumentTo(answer, "Recipient", item++, tcd.arguments[1]["value"]);
             break;
         }
         default:
@@ -423,6 +436,8 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
     for (uint16_t i = 0; i < (uint16_t) tcd.authorizers.size(); i++) {
         addTo(answer, "{} | Authorizer {} : {}", item++, i + 1, tcd.authorizers[i]);
     }
+
+    addTo(answer, "{} | Warning: : No address stored on the device.", item++);
 
     return answer;
 }
