@@ -30,6 +30,7 @@ jobs:
           name: Install node + yarn
           command: |
             source /opt/circleci/.nvm/nvm.sh
+            nvm ls
             nvm install 16.10.0
             nvm use 16.10.0
             rm -rf ~/.yarn

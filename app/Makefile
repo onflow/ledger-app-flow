@@ -178,6 +178,22 @@ GLYPH_SRC_DIR = glyphs
 INCLUDES_PATH += $(MY_DIR)/glyphs
 include $(BOLOS_SDK)/Makefile.glyphs
 
+.PHONY: copy_app_icon
+copy_app_icon:
+	$(info Replacing app icon)
+	cp $(ICONNAME) glyphs/icon_app.gif
+
+.PHONY: delete_app_icon
+delete_app_icon:
+	$(info Deleting app icon)
+	rm -rf glyphs/icon_app.gif
+
+#before generating glyph files we need to copy app icon
+$(GLYPH_DESTH):  copy_app_icon
+
+#deleting app icon is a part of clean
+clean:  delete_app_icon
+
 APP_SOURCE_PATH += $(MY_DIR)/src
 APP_SOURCE_PATH += $(MY_DIR)/../deps/ledger-zxlib/include
 APP_SOURCE_PATH += $(MY_DIR)/../deps/ledger-zxlib/src

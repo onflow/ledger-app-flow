@@ -89,7 +89,6 @@ define run_docker
 	@echo "docker host: whoami: `whoami`"
 	docker run $(TTY_SETTING) $(INTERACTIVE_SETTING) $(MAKE_LINUX_DOCKER_OPTIONS) --rm \
 	-e SCP_PRIVKEY=$(SCP_PRIVKEY) \
-	-e BOLOS_ENV_IGNORE=/opt/bolos \
 	-e COIN=$(COIN) \
 	-e APP_TESTING=$(APP_TESTING) \
 	-e BOLOS_SDK=$(BOLOS_SDK_DIRECTORY) \
@@ -134,8 +133,6 @@ pull_build_container:
 
 .PHONY: build
 build: pull_build_container
-	$(info Replacing app icon)
-	@cp $(LEDGER_SRC)/$(NANO_ICON_GIF) $(LEDGER_SRC)/glyphs/icon_app.gif
 	$(info calling make inside docker)
 	$(call run_docker, , make -j `nproc`)
 
