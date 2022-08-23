@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:sha-229b03c
+      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:sha-73c9e07
 
     steps:
       - name: Clone
@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:sha-229b03c
+      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:sha-73c9e07
 
     steps:
       - uses: actions/checkout@v2
