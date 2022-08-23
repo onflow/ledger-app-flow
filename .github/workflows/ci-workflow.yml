@@ -1,0 +1,264 @@
+name: Compilation & tests
+
+on: [push, pull_request]
+
+jobs:
+  job_build_debug:
+    name: Build debug
+    runs-on: ubuntu-latest
+
+    container:
+      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:sha-73c9e07
+
+    steps:
+      - name: Clone
+        uses: actions/checkout@v2
+
+      - name: Build Nano S
+        run: |
+          cd app
+          make clean
+          make DEBUG=1
+      - name: Upload app NanoS binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: boilerplate-app-debug-nanos
+          path: app/bin
+      - name: Build Nano X
+        run: |
+          cd app
+          make clean
+          TARGET_NAME=TARGET_NANOS BOLOS_SDK=$NANOX_SDK make DEBUG=1
+      - name: Upload app Nano X binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: boilerplate-app-debug-nanox
+          path: app/bin
+      - name: Build Nano S+
+        run: |
+          cd app
+          make clean
+          make glyphs/glyphs.c
+          cat glyphs/glyphs.h
+          TARGET_NAME=TARGET_NANOS2 BOLOS_SDK=$NANOSP_SDK make DEBUG=1
+      - name: Upload app Nano S+ binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: boilerplate-app-debug-nanosp
+          path: app/bin
+  job_scan_build:
+    name: Clang Static Analyzer
+    needs: job_build_debug
+    runs-on: ubuntu-latest
+
+    container:
+      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:sha-73c9e07
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build with Clang Static Analyzer
+        run: |
+          cd app
+          make clean
+          scan-build --use-cc=clang -analyze-headers -enable-checker security -enable-checker unix -enable-checker valist -o scan-build --status-bugs make default
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: scan-build
+          path: scan-build
+  job_unit_test:
+    name: C++ unit tests
+    needs: job_build_debug
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build and run unit tests
+        run: |
+          pip3 install conan
+          export BOLOS_SDK=
+          make clean
+          make cpp_test
+  job_speculos_nanos_tests_5001:
+    name: NanoS Speculos 5001/3 tests
+    needs: job_build_debug
+    runs-on: ubuntu-latest  
+    steps:
+      - name: Clone
+        uses: actions/checkout@v2
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.10.0
+      - name: Download app binary
+        uses: actions/download-artifact@v2
+        with:
+          name: boilerplate-app-debug-nanos
+          path: app/bin
+
+      - name: install speculos
+        run: |
+          export BOLOS_SDK=
+          make speculos_install
+      - name: Run tests
+        run: |
+          make speculos_port_5001_test
+          make speculos_port_5003_test
+      - name: Upload Speculos 5001s log
+        uses: actions/upload-artifact@v2
+        with:
+          name: speculos-5001s-log
+          path: tests_speculos/speculos-port-5001.log
+      - name: Upload Speculos 5003s log
+        uses: actions/upload-artifact@v2
+        with:
+          name: speculos-5001s-log
+          path: tests_speculos/speculos-port-5003.log
+  job_speculos_nanos_tests_5002:
+    name: NanoS Speculos 5002 tests
+    needs: job_build_debug
+    runs-on: ubuntu-latest  
+    steps:
+      - name: Clone
+        uses: actions/checkout@v2
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.10.0
+      - name: Download app binary
+        uses: actions/download-artifact@v2
+        with:
+          name: boilerplate-app-debug-nanos
+          path: app/bin
+
+      - name: install speculos
+        run: |
+          export BOLOS_SDK=
+          make speculos_install
+      - name: Run tests
+        run: |
+          make speculos_port_5002_test
+      - name: Upload Speculos log
+        uses: actions/upload-artifact@v2
+        with:
+          name: speculos-5002s-log
+          path: tests_speculos/speculos-port-5002.log
+  job_speculos_nanox_tests_5001:
+    name: NanoX Speculos 5001 tests
+    needs: job_build_debug
+    runs-on: ubuntu-latest  
+    steps:
+      - name: Clone
+        uses: actions/checkout@v2
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.10.0
+      - name: Download app binary
+        uses: actions/download-artifact@v2
+        with:
+          name: boilerplate-app-debug-nanox
+          path: app/bin
+
+      - name: install speculos
+        run: |
+          export BOLOS_SDK=
+          make speculos_install
+      - name: Run tests
+        run: |
+          TARGET_DEVICE=NANO_X make speculos_port_5001_test
+      - name: Upload Speculos 5001s log
+        uses: actions/upload-artifact@v2
+        with:
+          name: speculos-5001x-log
+          path: tests_speculos/speculos-port-5001.log
+  job_speculos_nanox_tests_5002:
+    name: NanoX Speculos 5002 tests
+    needs: job_build_debug
+    runs-on: ubuntu-latest  
+    steps:
+      - name: Clone
+        uses: actions/checkout@v2
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.10.0
+      - name: Download app binary
+        uses: actions/download-artifact@v2
+        with:
+          name: boilerplate-app-debug-nanox
+          path: app/bin
+
+      - name: install speculos
+        run: |
+          export BOLOS_SDK=
+          make speculos_install
+      - name: Run tests
+        run: |
+          TARGET_DEVICE=NANO_X make speculos_port_5002_test
+      - name: Upload Speculos log
+        uses: actions/upload-artifact@v2
+        with:
+          name: speculos-5002x-log
+          path: tests_speculos/speculos-port-5002.log
+  job_speculos_nanosp_tests_5001:
+    name: NanoS+ Speculos 5001 tests
+    needs: job_build_debug
+    runs-on: ubuntu-latest  
+    steps:
+      - name: Clone
+        uses: actions/checkout@v2
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.10.0
+      - name: Download app binary
+        uses: actions/download-artifact@v2
+        with:
+          name: boilerplate-app-debug-nanosp
+          path: app/bin
+
+      - name: install speculos
+        run: |
+          export BOLOS_SDK=
+          make speculos_install
+      - name: Run tests
+        run: |
+          TARGET_DEVICE=NANO_SP make speculos_port_5001_test
+      - name: Upload Speculos 5001s log
+        uses: actions/upload-artifact@v2
+        with:
+          name: speculos-5001sp-log
+          path: tests_speculos/speculos-port-5001.log
+  job_speculos_nanosp_tests_5002:
+    name: NanoS+ Speculos 5002 tests
+    needs: job_build_debug
+    runs-on: ubuntu-latest  
+    steps:
+      - name: Clone
+        uses: actions/checkout@v2
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.10.0
+      - name: Download app binary
+        uses: actions/download-artifact@v2
+        with:
+          name: boilerplate-app-debug-nanosp
+          path: app/bin
+
+      - name: install speculos
+        run: |
+          export BOLOS_SDK=
+          make speculos_install
+      - name: Run tests
+        run: |
+          TARGET_DEVICE=NANO_SP make speculos_port_5002_test
+      - name: Upload Speculos log
+        uses: actions/upload-artifact@v2
+        with:
+          name: speculos-5002sp-log
+          path: tests_speculos/speculos-port-5002.log
+
