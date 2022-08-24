@@ -493,6 +493,15 @@ parser_error_t _matchScriptType(uint8_t scriptHash[32], script_type_e *scriptTyp
         {SCRIPT_SCO04_CREATE_MACHINE_ACCOUNT, TEMPLATE_HASH_SCO0402_CREATE_MACHINE_ACCOUNT_TESTNET},
         {SCRIPT_SCO04_CREATE_MACHINE_ACCOUNT, TEMPLATE_HASH_SCO0402_CREATE_MACHINE_ACCOUNT_MAINNET},
 
+        {SCRIPT_TH16_REGISTER_OPERATOR_NODE, TEMPLATE_HASH_TH1602_REGISTER_OPERATOR_NODE_MAINNET},
+        {SCRIPT_TH16_REGISTER_OPERATOR_NODE, TEMPLATE_HASH_TH1602_REGISTER_OPERATOR_NODE_TESTNET},
+
+        {SCRIPT_TH0602_REGISTER_NODE, TEMPLATE_HASH_TH0602_REGISTER_NODE_TESTNET},
+        {SCRIPT_TH0602_REGISTER_NODE, TEMPLATE_HASH_TH0602_REGISTER_NODE_MAINNET},
+
+        {SCRIPT_SCO0302_REGISTER_NODE, TEMPLATE_HASH_SCO0303_REGISTER_NODE_TESTNET},
+        {SCRIPT_SCO0302_REGISTER_NODE, TEMPLATE_HASH_SCO0303_REGISTER_NODE_MAINNET},
+
         // sentinel, do not remove
         {0, NULL}
     };
@@ -928,6 +937,14 @@ parser_error_t _getNumItems(__Z_UNUSED const parser_context_t *c, const parser_t
             return PARSER_OK;
         case SCRIPT_USDC02_TRANSFER_USDC:
             *numItems = 10 +   extraItems;
+            return PARSER_OK;
+        case SCRIPT_TH0602_REGISTER_NODE:
+            *numItems = 15 + extraItems;
+            return PARSER_OK;
+        case SCRIPT_SCO0302_REGISTER_NODE:
+            //array length is checked while we are parsing it
+            CHECK_PARSER_ERR(_countArgumentOptionalItems(&v->arguments, 7, UINT8_MAX, &argArrayLength)); 
+            *numItems = 15 + argArrayLength + extraItems;
             return PARSER_OK;
         case SCRIPT_UNKNOWN:
         default:
