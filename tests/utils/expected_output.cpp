@@ -461,6 +461,36 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             }
             break;
         }
+        case SCRIPT_CAST01: {
+            addTo(answer, "{} | Type : Create A Proposal", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            break;
+        }
+        case SCRIPT_CAST02: {
+            addTo(answer, "{} | Type : Cast Your Vote", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            break;
+        }
+        case SCRIPT_CAST03: {
+            addTo(answer, "{} | Type : Update Membership Status", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            break;
+        }
+        case SCRIPT_CAST04: {
+            addTo(answer, "{} | Type : Update Proposal Status", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            break;
+        }
+        case SCRIPT_CAST05: {
+            addTo(answer, "{} | Type : Update Your Community", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            break;
+        }
+        case SCRIPT_CAST06: {
+            addTo(answer, "{} | Type : Create A Community", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            break;
+        }
         default:
             addTo(answer, "{} | Type : ERROR", item++);
             break;

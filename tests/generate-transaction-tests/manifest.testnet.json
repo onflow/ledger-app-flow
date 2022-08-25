@@ -1738,7 +1738,55 @@
       ],
       "network": "testnet",
       "hash": "1508b7713725280e999de85ad0d559781d82da42bb902ae76189324c44ae9bcf"
-    }
+    },
+      {
+        "id": "CAST.01",
+        "name": "Create A Proposal",
+        "source": "\ntransaction() {\n    prepare(acct: AuthAccount) {\n        // create proposal:\n        //\n        // this transaction does nothing and will not be run,\n        // it is only used to collect a signature.\n        //\n    }\n}",
+        "arguments": [],
+        "network": "testnet",
+        "hash": "2d9b8149a6e7eaabc8d4f7ecacd743bcfe2b15100ad8137f6b655018f3ab3a2c"
+      },
+      {
+        "id": "CAST.02",
+        "name": "Cast Your Vote",
+        "source": "\ntransaction() {\n    prepare(acct: AuthAccount) {\n        // cast vote:\n        //\n        // this transaction does nothing and will not be run,\n        // it is only used to collect a signature.\n        //\n    }\n}",
+        "arguments": [],
+        "network": "testnet",
+        "hash": "98bb483a4cb4598dca55c09720af0cd69e7751674821340c9c60fe3f5af15042"
+      },
+      {
+        "id": "CAST.03",
+        "name": "Update Membership Status",
+        "source": "\ntransaction() {\n    prepare(acct: AuthAccount) {\n        // update community membership:\n        //\n        // this transaction does nothing and will not be run,\n        // it is only used to collect a signature.\n        //\n    }\n}",
+        "arguments": [],
+        "network": "testnet",
+        "hash": "ca6239b9b54c293457dc44ea08d4d0bd10ff4231f88c2f5e235c2a6bf9f7e4ce"
+      },
+      {
+        "id": "CAST.04",
+        "name": "Update Proposal Status",
+        "source": "\ntransaction() {\n    prepare(acct: AuthAccount) {\n        // update proposal:\n        //\n        // this transaction does nothing and will not be run,\n        // it is only used to collect a signature.\n        //\n    }\n}",
+        "arguments": [],
+        "network": "testnet",
+        "hash": "6579cefb3c0bd1b679c093bc821387ab0476222723bb1f51f8e2dc9b9465caf0"
+      },
+      {
+        "id": "CAST.05",
+        "name": "Update Your Community",
+        "source": "\ntransaction() {\n    prepare(acct: AuthAccount) {\n        // update community:\n        //\n        // this transaction does nothing and will not be run,\n        // it is only used to collect a signature.\n        //\n    }\n}",
+        "arguments": [],
+        "network": "testnet",
+        "hash": "bd6cd28bc496eca367b030df21a152fbb5105131daaf574440b8f43829e04065"
+      },
+      {
+        "id": "CAST.06",
+        "name": "Create A Community",
+        "source": "\ntransaction() {\n    prepare(acct: AuthAccount) {\n        // create community:\n        //\n        // this transaction does nothing and will not be run,\n        // it is only used to collect a signature.\n        //\n    }\n}\n",
+        "arguments": [],
+        "network": "testnet",
+        "hash": "1ae5239999cd182439af8dfedfd963db8ed6370037fdd04742c4dda7b730eac6"
+      }
   ]
 }
 

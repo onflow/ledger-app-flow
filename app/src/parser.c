@@ -2110,6 +2110,144 @@ parser_error_t parser_getItemTransferUSDC(const parser_context_t *ctx,
     return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
+//CAST.01
+parser_error_t parser_getItemCast01(const parser_context_t *ctx,
+                                       uint16_t displayIdx,
+                                       char *outKey, uint16_t outKeyLen,
+                                       char *outVal, uint16_t outValLen,
+                                       uint8_t pageIdx, uint8_t *pageCount) {
+    *pageCount = 1;
+    switch (displayIdx) {
+        case 0:
+            snprintf(outKey, outKeyLen, "Type");
+            snprintf(outVal, outValLen, "Create A Proposal");
+            return PARSER_OK;
+        case 1:
+            snprintf(outKey, outKeyLen, "ChainID");
+            return parser_printChainID(&parser_tx_obj.payer,
+                                       outVal, outValLen, pageIdx, pageCount);
+        default:
+            break;
+    }
+    displayIdx -= 2;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
+}
+
+//CAST.02
+parser_error_t parser_getItemCast02(const parser_context_t *ctx,
+                                       uint16_t displayIdx,
+                                       char *outKey, uint16_t outKeyLen,
+                                       char *outVal, uint16_t outValLen,
+                                       uint8_t pageIdx, uint8_t *pageCount) {
+    *pageCount = 1;
+    switch (displayIdx) {
+        case 0:
+            snprintf(outKey, outKeyLen, "Type");
+            snprintf(outVal, outValLen, "Cast Your Vote");
+            return PARSER_OK;
+        case 1:
+            snprintf(outKey, outKeyLen, "ChainID");
+            return parser_printChainID(&parser_tx_obj.payer,
+                                       outVal, outValLen, pageIdx, pageCount);
+        default:
+            break;
+    }
+    displayIdx -= 2;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
+}
+
+//CAST.03
+parser_error_t parser_getItemCast03(const parser_context_t *ctx,
+                                       uint16_t displayIdx,
+                                       char *outKey, uint16_t outKeyLen,
+                                       char *outVal, uint16_t outValLen,
+                                       uint8_t pageIdx, uint8_t *pageCount) {
+    *pageCount = 1;
+    switch (displayIdx) {
+        case 0:
+            snprintf(outKey, outKeyLen, "Type");
+            snprintf(outVal, outValLen, "Update Membership Status");
+            return PARSER_OK;
+        case 1:
+            snprintf(outKey, outKeyLen, "ChainID");
+            return parser_printChainID(&parser_tx_obj.payer,
+                                       outVal, outValLen, pageIdx, pageCount);
+        default:
+            break;
+    }
+    displayIdx -= 2;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
+}
+
+//CAST.04
+parser_error_t parser_getItemCast04(const parser_context_t *ctx,
+                                       uint16_t displayIdx,
+                                       char *outKey, uint16_t outKeyLen,
+                                       char *outVal, uint16_t outValLen,
+                                       uint8_t pageIdx, uint8_t *pageCount) {
+    *pageCount = 1;
+    switch (displayIdx) {
+        case 0:
+            snprintf(outKey, outKeyLen, "Type");
+            snprintf(outVal, outValLen, "Update Proposal Status");
+            return PARSER_OK;
+        case 1:
+            snprintf(outKey, outKeyLen, "ChainID");
+            return parser_printChainID(&parser_tx_obj.payer,
+                                       outVal, outValLen, pageIdx, pageCount);
+        default:
+            break;
+    }
+    displayIdx -= 2;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
+}
+
+//CAST.05
+parser_error_t parser_getItemCast05(const parser_context_t *ctx,
+                                       uint16_t displayIdx,
+                                       char *outKey, uint16_t outKeyLen,
+                                       char *outVal, uint16_t outValLen,
+                                       uint8_t pageIdx, uint8_t *pageCount) {
+    *pageCount = 1;
+    switch (displayIdx) {
+        case 0:
+            snprintf(outKey, outKeyLen, "Type");
+            snprintf(outVal, outValLen, "Update Your Community");
+            return PARSER_OK;
+        case 1:
+            snprintf(outKey, outKeyLen, "ChainID");
+            return parser_printChainID(&parser_tx_obj.payer,
+                                       outVal, outValLen, pageIdx, pageCount);
+        default:
+            break;
+    }
+    displayIdx -= 2;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
+}
+
+//CAST.06
+parser_error_t parser_getItemCast06(const parser_context_t *ctx,
+                                       uint16_t displayIdx,
+                                       char *outKey, uint16_t outKeyLen,
+                                       char *outVal, uint16_t outValLen,
+                                       uint8_t pageIdx, uint8_t *pageCount) {
+    *pageCount = 1;
+    switch (displayIdx) {
+        case 0:
+            snprintf(outKey, outKeyLen, "Type");
+            snprintf(outVal, outValLen, "Create A Community");
+            return PARSER_OK;
+        case 1:
+            snprintf(outKey, outKeyLen, "ChainID");
+            return parser_printChainID(&parser_tx_obj.payer,
+                                       outVal, outValLen, pageIdx, pageCount);
+        default:
+            break;
+    }
+    displayIdx -= 2;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
+}
+
 
 
 parser_error_t parser_getItem(const parser_context_t *ctx,
@@ -2275,6 +2413,24 @@ parser_error_t parser_getItem(const parser_context_t *ctx,
                                                       pageIdx, pageCount);
         case SCRIPT_SCO0302_REGISTER_NODE:
             return parser_getItemRegisterNodeSCO2(ctx, displayIdx, outKey, outKeyLen, outVal, 
+                                                                 outValLen, pageIdx, pageCount);
+        case SCRIPT_CAST01:
+            return parser_getItemCast01(ctx, displayIdx, outKey, outKeyLen, outVal, 
+                                                                 outValLen, pageIdx, pageCount);
+        case SCRIPT_CAST02:
+            return parser_getItemCast02(ctx, displayIdx, outKey, outKeyLen, outVal, 
+                                                                 outValLen, pageIdx, pageCount);
+        case SCRIPT_CAST03:
+            return parser_getItemCast03(ctx, displayIdx, outKey, outKeyLen, outVal, 
+                                                                 outValLen, pageIdx, pageCount);
+        case SCRIPT_CAST04:
+            return parser_getItemCast04(ctx, displayIdx, outKey, outKeyLen, outVal, 
+                                                                 outValLen, pageIdx, pageCount);
+        case SCRIPT_CAST05:
+            return parser_getItemCast05(ctx, displayIdx, outKey, outKeyLen, outVal, 
+                                                                 outValLen, pageIdx, pageCount);
+        case SCRIPT_CAST06:
+            return parser_getItemCast06(ctx, displayIdx, outKey, outKeyLen, outVal, 
                                                                  outValLen, pageIdx, pageCount);
     }
 

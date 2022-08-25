@@ -502,6 +502,13 @@ parser_error_t _matchScriptType(uint8_t scriptHash[32], script_type_e *scriptTyp
         {SCRIPT_SCO0302_REGISTER_NODE, TEMPLATE_HASH_SCO0303_REGISTER_NODE_TESTNET},
         {SCRIPT_SCO0302_REGISTER_NODE, TEMPLATE_HASH_SCO0303_REGISTER_NODE_MAINNET},
 
+        {SCRIPT_CAST01, TEMPLATE_HASH_CAST01},
+        {SCRIPT_CAST02, TEMPLATE_HASH_CAST02},
+        {SCRIPT_CAST03, TEMPLATE_HASH_CAST03},
+        {SCRIPT_CAST04, TEMPLATE_HASH_CAST04},
+        {SCRIPT_CAST05, TEMPLATE_HASH_CAST05},
+        {SCRIPT_CAST06, TEMPLATE_HASH_CAST06},
+
         // sentinel, do not remove
         {0, NULL}
     };
@@ -948,6 +955,14 @@ parser_error_t _getNumItems(__Z_UNUSED const parser_context_t *c, const parser_t
             //array length is checked while we are parsing it
             CHECK_PARSER_ERR(_countArgumentOptionalItems(&v->arguments, 7, UINT8_MAX, &argArrayLength)); 
             *numItems = 15 + argArrayLength + extraItems;
+            return PARSER_OK;
+        case SCRIPT_CAST01:
+        case SCRIPT_CAST02:
+        case SCRIPT_CAST03:
+        case SCRIPT_CAST04:
+        case SCRIPT_CAST05:
+        case SCRIPT_CAST06:
+            *numItems = 8 + extraItems;
             return PARSER_OK;
         case SCRIPT_UNKNOWN:
         default:
