@@ -1551,7 +1551,7 @@
       "hash": "e4d92fcadfa04a5bc669068fb8b4db812214c4eb9bc4570f7e97a714751de1a7"
     },
     {
-      "id": "TH.16",
+      "id": "TH.16b",
       "name": "Register Operator Node",
       "source": "import LockedTokens from 0x8d0e87b65159ae63\nimport StakingProxy from 0x62430cf28c26d095\n\ntransaction(address: Address, id: String, stakingKeyPoP: String, amount: UFix64) {\n\n    let holderRef: \u0026LockedTokens.TokenHolder\n\n    prepare(account: AuthAccount) {\n        self.holderRef = account.borrow\u003c\u0026LockedTokens.TokenHolder\u003e(from: LockedTokens.TokenHolderStoragePath)\n            ?? panic(\"Could not borrow reference to TokenHolder\")\n    }\n\n    execute {\n        let nodeOperatorRef = getAccount(address).getCapability\n            \u003c\u0026StakingProxy.NodeStakerProxyHolder{StakingProxy.NodeStakerProxyHolderPublic}\u003e\n            (StakingProxy.NodeOperatorCapabilityPublicPath)!.borrow() \n            ?? panic(\"Could not borrow node operator public capability\")\n\n        let nodeInfo = nodeOperatorRef.getNodeInfo(nodeID: id)\n            ?? panic(\"Couldn't get info for nodeID=\".concat(id))\n\n        self.holderRef.createNodeStaker(nodeInfo: nodeInfo, stakingKeyPoP: stakingKeyPoP, amount: amount)\n\n        let nodeStakerProxy = self.holderRef.borrowStaker()\n\n        nodeOperatorRef.addStakingProxy(nodeID: nodeInfo.id, proxy: nodeStakerProxy)\n    }\n}\n",
       "arguments": [
@@ -1574,6 +1574,17 @@
             {
               "type": "String",
               "value": "88549335e1db7b5b46c2ad58ddb70b7a45e770cc5fe779650ba26f10e6bae5e6"
+            }
+          ]
+        },
+        {
+          "type": "String",
+          "name": "stakingKeyPoP",
+          "label": "Staking Key PoP",
+          "sampleValues": [
+            {
+              "type": "String",
+              "value": "828a68a2be392804044d85888100462702a422901da3269fb6512defabad07250aad24f232671e4ac8ae531f54e062fc"
             }
           ]
         },

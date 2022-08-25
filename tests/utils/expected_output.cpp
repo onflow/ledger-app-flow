@@ -432,6 +432,15 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             addTo(answer, "{} | Amount : {}", item++, tcd.arguments[6]["value"].asString());
             break;
         }
+        case SCRIPT_TH1602_REGISTER_OPERATOR_NODE: {
+            addTo(answer, "{} | Type : Register Operator Node", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Operator Address : {}", item++, tcd.arguments[0]["value"].asString());
+            addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[1]["value"]);
+            addMultiStringArgumentTo(answer, "Proof of P.", item++, tcd.arguments[2]["value"]);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[3]["value"].asString());
+            break;
+        }
         case SCRIPT_SCO0302_REGISTER_NODE: {
             addTo(answer, "{} | Type : Register Node", item++);
             addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);

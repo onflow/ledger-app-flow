@@ -1033,6 +1033,46 @@ parser_error_t parser_getItemRegisterOperatorNode(const parser_context_t *ctx,
     return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
 }
 
+parser_error_t parser_getItemRegisterOperatorNode02(const parser_context_t *ctx,
+                                       uint16_t displayIdx,
+                                       char *outKey, uint16_t outKeyLen,
+                                       char *outVal, uint16_t outValLen,
+                                       uint8_t pageIdx, uint8_t *pageCount) {
+    *pageCount = 1;
+    switch (displayIdx) {
+        case 0:
+            snprintf(outKey, outKeyLen, "Type");
+            snprintf(outVal, outValLen, "Register Operator Node");
+            return PARSER_OK;
+        case 1:
+            snprintf(outKey, outKeyLen, "ChainID");
+            return parser_printChainID(&parser_tx_obj.payer,
+                                       outVal, outValLen, pageIdx, pageCount);
+        case 2:
+            snprintf(outKey, outKeyLen, "Operator Address");
+            return parser_printArgument(&parser_tx_obj.arguments, 0,
+                                        "Address", JSMN_STRING,
+                                        outVal, outValLen, pageIdx, pageCount);
+        case 3:
+            snprintf(outKey, outKeyLen, "Node ID");
+            return parser_printArgumentString(&parser_tx_obj.arguments.argCtx[1],
+                                              outVal, outValLen, pageIdx, pageCount);
+        case 4:
+            snprintf(outKey, outKeyLen, "Proof of P.");
+            return parser_printArgumentString(&parser_tx_obj.arguments.argCtx[2],
+                                              outVal, outValLen, pageIdx, pageCount);
+        case 5:
+            snprintf(outKey, outKeyLen, "Amount");
+            return parser_printArgument(&parser_tx_obj.arguments, 3,
+                                        "UFix64", JSMN_STRING,
+                                        outVal, outValLen, pageIdx, pageCount);
+        default:
+            break;
+    }
+    displayIdx -= 6;
+    return parser_getItemAfterArguments(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen, pageIdx, pageCount);
+}
+
 parser_error_t parser_getItemRegisterDelegator(const parser_context_t *ctx,
                                        uint16_t displayIdx,
                                        char *outKey, uint16_t outKeyLen,
@@ -2230,6 +2270,9 @@ parser_error_t parser_getItem(const parser_context_t *ctx,
         case SCRIPT_TH0602_REGISTER_NODE:
             return parser_getItemRegisterNode2(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen,
                                               pageIdx, pageCount);
+        case SCRIPT_TH1602_REGISTER_OPERATOR_NODE:
+            return parser_getItemRegisterOperatorNode02(ctx, displayIdx, outKey, outKeyLen, outVal, outValLen,
+                                                      pageIdx, pageCount);
         case SCRIPT_SCO0302_REGISTER_NODE:
             return parser_getItemRegisterNodeSCO2(ctx, displayIdx, outKey, outKeyLen, outVal, 
                                                                  outValLen, pageIdx, pageCount);
