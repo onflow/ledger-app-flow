@@ -116,8 +116,9 @@ void extractHDPathAndCryptoOptions(uint32_t rx, uint32_t offset) {
 
 process_chunk_response_t process_chunk(__Z_UNUSED volatile uint32_t *tx, uint32_t rx) {
     const uint8_t payloadType = G_io_apdu_buffer[OFFSET_PAYLOAD_TYPE];
+    const uint8_t p2 = G_io_apdu_buffer[OFFSET_P2];
 
-    if (G_io_apdu_buffer[OFFSET_P2] != 0) {
+    if (p2 != 0 && payloadType != 0x02) {
         THROW(APDU_CODE_INVALIDP1P2);
     }
 
@@ -127,7 +128,7 @@ process_chunk_response_t process_chunk(__Z_UNUSED volatile uint32_t *tx, uint32_
 
     uint32_t added;
     switch (payloadType) {
-        case 0:
+        case 0x00:
             tx_initialize();
             tx_reset();
             extractHDPathAndCryptoOptions(rx, OFFSET_DATA);
@@ -144,7 +145,16 @@ process_chunk_response_t process_chunk(__Z_UNUSED volatile uint32_t *tx, uint32_
             if (added != rx - OFFSET_DATA) {
                 THROW(APDU_CODE_OUTPUT_BUFFER_TOO_SMALL);
             }
-            return PROCESS_CHUNK_FINISHED_NO_METADATA;
+            switch (p2) {
+                case 0x01:
+                    return PROCESS_CHUNK_FINISHED_NO_METADATA;
+                case 0x02:
+                    return PROCESS_CHUNK_FINISHED_NFT1;
+                case 0x03:
+                    return PROCESS_CHUNK_FINISHED_NFT2;
+                default:
+                    THROW(APDU_CODE_INVALIDP1P2);
+            }            
         case 0x03:
             if (storeTxMetadata(&(G_io_apdu_buffer[OFFSET_DATA]), rx - OFFSET_DATA) != PARSER_OK) {
                 initStoredTxMetadata(); //delete merkle tree proof on error for redundant security

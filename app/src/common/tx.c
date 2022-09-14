@@ -75,11 +75,14 @@ uint8_t *tx_get_buffer() {
 }
 
 const char *tx_parse(process_chunk_response_t typeOfCall) {
+    script_parsed_type_t scriptType =  (typeOfCall == PROCESS_CHUNK_FINISHED_NFT1) ? SCRIPT_TYPE_NFT_SETUP_COLLECTION :
+                                       (typeOfCall == PROCESS_CHUNK_FINISHED_NFT2) ? SCRIPT_TYPE_NFT_TRANSFER :                                                                                      SCRIPT_TYPE_UNKNOWN;
     // parse tx
     uint8_t err = parser_parse(
         &ctx_parsed_tx,
         tx_get_buffer(),
-        tx_get_buffer_length());
+        tx_get_buffer_length(),
+        scriptType);
         
     if (err != PARSER_OK) {
         return parser_getErrorDescription(err);
@@ -87,19 +90,25 @@ const char *tx_parse(process_chunk_response_t typeOfCall) {
 
     //parse metadata
     parser_tx_obj.metadataInitialized = false;
-    if (typeOfCall == PROCESS_CHUNK_FINISHED_WITH_METADATA) {
-        MEMZERO(&parser_tx_obj.metadata, sizeof(parser_tx_obj.metadata));
-        err = parseTxMetadata(parser_tx_obj.hash.digest, &parser_tx_obj.metadata);    
-        if (err != PARSER_OK) {
-            return parser_getErrorDescription(err);
-        }
-        parser_tx_obj.metadataInitialized = true;
-    }
-    else {
-        //If no metadata provided = script is not known, expert mode must be on
-        if (!app_mode_expert()) {
-            return parser_getErrorDescription(PARSER_UNEXPECTED_SCRIPT);
-        }
+    switch (typeOfCall) {
+        case PROCESS_CHUNK_FINISHED_WITH_METADATA:
+            MEMZERO(&parser_tx_obj.metadata, sizeof(parser_tx_obj.metadata));
+            err = parseTxMetadata(parser_tx_obj.hash.digest, &parser_tx_obj.metadata);    
+            if (err != PARSER_OK) {
+                return parser_getErrorDescription(err);
+            }
+            parser_tx_obj.metadataInitialized = true;
+            break;
+        case PROCESS_CHUNK_FINISHED_NFT1:
+        case PROCESS_CHUNK_FINISHED_NFT2:
+            break; // we do not need metadata for these scripts
+        case PROCESS_CHUNK_FINISHED_NO_METADATA:
+            if (!app_mode_expert()) { // we do not need metadata for these scripts, but this workflow should work only in expert mode
+                return parser_getErrorDescription(PARSER_UNEXPECTED_SCRIPT);
+            }
+            break;
+        default:
+            return parser_getErrorDescription(PARSER_UNEXPECTED_ERROR);
     }
     
     CHECK_APP_CANARY()

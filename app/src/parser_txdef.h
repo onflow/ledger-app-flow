@@ -28,6 +28,7 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 #include "crypto.h"
+#include "script_parser.h"
 
 typedef enum {
     CHAIN_ID_UNKNOWN,
@@ -77,6 +78,7 @@ typedef struct {
 typedef struct {
     bool metadataInitialized;
     parsed_tx_metadata_t metadata;
+    script_parsed_elements_t parsedScript;
     flow_script_hash_t hash;
     flow_argument_list_t arguments;
     flow_reference_block_id_t referenceBlockId;

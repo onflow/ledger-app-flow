@@ -30,7 +30,7 @@ extern parser_tx_t parser_tx_obj;
 
 parser_error_t parser_init(parser_context_t *ctx, const uint8_t *buffer, uint16_t bufferSize);
 
-parser_error_t _read(parser_context_t *c, parser_tx_t *v);
+parser_error_t _read(parser_context_t *c, parser_tx_t *v, script_parsed_type_t scriptType);
 
 parser_error_t _validateTx(const parser_context_t *c, const parser_tx_t *v);
 

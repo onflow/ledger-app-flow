@@ -1,5 +1,5 @@
 /*******************************************************************************
-*   (c) 2020 Zondax GmbH
+*   (c) 2022 Vacuumlabs
 *
 *  Licensed under the Apache License, Version 2.0 (the "License");
 *  you may not use this file except in compliance with the License.
@@ -111,7 +111,7 @@ TEST(tx_data, validateScriptHash) {
 }
 
 
-TEST(tx_data, parseCompressedTxData) {
+TEST(tx_metadata, parseCompressedTxData) {
     parser_error_t err;
     parsed_tx_metadata_t result;
     err = _parseTxMetadata(hashTokenTranfer1, TX_METADATA_ADD_NEW_KEY, sizeof(TX_METADATA_ADD_NEW_KEY), &result);

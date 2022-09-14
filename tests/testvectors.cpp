@@ -51,7 +51,7 @@ void check_testcase(const testcase_t &testcase) {
     sha256((const uint8_t *) tc.script.c_str(), tc.script.length(), scriptHash);
 
 
-    err = parser_parse(&ctx, tc.blob.data(), tc.blob.size());
+    err = parser_parse(&ctx, tc.blob.data(), tc.blob.size(), SCRIPT_TYPE_UNKNOWN);
     if (tc.valid) {
         ASSERT_EQ(err, PARSER_OK) << parser_getErrorDescription(err);
     } else {
@@ -154,7 +154,6 @@ INSTANTIATE_TEST_SUITE_P(
         VerifyTestVectors,
         ::testing::ValuesIn(GetJsonTestCases("testvectors/manifestPayloadCases.json")), VerifyTestVectors::PrintToStringParamName()
 );
-
 
 TEST_P(VerifyTestVectors, CheckUIOutput_Manual) { check_testcase(GetParam()); }
 
