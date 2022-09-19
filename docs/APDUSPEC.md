@@ -157,8 +157,8 @@ Each slot has the following structure
 | INS   | byte (1) | Instruction ID         | 0x02          |
 | P1    | byte (1) | Payload desc           | 0 = init      |
 |       |          |                        | 1 = add       |
-|       |          |                        | 2 = template  |
-|       |          |                        | 3..6 = hashes |
+|       |          |                        | 3 = template  |
+|       |          |                        | 4,5 = hashes |
 | P2    | byte (1) | ----                   | not used      |
 | L     | byte (1) | Bytes in payload       | (depends)     |
 
@@ -237,8 +237,7 @@ or array argument
 
 ##### Template Packet P1 = 0x04 and 0x05
 
-Four APDUs for four levels of merkle trees. APDU with P1=0x03 calculates metadata hash. three subsequent P1=0x04 calls have to contain hashes from previous calls (either P1=0x03 or P1=0x04).
-After three calls there is call with P1=0x05, which works the same as P1=0x04 call, but it inisiates transaction signing.
+Four APDUs for four levels of internal merkle tree nodes. Each internal nerkle tree node has 7 children as 7 hashes fit into one APDU. APDU with P1=0x03 calculates metadata hash which corresponds to Merkle tree leaf value. Three subsequent P1=0x04 calls have to contain hashes from previous calls (either P1=0x03 or P1=0x04). After three calls there is call with P1=0x05, which works the same as P1=0x04 call, but it initiates transaction signing.
 
 | Field               | Type         | Content          | Expected |
 | ------------------- | ------------ | ---------------- | -------- |
@@ -246,6 +245,7 @@ After three calls there is call with P1=0x05, which works the same as P1=0x04 ca
 | Merkle tree hash 2  | byte (32)    | Merkle tree hash |          |
 | ...                 |              |                  |          |
 | Merkle tree hash 7  | byte (32)    | Merkle tree hash |          |
+
 
 #### Response
 

@@ -15,7 +15,7 @@
  *  limitations under the License.
  ******************************************************************************* */
 
-import {serializePathv1, printBIP44Path, signSendChunkv1, validateCryptoOptions} from "./helperV1";
+import {serializePathv1, PATH_SERIALIZATION_VERSION, printBIP44Path, signSendChunkv1, validateCryptoOptions} from "./helperV1";
 import {
   CHUNK_SIZE,
   CLA,
@@ -75,7 +75,7 @@ export default class FlowApp {
     this.transport = transport;
   }
 
-  static prepareChunks(serializedPathBuffer, message) {
+  static preparePathAndTxChunks(serializedPathBuffer, message) {
     const chunks = [];
 
     // First chunk (only path)
@@ -95,13 +95,14 @@ export default class FlowApp {
     return chunks;
   }
 
-  async signGetChunks(path, options, pathSerializationVersion, message) {
+  signGetChunksv1(path, options, pathSerializationVersion, message) {
     const serializedPath = serializePathv1(path, pathSerializationVersion, options);
-    return FlowApp.prepareChunks(serializedPath, message);
+    return FlowApp.preparePathAndTxChunks(serializedPath, message);
   }
 
-  async signGetChunksv2(path, options, pathSerializationVersion, message, scriptHash) {
-    const basicChunks = await this.signGetChunks(path, options, pathSerializationVersion, message)
+  signGetChunksv2(path, options, pathSerializationVersion, message, scriptHash) {
+    const serializedPath = serializePathv1(path, pathSerializationVersion, options);
+    const basicChunks =  FlowApp.preparePathAndTxChunks(serializedPath, message);
 
     //other chunks
     const merkleI = merkleIndex[scriptHash.slice(0, 16)]
@@ -183,12 +184,16 @@ export default class FlowApp {
     }, processErrorResponse);
   }
 
+  getPathSetializationVersion(getVersionResponse) {
+    return (compareVersion(getVersionResponse, 0, 9, 12) <= 0) ? 
+                                     PATH_SERIALIZATION_VERSION.PATH : PATH_SERIALIZATION_VERSION.PATH_CURVE_HASH;
+  }
+
   async getAddressAndPubKey(path, cryptoOptions) {
     validateCryptoOptions(cryptoOptions);
 
     const getVersionResponse = await this.getVersion();
-    const pathSerializationVersion = (compareVersion(getVersionResponse, 0, 9, 12) <= 0) ? 0 : 1;
-
+    const pathSerializationVersion = this.getPathSetializationVersion(getVersionResponse);
     const serializedPath = serializePathv1(path, pathSerializationVersion, cryptoOptions);
 
     return this.transport
@@ -200,7 +205,7 @@ export default class FlowApp {
     validateCryptoOptions(cryptoOptions);
 
     const getVersionResponse = await this.getVersion();
-    const pathSerializationVersion = (compareVersion(getVersionResponse, 0, 9, 12) <= 0) ? 0 : 1;
+    const pathSerializationVersion = this.getPathSetializationVersion(getVersionResponse);
 
     const serializedPath = serializePathv1(path, pathSerializationVersion, cryptoOptions);
 
@@ -221,50 +226,12 @@ export default class FlowApp {
     validateCryptoOptions(cryptoOptions);
 
     const getVersionResponse = await this.getVersion();
-    const pathSerializationVersion = (compareVersion(getVersionResponse, 0, 9, 12) <= 0) ? 0 : 1;
+    const pathSerializationVersion = this.getPathSetializationVersion(getVersionResponse);
 
     // APDU call sequence without Merkle trees
     if (compareVersion(getVersionResponse, 0, 10, 3) <= 0) {
-      return this.signGetChunks(path, cryptoOptions, pathSerializationVersion, message).then((chunks) => {
-        return this.signSendChunk(1, chunks.length, chunks[0]).then(async (response) => {
-          let result = {
-            returnCode: response.returnCode,
-            errorMessage: response.errorMessage,
-            signatureCompact: null,
-            signatureDER: null,
-          };
-
-          for (let i = 1; i < chunks.length; i += 1) {
-            // eslint-disable-next-line no-await-in-loop
-            result = await this.signSendChunk(1 + i, chunks.length, chunks[i]);
-            if (result.returnCode !== ERROR_CODE.NoError) {
-              break;
-            }
-          }
-
-          return {
-            returnCode: result.returnCode,
-            errorMessage: result.errorMessage,
-            // ///
-            signatureCompact: result.signatureCompact,
-            signatureDER: result.signatureDER,
-          };
-        }, processErrorResponse);
-      }, processErrorResponse);      
-    }
-
-    // APDU call sequence with Merkle trees
-    return this.signGetChunksv2(path, cryptoOptions, pathSerializationVersion, message, scriptHash).then((chunks) => {
-      if (chunks === undefined) {
-        return {
-          returnCode: 0xffff,  //used for JS errors
-          errorMessage: "Script hash not known",
-          signatureCompact: null,
-          signatureDER: null,
-        }
-      }
-
-      return this.signSendChunkv2(1, chunks.length, chunks[0]).then(async (response) => {
+      const chunks = this.signGetChunksv1(path, cryptoOptions, pathSerializationVersion, message)
+      return this.signSendChunk(1, chunks.length, chunks[0]).then(async (response) => {
         let result = {
           returnCode: response.returnCode,
           errorMessage: response.errorMessage,
@@ -274,7 +241,7 @@ export default class FlowApp {
 
         for (let i = 1; i < chunks.length; i += 1) {
           // eslint-disable-next-line no-await-in-loop
-          result = await this.signSendChunkv2(1 + i, chunks.length, chunks[i]); 
+          result = await this.signSendChunk(1 + i, chunks.length, chunks[i]);
           if (result.returnCode !== ERROR_CODE.NoError) {
             break;
           }
@@ -288,6 +255,42 @@ export default class FlowApp {
           signatureDER: result.signatureDER,
         };
       }, processErrorResponse);
+    }
+
+    // APDU call sequence with Merkle trees
+    const chunks = this.signGetChunksv2(path, cryptoOptions, pathSerializationVersion, message, scriptHash)
+    if (chunks === undefined) {
+      return {
+        returnCode: 0xffff,  //used for JS errors
+        errorMessage: "Script hash not known",
+        signatureCompact: null,
+        signatureDER: null,
+      }
+    }
+
+    return this.signSendChunkv2(1, chunks.length, chunks[0]).then(async (response) => {
+      let result = {
+        returnCode: response.returnCode,
+        errorMessage: response.errorMessage,
+        signatureCompact: null,
+        signatureDER: null,
+      };
+
+      for (let i = 1; i < chunks.length; i += 1) {
+        // eslint-disable-next-line no-await-in-loop
+        result = await this.signSendChunkv2(1 + i, chunks.length, chunks[i]); 
+        if (result.returnCode !== ERROR_CODE.NoError) {
+          break;
+        }
+      }
+
+      return {
+        returnCode: result.returnCode,
+        errorMessage: result.errorMessage,
+        // ///
+        signatureCompact: result.signatureCompact,
+        signatureDER: result.signatureDER,
+      };
     }, processErrorResponse);
   }
 
@@ -345,7 +348,7 @@ export default class FlowApp {
     const serializedAccount = Buffer.from(account, "hex");
   
     const getVersionResponse = await this.getVersion();
-    const pathSerializationVersion = (compareVersion(getVersionResponse, 0, 9, 12) <= 0) ? 0 : 1;
+    const pathSerializationVersion = this.getPathSetializationVersion(getVersionResponse);
 
     const serializedPath = serializePathv1(path, pathSerializationVersion, cryptoOptions);
 

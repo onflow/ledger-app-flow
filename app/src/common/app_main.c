@@ -141,16 +141,19 @@ bool process_chunk(__Z_UNUSED volatile uint32_t *tx, uint32_t rx) {
             THROW(APDU_CODE_INVALIDP1P2);
         case 3:
             if (storeTxMetadata(&(G_io_apdu_buffer[OFFSET_DATA]), rx - OFFSET_DATA) != PARSER_OK) {
+                initStoredTxMetadata(); //delete merkle tree proof on error for redundant security
                 THROW(APDU_CODE_DATA_INVALID);
             }
             return false;
         case 4:
             if (validateStoredTxMetadataMerkleTreeLevel(&(G_io_apdu_buffer[OFFSET_DATA]), rx - OFFSET_DATA) != PARSER_OK) {
+                initStoredTxMetadata(); //delete merkle tree proof on error for redundant security
                 THROW(APDU_CODE_DATA_INVALID);
             }
             return false;
         case 5:
             if (validateStoredTxMetadataMerkleTreeLevel(&(G_io_apdu_buffer[OFFSET_DATA]), rx - OFFSET_DATA) != PARSER_OK) {
+                initStoredTxMetadata(); //delete merkle tree proof on error for redundant security
                 THROW(APDU_CODE_DATA_INVALID);
             }
             return true;

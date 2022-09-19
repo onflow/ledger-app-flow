@@ -80,33 +80,33 @@ uint8_t hashTokenTranfer2[32] = {0xd5, 0x6f, 0x4e, 0x1d, 0x23, 0x55, 0xcd, 0xcf,
 uint8_t hashTokenTranfer3[32] = {0x47, 0x85, 0x15, 0x86, 0xd9, 0x62, 0x33, 0x5e, 0x3f, 0x7d, 0x9e, 0x5d, 0x11, 0xa4, 0xc5, 0x27, 0xee, 0x4b, 0x5f, 0xd1, 0xc3, 0x89, 0x5e, 0x3c, 0xe1, 0xb9, 0xc2, 0x82, 0x1f, 0x60, 0xb1, 0x66};
 
 
-TEST(tx_data, validateHash) {
+TEST(tx_data, validateScriptHash) {
     parser_error_t err;
-    err = _validateHash(hashAddNewKey, TX_METADATA_ADD_NEW_KEY, sizeof(TX_METADATA_ADD_NEW_KEY));
+    err = _validateScriptHash(hashAddNewKey, TX_METADATA_ADD_NEW_KEY, sizeof(TX_METADATA_ADD_NEW_KEY));
     EXPECT_THAT(err, PARSER_OK);
 
-    err = _validateHash(hashTokenTranfer1, TX_METADATA_ADD_NEW_KEY, sizeof(TX_METADATA_ADD_NEW_KEY));
+    err = _validateScriptHash(hashTokenTranfer1, TX_METADATA_ADD_NEW_KEY, sizeof(TX_METADATA_ADD_NEW_KEY));
     EXPECT_THAT(err, PARSER_UNEXPECTED_SCRIPT);
 
-    err = _validateHash(hashTokenTranfer1, TX_METADATA_TOKEN_TRANSFER, sizeof(TX_METADATA_TOKEN_TRANSFER));
+    err = _validateScriptHash(hashTokenTranfer1, TX_METADATA_TOKEN_TRANSFER, sizeof(TX_METADATA_TOKEN_TRANSFER));
     EXPECT_THAT(err, PARSER_OK);
 
-    err = _validateHash(hashTokenTranfer2, TX_METADATA_TOKEN_TRANSFER, sizeof(TX_METADATA_TOKEN_TRANSFER));
+    err = _validateScriptHash(hashTokenTranfer2, TX_METADATA_TOKEN_TRANSFER, sizeof(TX_METADATA_TOKEN_TRANSFER));
     EXPECT_THAT(err, PARSER_OK);
 
-    err = _validateHash(hashTokenTranfer3, TX_METADATA_TOKEN_TRANSFER, sizeof(TX_METADATA_TOKEN_TRANSFER));
+    err = _validateScriptHash(hashTokenTranfer3, TX_METADATA_TOKEN_TRANSFER, sizeof(TX_METADATA_TOKEN_TRANSFER));
     EXPECT_THAT(err, PARSER_OK);
 
-    err = _validateHash(hashAddNewKey, TX_METADATA_TOKEN_TRANSFER, sizeof(TX_METADATA_TOKEN_TRANSFER));
+    err = _validateScriptHash(hashAddNewKey, TX_METADATA_TOKEN_TRANSFER, sizeof(TX_METADATA_TOKEN_TRANSFER));
     EXPECT_THAT(err, PARSER_UNEXPECTED_SCRIPT);
 
-    err = _validateHash(hashTokenTranfer3, TX_METADATA_ADD_NEW_KEY, 0);
+    err = _validateScriptHash(hashTokenTranfer3, TX_METADATA_ADD_NEW_KEY, 0);
     EXPECT_THAT(err, PARSER_METADATA_ERROR);
 
-    err = _validateHash(hashTokenTranfer3, TX_METADATA_TOKEN_TRANSFER, 3*32);
+    err = _validateScriptHash(hashTokenTranfer3, TX_METADATA_TOKEN_TRANSFER, 3*32);
     EXPECT_THAT(err, PARSER_METADATA_ERROR);
 
-    err = _validateHash(hashTokenTranfer3, TX_METADATA_TOKEN_TRANSFER, 3*32+1);
+    err = _validateScriptHash(hashTokenTranfer3, TX_METADATA_TOKEN_TRANSFER, 3*32+1);
     EXPECT_THAT(err, PARSER_OK);
 }
 

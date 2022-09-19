@@ -22,18 +22,19 @@ static const uint8_t merkleTreeRoot[METADATA_HASH_SIZE] = {
   0xfe, 0x82, 0x42, 0x09, 0x59, 0x87, 0x58, 0x26, 0xf6, 0xa6, 0x17, 0x95, 0x9b, 0x00, 0x6c, 0x31, 0xfa, 0x89, 0x75, 0xe4, 0x55, 0xdb, 0xf2, 0x49, 0x4f, 0x5f, 0xf3, 0x74, 0x0a, 0x1e, 0xce, 0x51,
 };
 
-parser_error_t _validateHash(const uint8_t scriptHash[METADATA_HASH_SIZE], const uint8_t *txMetadata, uint16_t txMetadataLength) {
+parser_error_t _validateScriptHash(const uint8_t scriptHash[METADATA_HASH_SIZE], const uint8_t *txMetadata, uint16_t txMetadataLength) {
     if (txMetadataLength < 1) {
         return PARSER_METADATA_ERROR;
     }
     uint8_t numberOfHashes = txMetadata[0];
-    if (numberOfHashes > MAX_METADATA_NUMBER_OF_HASHES || txMetadataLength < 1+METADATA_HASH_SIZE*numberOfHashes) {
-        return PARSER_METADATA_ERROR;
-    }
 
     for(size_t i=0; i<numberOfHashes; i++) {
         uint8_t thisHashMatches = 1;
-        for(int j=0; j<METADATA_HASH_SIZE; j++) {
+        for(size_t j=0; j<METADATA_HASH_SIZE; j++) {
+            const uint8_t byteIdx = 1 + i * METADATA_HASH_SIZE + j;
+            if (numberOfHashes > MAX_METADATA_NUMBER_OF_HASHES || byteIdx >= txMetadataLength) {
+                return PARSER_METADATA_ERROR;
+            }
             uint8_t hashByte = txMetadata[1 + i * METADATA_HASH_SIZE + j];
             if (hashByte != scriptHash[j]) {
                 thisHashMatches = 0;
@@ -60,12 +61,12 @@ parser_error_t storeTxMetadata(const uint8_t *txMetadata, uint16_t txMetadataLen
     memcpy(txMetadataState.buffer, txMetadata, txMetadataLength);
     txMetadataState.metadataLength = txMetadataLength;
 
-    //Validate Merkle tree hash level
+    //This makes sure that there is no Merkle tree proof in progress at the moment
     if (txMetadataState.metadataMerkleTreeValidationLevel != 0) {
-        return PARSER_METADATA_ERROR;
+        return PARSER_UNEXPECTED_ERROR;
     }
 
-    //calculate the 1st level hash
+    //calculate the Merkle tree leaf hash
     sha256(txMetadataState.buffer, txMetadataState.metadataLength, txMetadataState.metadataMerkleTreeValidationHash);
     txMetadataState.metadataMerkleTreeValidationLevel = 1;
     
@@ -78,6 +79,9 @@ parser_error_t validateStoredTxMetadataMerkleTreeLevel(const uint8_t* hashes, si
         return PARSER_METADATA_ERROR;
     }
 
+    // The code here works even if the number of hashes is different from 7, Note that this is not a security concern as 
+    // a list of different length produces a different hash. In the future we may add efficiency by sending multiple levels in one apdus 
+    // 3, 2, and 2 hashes per level handles 12 branches instead of 7 while still fitting into single APDU.
     if (hashesLen % METADATA_HASH_SIZE != 0) {
         return PARSER_METADATA_ERROR;
     }
@@ -94,7 +98,7 @@ parser_error_t validateStoredTxMetadataMerkleTreeLevel(const uint8_t* hashes, si
         return PARSER_METADATA_ERROR;
     }
 
-    //calculate new hash
+    //calculate new hash of this node and store it
     sha256(hashes, hashesLen, txMetadataState.metadataMerkleTreeValidationHash);
     txMetadataState.metadataMerkleTreeValidationLevel += 1;
     return PARSER_OK;
@@ -136,7 +140,7 @@ static parser_error_t parseTxMetadataInternal(const uint8_t scriptHash[METADATA_
         if (numberOfHashes > MAX_METADATA_NUMBER_OF_HASHES) {
             return PARSER_METADATA_TOO_MANY_HASHES;
         }
-        parser_error_t err = _validateHash(scriptHash, txMetadataState.buffer, txMetadataState.metadataLength);
+        parser_error_t err = _validateScriptHash(scriptHash, txMetadataState.buffer, txMetadataState.metadataLength);
         if (err != PARSER_OK) {
             return err;
         }
