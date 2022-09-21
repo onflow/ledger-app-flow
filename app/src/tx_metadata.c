@@ -35,7 +35,7 @@ parser_error_t _validateScriptHash(const uint8_t scriptHash[METADATA_HASH_SIZE],
             if (numberOfHashes > MAX_METADATA_NUMBER_OF_HASHES || byteIdx >= txMetadataLength) {
                 return PARSER_METADATA_ERROR;
             }
-            uint8_t hashByte = txMetadata[1 + i * METADATA_HASH_SIZE + j];
+            uint8_t hashByte = txMetadata[byteIdx];
             if (hashByte != scriptHash[j]) {
                 thisHashMatches = 0;
                 break;
@@ -58,13 +58,13 @@ parser_error_t storeTxMetadata(const uint8_t *txMetadata, uint16_t txMetadataLen
         return PARSER_METADATA_ERROR;
     }
 
-    memcpy(txMetadataState.buffer, txMetadata, txMetadataLength);
-    txMetadataState.metadataLength = txMetadataLength;
-
     //This makes sure that there is no Merkle tree proof in progress at the moment
     if (txMetadataState.metadataMerkleTreeValidationLevel != 0) {
         return PARSER_UNEXPECTED_ERROR;
     }
+
+    memcpy(txMetadataState.buffer, txMetadata, txMetadataLength);
+    txMetadataState.metadataLength = txMetadataLength;
 
     //calculate the Merkle tree leaf hash
     sha256(txMetadataState.buffer, txMetadataState.metadataLength, txMetadataState.metadataMerkleTreeValidationHash);
