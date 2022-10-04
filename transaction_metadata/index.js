@@ -237,6 +237,16 @@ for(let idx1=0; idx1<7; idx1++) {
   }
 }
 
+// cut empty top level branches
+const emptyTopLevelBranchSHA = "94a4bf5f458f2def50f807bf419501bfd5e77a084c30592aa3803a522a3c272e"
+for(let branch=0; branch<7; branch++) {
+  if (merkleTree.children[branch].hash === emptyTopLevelBranchSHA) {
+    for(let subbranch=0; subbranch<7; subbranch++) {
+      merkleTree.children[branch].children[subbranch] = "Empty branch";
+    }
+  }
+}
+
 const data = "" +
     "export const merkleTree = " + JSON.stringify(merkleTree, null, 2) + "\n\n" +
     "export const merkleIndex = " + JSON.stringify(merkleIndex, null, 2) + "\n\n";
