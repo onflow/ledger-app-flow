@@ -45,8 +45,8 @@ const readManifest = (testnetFile, mainnetFile) => {
   //validate that the manifest files match
   console.assert(testnetTemplates.length == mainnetTemplates.length);
   for(let i=0; i<testnetTemplates.length; i++) {
-    console.assert(testnetTemplates[i].id === testnetTemplates[i].id);
-    console.assert(testnetTemplates[i].arguments.length === testnetTemplates[i].arguments.length);
+    console.assert(mainnetTemplates[i].id === testnetTemplates[i].id);
+    console.assert(mainnetTemplates[i].arguments.length === testnetTemplates[i].arguments.length);
   }
 
   const templatesToMetadata = (templateTestnet, templateMainnet) => {
