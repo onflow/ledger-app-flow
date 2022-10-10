@@ -1,6 +1,10 @@
 name: Compilation & tests
 
-on: [push, pull_request]
+on: 
+  push:
+  pull_request:
+    types: [opened, reopened]
+
 
 jobs:
   job_build_debug:
