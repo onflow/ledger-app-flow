@@ -25,7 +25,7 @@ const getVersionResponse = await app.getVersion();
 assert.equal(getVersionResponse.returnCode, 0x9000);
 assert.equal(getVersionResponse.errorMessage, "No errors");
 assert.equal(getVersionResponse.major, 0);
-assert.equal(getVersionResponse.minor, 10);
+assert.equal(getVersionResponse.minor, 11);
 assert.equal(getVersionResponse.patch, 0)
 assert.ok("testMode" in getVersionResponse)
 assert.equal(transport.hexApduCommandOut.length, 1)
