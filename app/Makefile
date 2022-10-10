@@ -143,10 +143,6 @@ endif
 #Feature temporarily disabled
 DEFINES   += LEDGER_SPECIFIC
 
-# Add security review banner. To be removed once Ledger security review is done.
-APP_LOAD_PARAMS += --tlvraw 9F:01
-DEFINES += HAVE_PENDING_REVIEW_SCREEN
-
 # Compiler, assembler, and linker
 
 ifneq ($(BOLOS_ENV),)
