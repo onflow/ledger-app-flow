@@ -68,6 +68,6 @@ parser_error_t parseTxMetadata(const uint8_t scriptHash[METADATA_HASH_SIZE], par
 //For C++ unit tests
 parser_error_t _parseTxMetadata(const uint8_t scriptHash[METADATA_HASH_SIZE], const uint8_t *metadata, size_t metadataLen, 
                                 parsed_tx_metadata_t *parsedTxMetadata);
-parser_error_t _validateHash(const uint8_t scriptHash[METADATA_HASH_SIZE], const uint8_t *txMetadata, uint16_t txMetadataLength);
+parser_error_t _validateScriptHash(const uint8_t scriptHash[METADATA_HASH_SIZE], const uint8_t *txMetadata, uint16_t txMetadataLength);
 } //end extern C
 #endif
