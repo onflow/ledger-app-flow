@@ -47,7 +47,7 @@ COIN=FLOW
 endif
 
 APPVERSION_M=0
-APPVERSION_N=10
+APPVERSION_N=11
 APPVERSION_P=0
 
 $(info COIN  = [$(COIN)])
@@ -78,6 +78,7 @@ else
 APP_LOAD_PARAMS = --appFlags 0x000
 endif
 APP_LOAD_PARAMS += --delete $(COMMON_LOAD_PARAMS) --path ${APPPATH} --path "44'/1'"
+APP_LOAD_PARAMS += --curve secp256r1 --curve secp256k1
 
 ifeq ($(TARGET_NAME),TARGET_NANOS)
 ICONNAME:=$(CURDIR)/nanos_icon.gif
@@ -141,10 +142,6 @@ endif
 
 #Feature temporarily disabled
 DEFINES   += LEDGER_SPECIFIC
-
-# Add security review banner. To be removed once Ledger security review is done.
-APP_LOAD_PARAMS += --tlvraw 9F:01
-DEFINES += HAVE_PENDING_REVIEW_SCREEN
 
 # Compiler, assembler, and linker
 
