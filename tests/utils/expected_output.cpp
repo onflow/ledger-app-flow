@@ -22,6 +22,7 @@
 #include "testcases.h"
 #include "zxmacros.h"
 #include "zxformat.h"
+#include <iostream>
 
 bool TestcaseIsValid(const Json::Value &) {
     return true;
@@ -82,9 +83,9 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
 
     uint16_t item = 0;
     uint8_t dummy;
-    
+
     parsed_tx_metadata_t m;
-    matchStoredTxMetadata(scriptHash, &m);
+    _parseTxMetadata(scriptHash, tcd.metadata.data(), tcd.metadata.size(), &m);
 
     addTo(answer, "{} | Type : {}", item++, m.txName);
     addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);

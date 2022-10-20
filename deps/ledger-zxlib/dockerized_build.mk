@@ -21,6 +21,7 @@ EXAMPLE_VUE_DIR?=$(CURDIR)/example_vue
 TESTS_JS_PACKAGE?=
 TESTS_JS_DIR?=
 TESTS_GENERATE_DIR?=$(CURDIR)/tests/generate-transaction-tests
+METADATA_GENERATE_DIR?=$(CURDIR)/transaction_metadata
 
 LEDGER_SRC=$(CURDIR)/app
 DOCKER_APP_SRC=/project
@@ -49,7 +50,7 @@ ifeq ($(TARGET_DEVICE), NANO_SP)
     BOLOS_SDK_DIRECTORY=/opt/nanosplus-secure-sdk
     TARGET_NAME=TARGET_NANOS2
     TEST_DEVICE=nanosp
-    SPECULOS_SDK=1.0
+    SPECULOS_SDK=1.0.3
 endif
 
 
@@ -128,13 +129,11 @@ convert_icon:
 .PHONY: pull_build_container
 pull_build_container:
 	docker version
-	docker pull ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:sha-229b03c
-	docker image tag ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:sha-229b03c ledger-app-builder
+	docker pull ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:sha-d864950
+	docker image tag ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:sha-d864950 ledger-app-builder
 
 .PHONY: build
 build: pull_build_container
-	$(info Replacing app icon)
-	@cp $(LEDGER_SRC)/$(NANO_ICON_GIF) $(LEDGER_SRC)/glyphs/icon_app.gif
 	$(info calling make inside docker)
 	$(call run_docker, , make -j `nproc`)
 
@@ -250,8 +249,8 @@ endif
 
 .PHONY: speculos_pull_container
 speculos_pull_container:
-	docker pull ghcr.io/ledgerhq/speculos:sha-5a8e49b
-	docker image tag ghcr.io/ledgerhq/speculos:sha-5a8e49b speculos
+	docker pull ghcr.io/ledgerhq/speculos:sha-f430e51
+	docker image tag ghcr.io/ledgerhq/speculos:sha-f430e51 speculos
 
 .PHONY: speculos_install
 speculos_install: speculos_install_js_link speculos_pull_container
@@ -397,6 +396,12 @@ ledger_test:
 	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-transaction-expert-mode.js
 	@cd $(TESTS_SPECULOS_DIR) && TEST_ON_DEVICE=LEDGER TEST_DEVICE=$(TEST_DEVICE) node test-transactions.js
 	@echo "# ALL TESTS COMPLETED!"
+
+########################## TRANSACTION METADATA Section ###############################
+
+.PHONY: generate_transaction_metadata
+generate_transaction_metadata:
+	cd $(METADATA_GENERATE_DIR) && yarn run generate
 
 ########################## FUZZING Section ###############################
 

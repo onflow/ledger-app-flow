@@ -1,0 +1,11 @@
+{
+  "name": "generate-transaction-metadata",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "generate": "node ./index.js ."
+  },
+  "dependencies": {
+  }
+}

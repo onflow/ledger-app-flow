@@ -347,7 +347,7 @@ parser_error_t _readScript(parser_context_t *c, parsed_tx_metadata_t *m) {
     sha256(script.buffer, script.bufferLen, digest);
 
     MEMZERO(m, sizeof(parsed_tx_metadata_t));
-    CHECK_PARSER_ERR(matchStoredTxMetadata(digest, m))
+    CHECK_PARSER_ERR(parseTxMetadata(digest, m));
 
     return PARSER_OK;
 }

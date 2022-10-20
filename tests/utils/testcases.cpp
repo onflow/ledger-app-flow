@@ -51,6 +51,11 @@ testcaseData_t ReadRawTestCase(const std::shared_ptr<Json::Value> &jsonSource, i
         authorizers.push_back(tmp);
     }
 
+    auto metadata_hexstring = v["metadata"].asString();
+    assert(metadata_hexstring.size() % 2 == 0);
+    auto metadata = std::vector<uint8_t>(metadata_hexstring.size() / 2);
+    parseHexString(metadata.data(), metadata.size(), metadata_hexstring.c_str());
+
     return {
             description,
             //////
@@ -66,6 +71,7 @@ testcaseData_t ReadRawTestCase(const std::shared_ptr<Json::Value> &jsonSource, i
             proposalKey["sequenceNum"].asUInt64(),
             message["payer"].asString(),
             authorizers,
+            metadata,
             v["encodedTransactionEnvelopeHex"].asString(),
             blob
     };

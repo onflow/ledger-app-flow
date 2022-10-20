@@ -1,11 +1,11 @@
 import {CLA, errorCodeToString, INS, PAYLOAD_TYPE, processErrorResponse} from "./common";
 
 const HARDENED = 0x80000000;
+export const PATH_SERIALIZATION_VERSION = {
+  PATH: 0,
+  PATH_CURVE_HASH: 1,
+}
 
-//version 0
-//we serialize just 20 bytes of hdpath
-//version 1
-//we serialize two additional bytes from curveHashOption
 export function serializePathv1(path, version, curveHashOption) {
   if (typeof path !== "string") {
     throw new Error("Path should be a string (e.g \"m/44'/1'/5'/0/3\")");
@@ -21,8 +21,8 @@ export function serializePathv1(path, version, curveHashOption) {
     throw new Error("Invalid path. (e.g \"m/44'/1'/5'/0/3\")");
   }
 
-  const buf = (version === 0) ? Buffer.alloc(20): Buffer.alloc(22);
-  if (version > 0) {
+  const buf = (version === PATH_SERIALIZATION_VERSION.PATH) ? Buffer.alloc(20): Buffer.alloc(22);
+  if (version === PATH_SERIALIZATION_VERSION.PATH_CURVE_HASH) {
     buf.writeUInt16LE(curveHashOption, 20);
   }
 

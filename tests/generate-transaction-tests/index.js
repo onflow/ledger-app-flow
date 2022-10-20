@@ -1,11 +1,10 @@
-const merge = require("deepmerge");
-const rlp = require("rlp");
-const fs = require("fs");
-const path = require("path");
-const {
-  encodeTransactionPayload, 
-  encodeTransactionEnvelope,
-} = require("@onflow/encode");
+import merge from "deepmerge";
+import rlp from "rlp";
+import fs from "fs";
+import path from "path";
+import { encodeTransactionPayload, encodeTransactionEnvelope } from "@onflow/encode";
+import { merkleIndex, merkleTree } from "./txMerkleTree.js";
+import jsSHA from "jssha";
 
 const EMULATOR = "Emulator";
 const TESTNET = "Testnet";
@@ -233,6 +232,14 @@ const FLOW_AMOUNTS = [
   FLOW_AMOUNT_MAX,
 ];
 
+const calculateHash = (msg) => {
+  const shaObj = new jsSHA("SHA-256", "BYTES");
+  shaObj.update(msg);
+  return shaObj.getHash("HEX");
+}
+
+const getMerkleTreeElement = (idx) => merkleTree.children[idx[0]].children[idx[1]].children[idx[2]].children[idx[3]].children[0]
+
 const combineMerge = (target, source, options) => {
   // empty list always overwrites target
   if (source.length == 0) return source
@@ -300,6 +307,7 @@ const createPayloadTestcase = (valid) => {
     envelopeMessage: { ...x[1], payloadSigs: [] },	
     encodedTransactionPayloadHex: encodeTransactionPayload(x[1]),	
     encodedTransactionEnvelopeHex: encodeTransactionEnvelope({ ...x[1], payloadSigs: [] }),
+    metadata: getMerkleTreeElement(merkleIndex[x[3].substring(0, 16)]),
   });
 };
 
@@ -312,6 +320,7 @@ const createEnvelopeTestcase = (valid) => {
     envelopeMessage: { ...x[1], payloadSigs: [] },	
     encodedTransactionPayloadHex: encodeTransactionPayload(x[1]),	
     encodedTransactionEnvelopeHex: encodeTransactionEnvelope({ ...x[1], payloadSigs: [] }),
+    metadata: getMerkleTreeElement(merkleIndex[x[3].substring(0, 16)]),
   });
 };
 
@@ -321,8 +330,8 @@ const sampleArguments = (transactionArguments, sampleValuesCombination) => {
   });
 };
 
-const numberOfRequiredTests = (arguments) => {
-  return Math.max(1, ...arguments.map(({ type, sampleValues }) => sampleValues.length));
+const numberOfRequiredTests = (args) => {
+  return Math.max(1, ...args.map(({ type, sampleValues }) => sampleValues.length));
 };
 
 // Instead of taking all sampleValues combinations we just take (0, 0, ...), (1, 1, ..), ... .
@@ -350,6 +359,7 @@ const manifestTestnetPayloadCases = testnetTemplates.flatMap((template) => {
       arguments: sampleArguments(template.arguments || [], combination),
     }), 
     TESTNET, 
+    calculateHash(template.source),
   ])
 });
 
@@ -363,6 +373,7 @@ const manifestMainnetPayloadCases = mainnetTemplates.flatMap((template) => {
       arguments: sampleArguments(template.arguments || [], combination),
     }),
     MAINNET,
+    calculateHash(template.source),
   ])
 });
 
@@ -376,6 +387,7 @@ const manifestTestnetEnvelopeCases = testnetTemplates.flatMap((template) => {
       arguments: sampleArguments(template.arguments || [], combination),
     }),
     TESTNET,
+    calculateHash(template.source),
   ])
 });
 
@@ -389,6 +401,7 @@ const manifestMainnetEnvelopeCases = mainnetTemplates.flatMap((template) => {
       arguments: sampleArguments(template.arguments || [], combination),
     }),
     MAINNET,
+    calculateHash(template.source),
   ])
 });
 
@@ -407,11 +420,13 @@ const invalidPayloadCases = [
     "Example Transaction - Invalid Payload - Unapproved Script",
     buildPayloadTx(MAINNET, {script: TX_HELLO_WORLD}), // TX_HELLO_WORLD is not an approved transaction template
     MAINNET,
+    calculateHash(TX_ADD_NEW_KEY),
   ],
   [
     "Example Transaction - Invalid Payload - Empty Script",
     buildPayloadTx(MAINNET, {script: ""}),
     MAINNET,
+    calculateHash(TX_ADD_NEW_KEY),
   ],
   [
     "Example Transaction - Invalid Payload - Too Many Authorizers",
@@ -442,6 +457,7 @@ const invalidPayloadCases = [
       ],
     }),
     MAINNET,
+    calculateHash(TX_ADD_NEW_KEY),
   ],
   [
     "Example Transaction - Invalid Payload - SCO.03 - Too Many Public Keys",
@@ -499,6 +515,7 @@ const invalidPayloadCases = [
       ]
     }),
     MAINNET,
+    calculateHash(TX_REGISTER_NODE_SCO),
   ],
   [
     "Example Transaction - Invalid Payload - SCO.04 - Too Many Public Keys",
@@ -533,6 +550,7 @@ const invalidPayloadCases = [
       ]
     }),
     MAINNET,
+    calculateHash(TX_CREATE_MACHINE_ACCOUNT_SCO),
   ],
   [
     "Example Transaction - Invalid Payload - Create Account - Too Many Public Keys",
@@ -571,6 +589,7 @@ const invalidPayloadCases = [
       ]
     }),
     MAINNET,
+    calculateHash(TX_CREATE_ACCOUNT),
   ],
 ].map(createPayloadTestcase(false));
 
@@ -595,6 +614,7 @@ const validPayloadTransferCases =
           ]
         }),
         network,
+        calculateHash(script),
       ]
     )),
   ], []);
@@ -604,21 +624,25 @@ const validPayloadCases = [
     "Example Transaction - Valid Payload - Zero Gas Limit",
     buildPayloadTx(MAINNET, {gasLimit: 0}),
     MAINNET,
+    calculateHash(TX_ADD_NEW_KEY),    
   ],
   [
     "Example Transaction - Valid Payload - Zero proposerKey.keyId",
     buildPayloadTx(MAINNET, {proposalKey: {keyId: 0}}),
     MAINNET,
+    calculateHash(TX_ADD_NEW_KEY),
   ],
   [
     "Example Transaction - Valid Payload - Zero proposalKey.sequenceNum",
     buildPayloadTx(MAINNET, {proposalKey: {sequenceNum: 0}}),
     MAINNET,
+    calculateHash(TX_ADD_NEW_KEY),
   ],
   [
     "Example Transaction - Valid Payload - Empty Authorizers",
     buildPayloadTx(MAINNET, {authorizers: []}),
     MAINNET,
+    calculateHash(TX_ADD_NEW_KEY),
   ],
   [
     "Example Transaction - Valid Envelope - Maximum Authorizers",
@@ -647,6 +671,7 @@ const validPayloadCases = [
       ],
     }),
     MAINNET,
+    calculateHash(TX_ADD_NEW_KEY),
   ],
   ...validPayloadTransferCases,
   ...(ACCOUNT_KEYS.map((accountKey, i) => 
@@ -667,6 +692,7 @@ const validPayloadCases = [
         ]
       }),
       MAINNET,
+      calculateHash(TX_CREATE_ACCOUNT),
     ]
   )),
   ...(range(1, 6).map((i) => 
@@ -687,6 +713,7 @@ const validPayloadCases = [
         ]
       }),
       MAINNET,
+      calculateHash(TX_CREATE_ACCOUNT),
     ]
   )),
   ...(ACCOUNT_KEYS.map((accountKey, i) => 
@@ -702,20 +729,23 @@ const validPayloadCases = [
         ]
       }),
       MAINNET,
+      calculateHash(TX_ADD_NEW_KEY),
     ]
   )),
 ].map(createPayloadTestcase(true));
 
 const invalidEnvelopeCases = [
   [
-    "Example Transaction - Invalid Envelope - Unapproved Script",
-    buildEnvelopeTx(MAINNET, {script: TX_HELLO_WORLD}), // TX_HELLO_WORLD is not an approved transaction template
+    "Example Transaction - Invalid Envelope - Script does not match template",
+    buildEnvelopeTx(MAINNET, {script: TX_HELLO_WORLD}),
     MAINNET,
+    calculateHash(TX_ADD_NEW_KEY),
   ],
   [
     "Example Transaction - Invalid Envelope - Empty Script",
     buildEnvelopeTx(MAINNET, {script: ""}),
     MAINNET,
+    calculateHash(TX_ADD_NEW_KEY),
   ],
   [
     "Example Transaction - Invalid Envelope - Too Many Authorizers",
@@ -746,6 +776,7 @@ const invalidEnvelopeCases = [
       ],
     }),
     MAINNET,
+    calculateHash(TX_ADD_NEW_KEY),
   ],
 ].map(createEnvelopeTestcase(false));
 
@@ -770,6 +801,7 @@ const validEnvelopeTransferCases =
           ]
         }),
         network,
+        calculateHash(script),
       ]
     )),
   ], []);
@@ -779,21 +811,25 @@ const validEnvelopeCases = [
     "Example Transaction - Valid Envelope - Zero Gas Limit",
     buildEnvelopeTx(MAINNET, {gasLimit: 0}),
     MAINNET,
+    calculateHash(TX_ADD_NEW_KEY),
   ],
   [
     "Example Transaction - Valid Envelope - Zero proposerKey.keyId",
     buildEnvelopeTx(MAINNET, {proposalKey: {keyId: 0}}),
     MAINNET,
+    calculateHash(TX_ADD_NEW_KEY),
   ],
   [
     "Example Transaction - Valid Envelope - Zero proposalKey.sequenceNum",
     buildEnvelopeTx(MAINNET, {proposalKey: {sequenceNum: 0}}),
     MAINNET,
+    calculateHash(TX_ADD_NEW_KEY),
   ],
   [
     "Example Transaction - Valid Envelope - Empty Authorizers",
     buildEnvelopeTx(MAINNET, {authorizers: []}),
     MAINNET,
+    calculateHash(TX_ADD_NEW_KEY),
   ],
   [
     "Example Transaction - Valid Envelope - Maximum Authorizers",
@@ -822,16 +858,19 @@ const validEnvelopeCases = [
       ],
     }),
     MAINNET,
+    calculateHash(TX_ADD_NEW_KEY),
   ],
   [
     "Example Transaction - Valid Envelope - Empty payloadSigs",
     buildEnvelopeTx(MAINNET, {payloadSigs: []}),
     MAINNET,
+    calculateHash(TX_ADD_NEW_KEY),
   ],
   [
     "Example Transaction - Valid Envelope - Zero payloadSigs.0.key",
     buildEnvelopeTx(MAINNET, {payloadSigs: [{keyId: 0}]}),
     MAINNET,
+    calculateHash(TX_ADD_NEW_KEY),
   ],
   [
     "Example Transaction - Valid Envelope - Out-of-order payloadSigs -- By keyId",
@@ -844,6 +883,7 @@ const validEnvelopeCases = [
       ],
     }),
     MAINNET,
+    calculateHash(TX_ADD_NEW_KEY),
   ],
   ...validEnvelopeTransferCases,
   ...(ACCOUNT_KEYS.map((accountKey, i) => 
@@ -864,6 +904,7 @@ const validEnvelopeCases = [
         ]
       }),
       MAINNET,
+      calculateHash(TX_CREATE_ACCOUNT),
     ]
   )),
   ...(range(1, 6).map((i) => 
@@ -884,6 +925,7 @@ const validEnvelopeCases = [
         ]
       }),
       MAINNET,
+      calculateHash(TX_CREATE_ACCOUNT),
     ]
   )),
   ...(ACCOUNT_KEYS.map((accountKey, i) => 
@@ -899,6 +941,7 @@ const validEnvelopeCases = [
         ]
       }),
       MAINNET,
+      calculateHash(TX_ADD_NEW_KEY),
     ]
   )),
 ].map(createEnvelopeTestcase(true));

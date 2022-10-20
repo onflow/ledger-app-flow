@@ -33,6 +33,7 @@ typedef enum {
 } argument_type_e;
 
 #define PARSER_MAX_ARGCOUNT 10
+#define METADATA_HASH_SIZE 32 //CX_SHA256_SIZE
 
 //It is planed that all these strings may be on flash, thus they are volatile (for NanoX and NanoSPlus)
 typedef struct {
@@ -55,17 +56,18 @@ typedef struct {
 } parsed_tx_metadata_t;
 
 
-#define SCRIPT_HASH_SIZE 32
+void initStoredTxMetadata();
 
-//It is planned that compressedData may be on flash, thus they are volatile (for NanoX and NanoSPlus)
-parser_error_t parseTxMetadata(uint8_t scriptHash[SCRIPT_HASH_SIZE], const NV_VOLATILE uint8_t *txMetadata, uint16_t txMetadataLength, 
-                               parsed_tx_metadata_t *parsedTxMetadata);
+parser_error_t storeTxMetadata(const uint8_t *txMetadata, uint16_t txMetadataLength);
 
-parser_error_t matchStoredTxMetadata(uint8_t scriptHash[SCRIPT_HASH_SIZE], parsed_tx_metadata_t *parsedTxMetadata);
+parser_error_t validateStoredTxMetadataMerkleTreeLevel(const  uint8_t* hashes, size_t hashesLen);
+
+parser_error_t parseTxMetadata(const uint8_t scriptHash[METADATA_HASH_SIZE], parsed_tx_metadata_t *parsedTxMetadata);
 
 #ifdef __cplusplus
-
 //For C++ unit tests
-parser_error_t _validateHash(uint8_t scriptHash[SCRIPT_HASH_SIZE], const NV_VOLATILE uint8_t *txMetadata, uint16_t txMetadataLength);
-}
+parser_error_t _parseTxMetadata(const uint8_t scriptHash[METADATA_HASH_SIZE], const uint8_t *metadata, size_t metadataLen, 
+                                parsed_tx_metadata_t *parsedTxMetadata);
+parser_error_t _validateScriptHash(const uint8_t scriptHash[METADATA_HASH_SIZE], const uint8_t *txMetadata, uint16_t txMetadataLength);
+} //end extern C
 #endif
