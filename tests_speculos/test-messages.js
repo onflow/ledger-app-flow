@@ -46,7 +46,6 @@ const pubkeyHex = getPubkeyResponse.publicKey.toString("hex")
     const signPromise =  app.signMessage(path, message, options);
     await device.review("Review message");
 	const signResponse = await signPromise;
-	console.log(signResponse)
 	assert.equal(signResponse.returnCode, 0x9000);
 	assert.equal(signResponse.errorMessage, "No errors");
 	
@@ -67,7 +66,6 @@ const pubkeyHex = getPubkeyResponse.publicKey.toString("hex")
     const signPromise =  app.signMessage(path, message, options);
     await device.review("Review message");
 	const signResponse = await signPromise;
-	console.log(signResponse)
 	assert.equal(signResponse.returnCode, 0x9000);
 	assert.equal(signResponse.errorMessage, "No errors");
 	
@@ -84,13 +82,12 @@ const pubkeyHex = getPubkeyResponse.publicKey.toString("hex")
 await device.toggleExpertMode("ON");
 
 {
-	const message = Buffer.concat([Buffer.from("This is a short message with a non-displayable character"), Buffer.from("ee", "hex")]);
+	const message = Buffer.from("This is a short message in expert mode");
 
-	testStep(" - - -", "A message with non-displayable characte");
+	testStep(" - - -", "A short message, expert mode");
     const signPromise =  app.signMessage(path, message, options);
     await device.review("Review message");
 	const signResponse = await signPromise;
-	console.log(signResponse)
 	assert.equal(signResponse.returnCode, 0x9000);
 	assert.equal(signResponse.errorMessage, "No errors");
 	
@@ -105,6 +102,17 @@ await device.toggleExpertMode("ON");
 }
 
 await device.toggleExpertMode("OFF");
+
+{
+	const message = Buffer.concat([Buffer.from("This is a short message in expert mode"), Buffer.from("ee", "hex")]);
+
+	testStep(" - - -", "A short message, non displayable character");
+    const signPromise =  app.signMessage(path, message, options);
+	const signResponse = await signPromise;
+	console.log(signResponse)
+	assert.equal(signResponse.returnCode, 0x6984);
+	assert.equal(signResponse.errorMessage, "Data is invalid : Invalid message");
+}
 
 await transport.close()
 testEnd(scriptName);

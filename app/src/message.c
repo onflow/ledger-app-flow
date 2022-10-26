@@ -39,24 +39,24 @@ zxerr_t message_parse() {
         return zxerr_out_of_bounds;
     }
 
+    for(size_t j=0; j<messageData.length; j++) {
+        if (messageData.message[j]<32 || messageData.message[j]>127) {
+            return zxerr_out_of_bounds;
+        }
+    }   
+
     sha256(messageData.message, messageData.length, messageData.hash);
     messageData.canBeDisplayed = false;
 
     if (messageData.length <= MAX_MESSAGE_SHOW_LENGTH) {
         messageData.canBeDisplayed = true;
-        for(size_t j=0; j<messageData.length; j++) {
-            if (messageData.message[j]<32 || messageData.message[j]>127) {
-                messageData.canBeDisplayed = false;
-                break;
-            }
-        }   
     }
 
     return zxerr_ok;
 }
 
 zxerr_t message_getNumItems(uint8_t *num_items){
-    *num_items = app_mode_expert() ? 2: 1;
+    *num_items = 2 + (!messageData.canBeDisplayed ? 1 : 0) + (app_mode_expert() ? 1 : 0);
     return zxerr_ok;
 }
 
@@ -67,24 +67,41 @@ zxerr_t message_getItem(int8_t displayIdx,
                         uint8_t pageIdx, uint8_t *pageCount) {
     switch(displayIdx) {
     case 0:
+        snprintf(outKey, outKeyLen, "Review");
+        snprintf(outVal, outValLen, "the message to sign");
+        return zxerr_ok;                                
+    case 1:
         if (messageData.canBeDisplayed) {
             snprintf(outKey, outKeyLen, "Message");
             pageStringExt(outVal, outValLen, (char *)messageData.message, messageData.length, pageIdx, pageCount);
+            return zxerr_ok;                                
         }
         else {
-            snprintf(outKey, outKeyLen, "Message hash");
-            pageHexString(outVal, outValLen, messageData.hash, sizeof(messageData.hash), pageIdx, pageCount);
+            snprintf(outKey, outKeyLen, "Message too long,");
+            snprintf(outVal, outValLen, "validate hash on a secure device.");
+            return zxerr_ok;                                
         }
-        return zxerr_ok;                                
-    case 1:
-        if (app_mode_expert()) {
-            snprintf(outKey, outKeyLen, "Your Path");
-            char buffer[100];
-            path_options_to_string(buffer, sizeof(buffer), hdPath.data, HDPATH_LEN_DEFAULT, cryptoOptions); 
-            pageString(outVal, outValLen, buffer, pageIdx, pageCount);
-            return zxerr_ok;
-        }
-        return zxerr_no_data;
     }
+
+    displayIdx -= 2;
+
+    if (displayIdx == 0 && !messageData.canBeDisplayed) {
+        snprintf(outKey, outKeyLen, "Message hash");
+        pageHexString(outVal, outValLen, messageData.hash, sizeof(messageData.hash), pageIdx, pageCount);
+        return zxerr_ok;                                
+    }
+
+    if (!messageData.canBeDisplayed) {
+            displayIdx -= 1;
+    }
+
+    if (displayIdx == 0 && app_mode_expert()) {
+        snprintf(outKey, outKeyLen, "Your Path");
+        char buffer[100];
+        path_options_to_string(buffer, sizeof(buffer), hdPath.data, HDPATH_LEN_DEFAULT, cryptoOptions); 
+        pageString(outVal, outValLen, buffer, pageIdx, pageCount);
+        return zxerr_ok;
+    }
+
     return zxerr_no_data;
 }

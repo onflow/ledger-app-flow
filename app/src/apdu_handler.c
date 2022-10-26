@@ -90,6 +90,10 @@ __Z_INLINE void handleSign(volatile uint32_t *flags, volatile uint32_t *tx, uint
     if (callType == PROCESS_CHUNK_FINISHED_MESSAGE) {
         zxerr_t err = message_parse();
         if (err != zxerr_ok) {
+            const char *error_msg = "Invalid message";
+            int error_msg_length = strlen(error_msg);
+            MEMCPY(G_io_apdu_buffer, error_msg, error_msg_length);
+            *tx += (error_msg_length);
             THROW(APDU_CODE_DATA_INVALID);
         }
         CHECK_APP_CANARY()
