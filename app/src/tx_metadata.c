@@ -200,7 +200,7 @@ parser_error_t parseTxMetadata(const uint8_t scriptHash[METADATA_HASH_SIZE], par
     return parseTxMetadataInternal(scriptHash, parsedTxMetadata);
 }
 
-//For C++ testing purposes - we circumnavigate the hashing mechanism to test metadata parsing
+//For C++ testing purposes - we circumvent the hashing mechanism to test metadata parsing
 parser_error_t _parseTxMetadata(const uint8_t scriptHash[METADATA_HASH_SIZE], const uint8_t *txMetadata, size_t txMetadataLength, 
                                 parsed_tx_metadata_t *parsedTxMetadata) {
     memcpy(txMetadataState.buffer, txMetadata, txMetadataLength);

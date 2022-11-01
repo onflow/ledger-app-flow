@@ -630,8 +630,8 @@ parser_error_t parser_getItem_internal(int8_t *displayIdx,
             return PARSER_OK;
         }
         SCREEN(true) {
-            snprintf(outKey, outKeyLen, "Verify script hash");
-            snprintf(outVal, outValLen, "on a secure device.");
+            snprintf(outKey, outKeyLen, "Verify script");
+            snprintf(outVal, outValLen, "hash on a secure device.");
             return PARSER_OK;
         }
     }
