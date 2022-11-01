@@ -420,6 +420,77 @@ std::vector<std::string> GenerateExpectedUIOutput(const testcaseData_t &tcd) {
             addMultiStringArgumentTo(answer, "Recipient", item++, tcd.arguments[1]["value"]);
             break;
         }
+        case SCRIPT_TH0602_REGISTER_NODE: {
+            addTo(answer, "{} | Type : Register Staked Node", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[0]["value"]);
+            addTo(answer, "{} | Node Role : {}", item++, tcd.arguments[1]["value"].asString());
+            addMultiStringArgumentTo(answer, "Networking Address", item++, tcd.arguments[2]["value"]);
+            addMultiStringArgumentTo(answer, "Networking Key", item++, tcd.arguments[3]["value"]);
+            addMultiStringArgumentTo(answer, "Staking Key", item++, tcd.arguments[4]["value"]);
+            addMultiStringArgumentTo(answer, "Proof of P.", item++, tcd.arguments[5]["value"]);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[6]["value"].asString());
+            break;
+        }
+        case SCRIPT_TH1602_REGISTER_OPERATOR_NODE: {
+            addTo(answer, "{} | Type : Register Operator Node", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addTo(answer, "{} | Operator Address : {}", item++, tcd.arguments[0]["value"].asString());
+            addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[1]["value"]);
+            addMultiStringArgumentTo(answer, "Proof of P.", item++, tcd.arguments[2]["value"]);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[3]["value"].asString());
+            break;
+        }
+        case SCRIPT_SCO0302_REGISTER_NODE: {
+            addTo(answer, "{} | Type : Register Node", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            addMultiStringArgumentTo(answer, "Node ID", item++, tcd.arguments[0]["value"]);
+            addTo(answer, "{} | Node Role : {}", item++, tcd.arguments[1]["value"].asString());
+            addMultiStringArgumentTo(answer, "Netw. Addr.", item++, tcd.arguments[2]["value"]);
+            addMultiStringArgumentTo(answer, "Netw. Key", item++, tcd.arguments[3]["value"]);
+            addMultiStringArgumentTo(answer, "Staking Key", item++, tcd.arguments[4]["value"]);
+            addMultiStringArgumentTo(answer, "Proof of P.", item++, tcd.arguments[5]["value"]);
+            addTo(answer, "{} | Amount : {}", item++, tcd.arguments[6]["value"].asString());
+            if (tcd.arguments[7]["value"].isObject()) {
+                for (uint16_t i = 0; i < (uint16_t) tcd.arguments[7]["value"]["value"].size(); i++) {
+                    addMultiStringArgumentTo(answer, fmt::format("Pub key {}", i + 1), item++, tcd.arguments[7]["value"]["value"][i]["value"]);
+                }
+            }
+            else {
+                addTo(answer, "{} | Pub key 1 : None", item++);
+            }
+            break;
+        }
+        case SCRIPT_CAST01: {
+            addTo(answer, "{} | Type : Create A Proposal", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            break;
+        }
+        case SCRIPT_CAST02: {
+            addTo(answer, "{} | Type : Cast Your Vote", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            break;
+        }
+        case SCRIPT_CAST03: {
+            addTo(answer, "{} | Type : Update Membership Status", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            break;
+        }
+        case SCRIPT_CAST04: {
+            addTo(answer, "{} | Type : Update Proposal Status", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            break;
+        }
+        case SCRIPT_CAST05: {
+            addTo(answer, "{} | Type : Update Your Community", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            break;
+        }
+        case SCRIPT_CAST06: {
+            addTo(answer, "{} | Type : Create A Community", item++);
+            addTo(answer, "{} | ChainID : {}", item++, tcd.chainID);
+            break;
+        }
         default:
             addTo(answer, "{} | Type : ERROR", item++);
             break;
