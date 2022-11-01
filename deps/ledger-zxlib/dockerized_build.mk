@@ -128,8 +128,8 @@ convert_icon:
 .PHONY: pull_build_container
 pull_build_container:
 	docker version
-	docker pull ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:sha-d864950
-	docker image tag ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:sha-d864950 ledger-app-builder
+	docker pull ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:fd51be0a8aa31e100dbe19bb127048175ab2b005
+	docker image tag ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:fd51be0a8aa31e100dbe19bb127048175ab2b005 ledger-app-builder
 
 .PHONY: build
 build: pull_build_container
@@ -248,8 +248,8 @@ endif
 
 .PHONY: speculos_pull_container
 speculos_pull_container:
-	docker pull ghcr.io/ledgerhq/speculos:sha-f430e51
-	docker image tag ghcr.io/ledgerhq/speculos:sha-f430e51 speculos
+	docker pull ghcr.io/ledgerhq/speculos:sha-d94210d
+	docker image tag ghcr.io/ledgerhq/speculos:sha-d94210d speculos
 
 .PHONY: speculos_install
 speculos_install: speculos_install_js_link speculos_pull_container
