@@ -1,6 +1,5 @@
 /*******************************************************************************
-*   (c) 2016 Ledger
-*   (c) 2019 Zondax GmbH
+*   (c) 2022 Vacuumlabs
 *
 *  Licensed under the Apache License, Version 2.0 (the "License");
 *  you may not use this file except in compliance with the License.
@@ -14,23 +13,17 @@
 *  See the License for the specific language governing permissions and
 *  limitations under the License.
 ********************************************************************************/
+#pragma once
 
-#include "actions.h"
+#include "zxerror.h"
 
-uint16_t action_addr_len;
+zxerr_t message_parse();
 
-// UTF-8 encoding of "FLOW-V0.0-transaction" padded with zeros to 32 bytes
-const uint8_t TX_DOMAIN_TAG_TRANSACTION[DOMAIN_TAG_LENGTH] = {\
-    0x46, 0x4C, 0x4F, 0x57, 0x2D, 0x56, 0x30, 0x2E, 
-    0x30, 0x2D, 0x74, 0x72, 0x61, 0x6E, 0x73, 0x61, 
-    0x63, 0x74, 0x69, 0x6F, 0x6E,    0,    0,    0,
-       0,    0,    0,    0,    0,    0,    0,    0,
-};
+zxerr_t message_getNumItems(uint8_t *num_items);
 
-const uint8_t TX_DOMAIN_TAG_MESSAGE[DOMAIN_TAG_LENGTH] = {\
-    0x46, 0x4C, 0x4F, 0x57, 0x2D, 0x56, 0x30, 0x2E, 
-    0x30, 0x2D, 0x75, 0x73, 0x65, 0x72,    0,    0, 
-       0,    0,    0,    0,    0,    0,    0,    0,
-       0,    0,    0,    0,    0,    0,    0,    0,
-};
+zxerr_t message_getItem(int8_t displayIdx,
+                        char *outKey, uint16_t outKeyLen,
+                        char *outVal, uint16_t outValLen,
+                        uint8_t pageIdx, uint8_t *pageCount);
+
 

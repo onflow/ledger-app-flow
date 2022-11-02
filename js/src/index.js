@@ -147,9 +147,17 @@ export default class FlowApp {
   }
 
   async sign(path, message, cryptoOptions, scriptHash) {
+    return this._signImplementation(path, message, cryptoOptions, scriptHash)
+  }
+
+  async signMessage(path, message, cryptoOptions) {
+    return this._signImplementation(path, message, cryptoOptions, "Sign message")
+  }
+
+  async _signImplementation(path, message, cryptoOptions, extraInfo) {
     validateCryptoOptions(cryptoOptions);
     const getVersionResponse = await this.getVersion();
-    const chunks = signGetChunks(path, cryptoOptions, getVersionResponse, message, scriptHash)
+    const chunks = signGetChunks(path, cryptoOptions, getVersionResponse, message, extraInfo)
 
     if (typeof chunks === "string") {
       return {

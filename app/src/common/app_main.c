@@ -133,36 +133,42 @@ process_chunk_response_t process_chunk(__Z_UNUSED volatile uint32_t *tx, uint32_
             extractHDPathAndCryptoOptions(rx, OFFSET_DATA);
             initStoredTxMetadata();
             return PROCESS_CHUNK_NOT_FINISHED;
-        case 1:
+        case 0x01:
             added = tx_append(&(G_io_apdu_buffer[OFFSET_DATA]), rx - OFFSET_DATA);
             if (added != rx - OFFSET_DATA) {
                 THROW(APDU_CODE_OUTPUT_BUFFER_TOO_SMALL);
             }
             return PROCESS_CHUNK_NOT_FINISHED;
-        case 2:
+        case 0x02:
             added = tx_append(&(G_io_apdu_buffer[OFFSET_DATA]), rx - OFFSET_DATA);
             if (added != rx - OFFSET_DATA) {
                 THROW(APDU_CODE_OUTPUT_BUFFER_TOO_SMALL);
             }
             return PROCESS_CHUNK_FINISHED_NO_METADATA;
-        case 3:
+        case 0x03:
             if (storeTxMetadata(&(G_io_apdu_buffer[OFFSET_DATA]), rx - OFFSET_DATA) != PARSER_OK) {
                 initStoredTxMetadata(); //delete merkle tree proof on error for redundant security
                 THROW(APDU_CODE_DATA_INVALID);
             }
             return PROCESS_CHUNK_NOT_FINISHED;
-        case 4:
+        case 0x04:
             if (validateStoredTxMetadataMerkleTreeLevel(&(G_io_apdu_buffer[OFFSET_DATA]), rx - OFFSET_DATA) != PARSER_OK) {
                 initStoredTxMetadata(); //delete merkle tree proof on error for redundant security
                 THROW(APDU_CODE_DATA_INVALID);
             }
             return PROCESS_CHUNK_NOT_FINISHED;
-        case 5:
+        case 0x05:
             if (validateStoredTxMetadataMerkleTreeLevel(&(G_io_apdu_buffer[OFFSET_DATA]), rx - OFFSET_DATA) != PARSER_OK) {
                 initStoredTxMetadata(); //delete merkle tree proof on error for redundant security
                 THROW(APDU_CODE_DATA_INVALID);
             }
             return PROCESS_CHUNK_FINISHED_WITH_METADATA;
+        case 0x10:
+            added = tx_append(&(G_io_apdu_buffer[OFFSET_DATA]), rx - OFFSET_DATA);
+            if (added != rx - OFFSET_DATA) {
+                THROW(APDU_CODE_OUTPUT_BUFFER_TOO_SMALL);
+            }
+            return PROCESS_CHUNK_FINISHED_MESSAGE;
     }
 
     THROW(APDU_CODE_INVALIDP1P2);

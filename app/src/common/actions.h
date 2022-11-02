@@ -25,12 +25,31 @@
 
 #define GET_PUB_KEY_RESPONSE_LENGTH (3 * SECP256_PK_LEN)
 
+extern const uint8_t TX_DOMAIN_TAG_TRANSACTION[DOMAIN_TAG_LENGTH];
+extern const uint8_t TX_DOMAIN_TAG_MESSAGE[DOMAIN_TAG_LENGTH];
+
 __Z_INLINE void app_sign() {
-    const uint8_t *message = get_signable();
-    const uint16_t messageLength = get_signable_length();
+    const uint8_t *message = tx_get_buffer();
+    const uint16_t messageLength = tx_get_buffer_length();
 
     uint16_t replyLen = 0;
-    zxerr_t err = crypto_sign(hdPath, cryptoOptions, message, messageLength, G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 3, &replyLen);
+    zxerr_t err = crypto_sign(hdPath, cryptoOptions, message, messageLength, TX_DOMAIN_TAG_TRANSACTION, G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 3, &replyLen);
+
+    if (err != zxerr_ok || replyLen == 0) {
+        set_code(G_io_apdu_buffer, 0, APDU_CODE_SIGN_VERIFY_ERROR);
+        io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, 2);
+    } else {
+        set_code(G_io_apdu_buffer, replyLen, APDU_CODE_OK);
+        io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, replyLen + 2);
+    }
+}
+
+__Z_INLINE void app_sign_message() {
+    const uint8_t *message = tx_get_buffer();
+    const uint16_t messageLength = tx_get_buffer_length();
+
+    uint16_t replyLen = 0;
+    zxerr_t err = crypto_sign(hdPath, cryptoOptions, message, messageLength, TX_DOMAIN_TAG_MESSAGE, G_io_apdu_buffer, IO_APDU_BUFFER_SIZE - 3, &replyLen);
 
     if (err != zxerr_ok || replyLen == 0) {
         set_code(G_io_apdu_buffer, 0, APDU_CODE_SIGN_VERIFY_ERROR);

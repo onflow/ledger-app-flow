@@ -32,6 +32,7 @@
 #include "zxformat.h"
 #include "hdpath.h"
 #include "parser_impl.h"
+#include "message.h"
 
 __Z_INLINE void handleGetPubkey(volatile uint32_t *flags, volatile uint32_t *tx, uint32_t rx) {
     hasPubkey = false;
@@ -84,6 +85,21 @@ __Z_INLINE void handleSign(volatile uint32_t *flags, volatile uint32_t *tx, uint
     process_chunk_response_t callType = process_chunk(tx, rx);
     if (callType == PROCESS_CHUNK_NOT_FINISHED) {
         THROW(APDU_CODE_OK);
+    }
+
+    if (callType == PROCESS_CHUNK_FINISHED_MESSAGE) {
+        zxerr_t err = message_parse();
+        if (err != zxerr_ok) {
+            const char *error_msg = "Invalid message";
+            int error_msg_length = strlen(error_msg);
+            MEMCPY(G_io_apdu_buffer, error_msg, error_msg_length);
+            *tx += (error_msg_length);
+            THROW(APDU_CODE_DATA_INVALID);
+        }
+        CHECK_APP_CANARY()
+        view_review_init(message_getItem, message_getNumItems, app_sign_message);
+        view_review_show();
+        *flags |= IO_ASYNCH_REPLY;
     }
 
     const char *error_msg = tx_parse(callType);
