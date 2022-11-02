@@ -77,8 +77,7 @@ typedef enum {
     //Template errors
     PARSER_METADATA_TOO_MANY_HASHES,
     PARSER_METADATA_ERROR,
-    PARSER_METADATA_TOO_MANY_ARGUMENTS
-
+    PARSER_TOO_MANY_ARGUMENTS,
 } parser_error_t;
 
 typedef struct {

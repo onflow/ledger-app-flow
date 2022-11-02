@@ -37,6 +37,10 @@ typedef enum {
 } chain_id_e;
 
 typedef struct {
+    uint8_t digest[CX_SHA256_SIZE];
+} flow_script_hash_t;
+
+typedef struct {
     parser_context_t ctx;
 } flow_reference_block_id_t;
 
@@ -71,7 +75,9 @@ typedef struct {
 } flow_proposal_authorizers_t;
 
 typedef struct {
+    bool metadataInitialized;
     parsed_tx_metadata_t metadata;
+    flow_script_hash_t hash;
     flow_argument_list_t arguments;
     flow_reference_block_id_t referenceBlockId;
     flow_gaslimit_t gasLimit;

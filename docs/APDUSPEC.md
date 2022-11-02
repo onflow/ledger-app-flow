@@ -164,7 +164,10 @@ Each slot has the following structure
 
 The first packet/chunk includes only the derivation path
 
-All other packets/chunks contain data chunks that are described below
+All other packets/chunks contain data chunks that are described below. There are two workflows as of now (typical sequences here, the app allows other combination of commands, too):
+
+Merkle tree workflow - Init packet, several add packets, metadata packet, four Merkle tree packets (3x 0x04 and finaly 0x05).
+Arbitrary transaction signing - Init packer, several add packets, final packet.
 
 ##### Init Packet P1 = 0x00
 
@@ -177,6 +180,8 @@ All other packets/chunks contain data chunks that are described below
 | Path[4] | byte (4) | Derivation Path Data | ?        |
 | Options | byte (2) | Crypto options (LE)  | ?        |
 
+This clears tx data and sets detivation path and crypto options variable
+
 ##### Add Packet P1 = 0x01
 
 | Field | Type     | Content | Expected |
@@ -188,6 +193,22 @@ Data is defined as:
 | Field   | Type    | Content          | Expected |
 | ------- | ------- | ---------------- | -------- |
 | Message | bytes.. | RLP data to sign |          |
+
+Appends to transaction data
+
+##### Fimal Packet P1 = 0x02
+
+| Field | Type     | Content | Expected |
+| ----- | -------- | ------- | -------- |
+| Data  | bytes... | Message |          |
+
+Data is defined as:
+
+| Field   | Type    | Content          | Expected |
+| ------- | ------- | ---------------- | -------- |
+| Message | bytes.. | RLP data to sign |          |
+
+Appends to transaction data and initiates signing without metadata (requires expert mode).
 
 ##### Metadata Packet P1 = 0x03
 
@@ -235,7 +256,9 @@ or array argument
 | Value type     | null term. string | Expected JSON value type      |          |
 | JSON type      | byte (1)          |                               | 3-string |
 
-##### Template Packet P1 = 0x04 and 0x05
+Loads metadata, clears merkle tree counter.
+
+##### Merkle tree Packet P1 = 0x04 and 0x05
 
 Four APDUs for four levels of internal merkle tree nodes. Each internal nerkle tree node has 7 children as 7 hashes fit into one APDU. APDU with P1=0x03 calculates metadata hash which corresponds to Merkle tree leaf value. Three subsequent P1=0x04 calls have to contain hashes from previous calls (either P1=0x03 or P1=0x04). After three calls there is call with P1=0x05, which works the same as P1=0x04 call, but it initiates transaction signing.
 
@@ -246,6 +269,7 @@ Four APDUs for four levels of internal merkle tree nodes. Each internal nerkle t
 | ...                 |              |                  |          |
 | Merkle tree hash 7  | byte (32)    | Merkle tree hash |          |
 
+Validates merkle tree node. Validates that previous hash (metadata hash or merkle tree node hash) is in the list of hashes. Computes new hash and increments merkle tree counter. Call with P1 = 0x05 starts the signing process with metadata. This requires that we are at the root of the merkle tree and that the hash value matches the one stored in the app.
 
 #### Response
 

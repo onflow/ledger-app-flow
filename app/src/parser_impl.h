@@ -60,10 +60,14 @@ parser_error_t json_matchOptionalKeyValue(const parsed_json_t *parsedJson,
 
 parser_error_t json_matchOptionalArray(const parsed_json_t *parsedJson, uint16_t tokenIdx, uint16_t *valueTokenIdx);
 
+parser_error_t json_matchArbitraryKeyValue(const parsed_json_t *parsedJson,
+                                           uint16_t tokenIdx, jsmntype_t *valueJsonType, uint16_t *keyTokenIdx, uint16_t *valueTokenIdx);
+
 parser_error_t formatStrUInt8AsHex(const char *decStr, char *hexStr);
 
 void checkAddressUsedInTx();
 
+parser_error_t parseMetadata();
 
 #ifdef __cplusplus
 }

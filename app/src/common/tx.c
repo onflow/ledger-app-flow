@@ -20,6 +20,8 @@
 #include "parser.h"
 #include <string.h>
 #include "zxmacros.h"
+#include "app_mode.h"
+
 
 #if defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 #define RAM_BUFFER_SIZE 8192
@@ -92,19 +94,38 @@ uint8_t *get_signable() {
     return buffering_get_buffer()->data;
 }
 
-const char *tx_parse() {
+const char *tx_parse(process_chunk_response_t typeOfCall) {
+    // parse tx
     uint8_t err = parser_parse(
         &ctx_parsed_tx,
         tx_get_buffer(),
         tx_get_buffer_length());
-
+        
     if (err != PARSER_OK) {
         return parser_getErrorDescription(err);
     }
 
-    err = parser_validate(&ctx_parsed_tx);
+    //parse metadata
+    parser_tx_obj.metadataInitialized = false;
+    if (typeOfCall == PROCESS_CHUNK_FINISHED_WITH_METADATA) {
+        MEMZERO(&parser_tx_obj.metadata, sizeof(parser_tx_obj.metadata));
+        err = parseTxMetadata(parser_tx_obj.hash.digest, &parser_tx_obj.metadata);    
+        if (err != PARSER_OK) {
+            return parser_getErrorDescription(err);
+        }
+        parser_tx_obj.metadataInitialized = true;
+    }
+    else {
+        //If no metadata provided = script is not known, expert mode must be on
+        if (!app_mode_expert()) {
+            return parser_getErrorDescription(PARSER_UNEXPECTED_SCRIPT);
+        }
+    }
+    
     CHECK_APP_CANARY()
-
+            
+    //validate
+    err = parser_validate(&ctx_parsed_tx);
     if (err != PARSER_OK) {
         return parser_getErrorDescription(err);
     }
