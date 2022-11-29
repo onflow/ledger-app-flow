@@ -85,8 +85,8 @@ const buildPayloadTx = (network, partialTx) =>
     merge(basePayloadTx(network), partialTx, {arrayMerge: combineMerge});
 
 
-const getTxEnvelope = (script, args) => {
-	const tx = buildPayloadTx(MAINNET, {
+const getTxEnvelope = (network, script, args) => {
+	const tx = buildPayloadTx(network, {
 		script: script,
 		arguments: args,
 	  })
@@ -113,8 +113,8 @@ const pubkeyHex = getPubkeyResponse.publicKey.toString("hex")
 	const publicCollectionName = "publicCollectionName"
 	const publicPath = "publicPath"
 	const script =
-`import NonFungibleToken from 0xNONFUNGIBLETOKEN
-import MetadataViews from 0xMETADATAVIEWS
+`import NonFungibleToken from 0x1d7e57aa55817448
+import MetadataViews from 0x1d7e57aa55817448
 import ${contractName} from ${contractAddress}
 transaction {
   prepare(acct: AuthAccount) {
@@ -136,13 +136,13 @@ transaction {
 }
 `
 	const args = []
-	const txBlob = Buffer.from(getTxEnvelope(script, args), "hex")
+	const txBlob = Buffer.from(getTxEnvelope(MAINNET, script, args), "hex")
 	console.log("Script")
 	console.log(script)
 	console.log("Tx built")
 	console.log(txBlob.toString("hex"))
 
-	testStep(" - - -", "NFT 1 correct");
+	testStep(" - - -", "NFT 1 mainnet correct");
     const signPromise =  app.sign(path, txBlob, options, "nft1");
     await device.review("Review transaction");
 	const signResponse = await signPromise;
@@ -166,7 +166,7 @@ transaction {
 	const storagePath = "storagePath"
 	const publicPath = "publicPath"
 	const script =
-`import NonFungibleToken from 0xNONFUNGIBLETOKEN
+`import NonFungibleToken from 0x1d7e57aa55817448
 import ${contractName} from ${contractAddress}
 transaction(recipient: Address, withdrawID: UInt64) {
   // local variable for storing the transferred nft
@@ -209,13 +209,13 @@ transaction(recipient: Address, withdrawID: UInt64) {
 		  	"value": "123456"
 		},  
 	]
-	const txBlob = Buffer.from(getTxEnvelope(script, args), "hex")
+	const txBlob = Buffer.from(getTxEnvelope(MAINNET, script, args), "hex")
 	console.log("Script")
 	console.log(script)
 	console.log("Tx built")
 	console.log(txBlob.toString("hex"))
 
-	testStep(" - - -", "NFT 2 correct");
+	testStep(" - - -", "NFT 2 mainnet correct");
     const signPromise =  app.sign(path, txBlob, options, "nft2");
     await device.review("Review transaction");
 	const signResponse = await signPromise;
@@ -231,6 +231,196 @@ transaction(recipient: Address, withdrawID: UInt64) {
 	const digestHex = hasher.getHash("HEX");
 	const ec = new EC(ECDSA_P256.name);
 	assert.ok(ec.verify(digestHex, signResponse.signatureDER.toString("hex"), pubkeyHex, 'hex'));
+}
+
+{
+	const contractName = "contractName"
+	const contractAddress = "contractAddress"
+	const storagePath = "storagePath"
+	const publicCollectionContractName = "publicCollectionContractName"
+	const publicCollectionName = "publicCollectionName"
+	const publicPath = "publicPath"
+	const script =
+`import NonFungibleToken from 0x631e88ae7f1d7c20
+import MetadataViews from 0x631e88ae7f1d7c20
+import ${contractName} from ${contractAddress}
+transaction {
+  prepare(acct: AuthAccount) {
+    let collectionType = acct.type(at: /storage/${storagePath})
+    // if there already is a collection stored, return
+    if (collectionType != nil) {
+      return
+    }
+    // create empty collection
+    let collection <- ${contractName}.createEmptyCollection()
+    // put the new Collection in storage
+    acct.save(<-collection, to: /storage/${storagePath})
+    // create a public capability for the collection
+    acct.link<&{NonFungibleToken.CollectionPublic, NonFungibleToken.Receiver, ${publicCollectionContractName}.${publicCollectionName}, MetadataViews.ResolverCollection}>(
+      /public/${publicPath},
+      target: /storage/${storagePath}
+    )
+  }
+}
+`
+	const args = []
+	const txBlob = Buffer.from(getTxEnvelope(TESTNET, script, args), "hex")
+	console.log("Script")
+	console.log(script)
+	console.log("Tx built")
+	console.log(txBlob.toString("hex"))
+
+	testStep(" - - -", "NFT 1 testnet correct");
+    const signPromise =  app.sign(path, txBlob, options, "nft1");
+    await device.review("Review transaction");
+	const signResponse = await signPromise;
+	console.log(signResponse)
+	assert.equal(signResponse.returnCode, 0x9000);
+	assert.equal(signResponse.errorMessage, "No errors");
+	
+	let tag = Buffer.alloc(32);
+	tag.write("FLOW-V0.0-transaction");
+	const hasher = new jsSHA(SHA3_256.name, "UINT8ARRAY");
+	hasher.update(tag);
+	hasher.update(txBlob);
+	const digestHex = hasher.getHash("HEX");
+	const ec = new EC(ECDSA_P256.name);
+	assert.ok(ec.verify(digestHex, signResponse.signatureDER.toString("hex"), pubkeyHex, 'hex'));
+}
+
+{
+	const contractName = "contractName"
+	const contractAddress = "contractAddress"
+	const storagePath = "storagePath"
+	const publicPath = "publicPath"
+	const script =
+`import NonFungibleToken from 0x631e88ae7f1d7c20
+import ${contractName} from ${contractAddress}
+transaction(recipient: Address, withdrawID: UInt64) {
+  // local variable for storing the transferred nft
+  let transferToken: @NonFungibleToken.NFT
+  prepare(owner: AuthAccount) {
+      // check if collection exists
+      if (owner.type(at: /storage/${storagePath}) != Type<@${contractName}.Collection>()) {
+        panic("Could not borrow a reference to the stored collection")
+      }
+      // borrow a reference to the collection
+      let collectionRef = owner
+        .borrow<&${contractName}.Collection>(from: /storage/${storagePath})!
+      // withdraw the NFT
+      self.transferToken <- collectionRef.withdraw(withdrawID: withdrawID)
+  }
+  execute {
+      // get the recipient's public account object
+      let recipient = getAccount(recipient)
+      // get receivers capability
+      let nonFungibleTokenCapability = recipient
+        .getCapability<&{NonFungibleToken.CollectionPublic}>(/public/${publicPath})
+      // check the recipient has a NonFungibleToken public capability
+      if (!nonFungibleTokenCapability.check()) {
+        panic("Could not borrow a reference to the receiver's collection")
+      }
+      // deposit nft to recipients collection
+      nonFungibleTokenCapability
+        .borrow()!
+        .deposit(token: <-self.transferToken)
+  }
+}
+`
+	const args = [
+		{
+		  	"type": "Address",
+		  	"value": "Ny nice address"
+		},
+		{
+  			"type": "UInt64",
+		  	"value": "123456"
+		},  
+	]
+	const txBlob = Buffer.from(getTxEnvelope(MAINNET, script, args), "hex")
+	console.log("Script")
+	console.log(script)
+	console.log("Tx built")
+	console.log(txBlob.toString("hex"))
+
+	testStep(" - - -", "NFT 2 testnet correct");
+    const signPromise =  app.sign(path, txBlob, options, "nft2");
+    await device.review("Review transaction");
+	const signResponse = await signPromise;
+	console.log(signResponse)
+	assert.equal(signResponse.returnCode, 0x9000);
+	assert.equal(signResponse.errorMessage, "No errors");
+	
+	let tag = Buffer.alloc(32);
+	tag.write("FLOW-V0.0-transaction");
+	const hasher = new jsSHA(SHA3_256.name, "UINT8ARRAY");
+	hasher.update(tag);
+	hasher.update(txBlob);
+	const digestHex = hasher.getHash("HEX");
+	const ec = new EC(ECDSA_P256.name);
+	assert.ok(ec.verify(digestHex, signResponse.signatureDER.toString("hex"), pubkeyHex, 'hex'));
+}
+
+{
+	const contractName = "contractName"
+	const contractAddress = "contractAddress"
+	const storagePath = "storagePath"
+	const publicPath = "publicPath"
+	const script =
+`import NonFungibleToken from 0x631e88ae7f1d7c21
+import ${contractName} from ${contractAddress}
+transaction(recipient: Address, withdrawID: UInt64) {
+  // local variable for storing the transferred nft
+  let transferToken: @NonFungibleToken.NFT
+  prepare(owner: AuthAccount) {
+      // check if collection exists
+      if (owner.type(at: /storage/${storagePath}) != Type<@${contractName}.Collection>()) {
+        panic("Could not borrow a reference to the stored collection")
+      }
+      // borrow a reference to the collection
+      let collectionRef = owner
+        .borrow<&${contractName}.Collection>(from: /storage/${storagePath})!
+      // withdraw the NFT
+      self.transferToken <- collectionRef.withdraw(withdrawID: withdrawID)
+  }
+  execute {
+      // get the recipient's public account object
+      let recipient = getAccount(recipient)
+      // get receivers capability
+      let nonFungibleTokenCapability = recipient
+        .getCapability<&{NonFungibleToken.CollectionPublic}>(/public/${publicPath})
+      // check the recipient has a NonFungibleToken public capability
+      if (!nonFungibleTokenCapability.check()) {
+        panic("Could not borrow a reference to the receiver's collection")
+      }
+      // deposit nft to recipients collection
+      nonFungibleTokenCapability
+        .borrow()!
+        .deposit(token: <-self.transferToken)
+  }
+}
+`
+	const args = [
+		{
+		  	"type": "Address",
+		  	"value": "Ny nice address"
+		},
+		{
+  			"type": "UInt64",
+		  	"value": "123456"
+		},  
+	]
+	const txBlob = Buffer.from(getTxEnvelope(MAINNET, script, args), "hex")
+	console.log("Script")
+	console.log(script)
+	console.log("Tx with invalid contract address build")
+	console.log(txBlob.toString("hex"))
+
+	testStep(" - - -", "NFT 2 testnetinvalid address");
+    const signPromise =  app.sign(path, txBlob, options, "nft2");
+	const signResponse = await signPromise;
+	assert.equal(signResponse.returnCode, 0x6984);
+	assert.equal(signResponse.errorMessage, "Data is invalid : Unexpected script");
 }
 
 

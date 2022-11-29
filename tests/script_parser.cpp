@@ -78,7 +78,7 @@ testing::AssertionResult PARSE_NFT_TEST(NFTFunction parseNFTFunction, std::strin
 //templates 3-5 should always fail
 const char * TEMPLATE1 = "abb\001 aa \001";
 const char * TEMPLATE2 = "abb\001 aa\001 a";
-const char * TEMPLATE3 = "\001 \001 \001 \001 \001 \001 \001 \001 \001 \001 \001";
+const char * TEMPLATE3 = "\001 \001 \001 \001 \001 \001 \001 \001 \001 \001 \001 \001";
 const char * TEMPLATE4 = "\001\001";
 const char * TEMPLATE5 = "\001a";
 const char * TEMPLATE6 = "\001 a";
@@ -92,7 +92,7 @@ TEST(script_parse, parseScript) {
     EXPECT_TRUE(PARSE_TEST("abbxxy aa y?", TEMPLATE1, false));
     EXPECT_TRUE(PARSE_TEST("abbxxy aa y a", TEMPLATE2, false));
     EXPECT_TRUE(PARSE_TEST("abbxxy aay a", TEMPLATE2, true, {"xxy", "y"}));
-    EXPECT_TRUE(PARSE_TEST("a a a a a a a a a a a", TEMPLATE3, false));
+    EXPECT_TRUE(PARSE_TEST("a a a a a a a a a a a a", TEMPLATE3, false));
     EXPECT_TRUE(PARSE_TEST("aa", TEMPLATE4, false));
     EXPECT_TRUE(PARSE_TEST("a a", TEMPLATE4, false));
     EXPECT_TRUE(PARSE_TEST("ba", TEMPLATE5, false));
@@ -104,8 +104,8 @@ TEST(script_parse, parseNFT1) {
     EXPECT_TRUE(PARSE_NFT_TEST(parseNFT1, "", false));
 
     const char script1[] = 
-        "import NonFungibleToken from 0xNONFUNGIBLETOKEN\n"
-        "import MetadataViews from 0xMETADATAVIEWS\n"
+        "import NonFungibleToken from 0x631e88ae7f1d7c20\n"
+        "import MetadataViews from 0x631e88ae7f1d7c20\n"
         "import aaa from bbb\n"
         "transaction {\n"
         "  prepare(acct: AuthAccount) {\n"
@@ -126,12 +126,13 @@ TEST(script_parse, parseNFT1) {
         "  }\n"
         "}\n";
 
-    EXPECT_TRUE(PARSE_NFT_TEST(parseNFT1, script1, true, {"aaa", "bbb", "c", "aaa", "c", "x", "_", "zzzzzzZ", "c"}, 
+    EXPECT_TRUE(PARSE_NFT_TEST(parseNFT1, script1, true, {"0x631e88ae7f1d7c20", "0x631e88ae7f1d7c20",
+                               "aaa", "bbb", "c", "aaa", "c", "x", "_", "zzzzzzZ", "c"}, 
                                SCRIPT_TYPE_NFT_SETUP_COLLECTION));
 
     const char script2[] = 
-        "import NonFungibleToken from 0xNONFUNGIBLETOKEN\n"
-        "import MetadataViews from 0xMETADATAVIEWS\n"
+        "import NonFungibleToken from 0x631e88ae7f1d7c20\n"
+        "import MetadataViews from 0x631e88ae7f1d7c20\n"
         "import aaa from bbb\n"
         "transaction {\n"
         "  prepare(acct: AuthAccount) {\n"
@@ -155,8 +156,8 @@ TEST(script_parse, parseNFT1) {
     EXPECT_TRUE(PARSE_NFT_TEST(parseNFT1, script2, false)); //storages do not match
 
     const char script3[] = 
-        "import NonFungibleToken from 0xNONFUNGIBLETOKEN\n"
-        "import MetadataViews from 0xMETADATAVIEWS\n"
+        "import NonFungibleToken from 0x631e88ae7f1d7c20\n"
+        "import MetadataViews from 0x631e88ae7f1d7c20\n"
         "import aaaa from bbb\n"
         "transaction {\n"
         "  prepare(acct: AuthAccount) {\n"
@@ -184,7 +185,7 @@ TEST(script_parse, parseNFT2) {
     EXPECT_TRUE(PARSE_NFT_TEST(parseNFT2, "", false));
 
     const char script1[] = 
-        "import NonFungibleToken from 0xNONFUNGIBLETOKEN\n"
+        "import NonFungibleToken from 0x1d7e57aa55817448\n"
         "import aaaa from bbb\n"
         "transaction(recipient: Address, withdrawID: UInt64) {\n"
         "  // local variable for storing the transferred nft\n"
@@ -217,11 +218,11 @@ TEST(script_parse, parseNFT2) {
         "  }\n"
         "}\n";
 
-    EXPECT_TRUE(PARSE_NFT_TEST(parseNFT2, script1, true, {"aaaa", "bbb", "ststst", "aaaa", "aaaa", "ststst", "publicPath"},
+    EXPECT_TRUE(PARSE_NFT_TEST(parseNFT2, script1, true, {"0x1d7e57aa55817448", "aaaa", "bbb", "ststst", "aaaa", "aaaa", "ststst", "publicPath"},
                                SCRIPT_TYPE_NFT_TRANSFER));
 
     const char script2[] = 
-        "import NonFungibleToken from 0xNONFUNGIBLETOKEN\n"
+        "import NonFungibleToken from 0x1d7e57aa55817448\n"
         "import aaaa from bbb\n"
         "transaction(recipient: Address, withdrawID: UInt64) {\n"
         "  // local variable for storing the transferred nft\n"
@@ -257,7 +258,7 @@ TEST(script_parse, parseNFT2) {
     EXPECT_TRUE(PARSE_NFT_TEST(parseNFT2, script2, false)); //contractName mismatch
 
     const char script3[] = 
-        "import NonFungibleToken from 0xNONFUNGIBLETOKEN\n"
+        "import NonFungibleToken from 0x1d7e57aa55817448\n"
         "import aaaa from bbb\n"
         "transaction(recipient: Address, withdrawID: UInt64) {\n"
         "  // local variable for storing the transferred nft\n"

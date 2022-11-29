@@ -65,22 +65,38 @@ bool parseScript(script_parsed_elements_t *parsedElements, const uint8_t NV_VOLA
     if ((i >= pE->elements_count) || (j >= pE->elements_count)) return false;                       \
     if (pE->elements[i].length != pE->elements[j].length) return false;                             \
     if (MEMCMP(pE->elements[i].data, pE->elements[j].data, pE->elements[i].length)) return false;   \
+}              
+
+#define ADDRESS_STRING_LENGTH 18
+#define NONFUNGIBLETOKEN_METADATAVIEWS_TESTNET "0x631e88ae7f1d7c20"
+#define NONFUNGIBLETOKEN_METADATAVIEWS_MAINNET "0x1d7e57aa55817448"
+
+#define ELEMENT_MUST_BE_ADDRESS(pE, i) {                                                                              \
+    STATIC_ASSERT(sizeof(NONFUNGIBLETOKEN_METADATAVIEWS_TESTNET) == ADDRESS_STRING_LENGTH + 1, "Incompatible types"); \
+    STATIC_ASSERT(sizeof(NONFUNGIBLETOKEN_METADATAVIEWS_MAINNET) == ADDRESS_STRING_LENGTH + 1, "Incompatible types"); \
+    if (i >= pE->elements_count) return false;                                                                        \
+    if (pE->elements[i].length != ADDRESS_STRING_LENGTH) return false;                                                \
+    if (MEMCMP(pE->elements[i].data, NONFUNGIBLETOKEN_METADATAVIEWS_TESTNET, pE->elements[i].length) &&               \
+        MEMCMP(pE->elements[i].data, NONFUNGIBLETOKEN_METADATAVIEWS_MAINNET, pE->elements[i].length)) return false;   \
 }                                                                                   
 
+
 // Elements :
-// 0 - contractName
-// 1 - contractAddress
-// 2 - storagePath
-// 3 - contractName
+// 0 - NonFungibleToken address
+// 1 - MetadataViews address
+// 2 - contractName
+// 3 - contractAddress
 // 4 - storagePath
-// 5 - publicCollectionContractName
-// 6 - publicCollectionName
-// 7 - publicPath
-// 8 - storagePath
+// 5 - contractName
+// 6 - storagePath
+// 7 - publicCollectionContractName
+// 8 - publicCollectionName
+// 9 - publicPath
+// 10 - storagePath
 bool parseNFT1(script_parsed_elements_t *parsedElements, const uint8_t NV_VOLATILE *scriptToParse, size_t scriptToParseSize) {
     const char template[] = 
-        "import NonFungibleToken from 0xNONFUNGIBLETOKEN\n"
-        "import MetadataViews from 0xMETADATAVIEWS\n"
+        "import NonFungibleToken from \001\n"
+        "import MetadataViews from \001\n"
         "import \001 from \001\n"
         "transaction {\n"
         "  prepare(acct: AuthAccount) {\n"
@@ -105,9 +121,12 @@ bool parseNFT1(script_parsed_elements_t *parsedElements, const uint8_t NV_VOLATI
         return false;
     }
 
-    ELEMENTS_MUST_BE_EQUAL(parsedElements, 0, 3);
-    ELEMENTS_MUST_BE_EQUAL(parsedElements, 2, 4);    
-    ELEMENTS_MUST_BE_EQUAL(parsedElements, 2, 8);
+    ELEMENT_MUST_BE_ADDRESS(parsedElements, 0); 
+    ELEMENT_MUST_BE_ADDRESS(parsedElements, 1);
+
+    ELEMENTS_MUST_BE_EQUAL(parsedElements, 2, 5);
+    ELEMENTS_MUST_BE_EQUAL(parsedElements, 4, 6);    
+    ELEMENTS_MUST_BE_EQUAL(parsedElements, 4, 10);
 
     parsedElements->script_type = SCRIPT_TYPE_NFT_SETUP_COLLECTION;
     return true;
@@ -115,16 +134,17 @@ bool parseNFT1(script_parsed_elements_t *parsedElements, const uint8_t NV_VOLATI
 
 
 // Elements :
-// 0 - contractName
-// 1 - contractAddress
-// 2 - storagePath
-// 3 - contractName
+// 0 - NonFungibleToken address
+// 1 - contractName
+// 2 - contractAddress
+// 3 - storagePath
 // 4 - contractName
-// 5 - storagePath
-// 6 - publicPath
+// 5 - contractName
+// 6 - storagePath
+// 7 - publicPath
 bool parseNFT2(script_parsed_elements_t *parsedElements, const uint8_t NV_VOLATILE *scriptToParse, size_t scriptToParseSize) {
     const char template[] = 
-        "import NonFungibleToken from 0xNONFUNGIBLETOKEN\n"
+        "import NonFungibleToken from \001\n"
         "import \001 from \001\n"
         "transaction(recipient: Address, withdrawID: UInt64) {\n"
         "  // local variable for storing the transferred nft\n"
@@ -160,12 +180,15 @@ bool parseNFT2(script_parsed_elements_t *parsedElements, const uint8_t NV_VOLATI
         return false;
     }
 
-    ELEMENTS_MUST_BE_EQUAL(parsedElements, 0, 3);
-    ELEMENTS_MUST_BE_EQUAL(parsedElements, 0, 4);    
-    ELEMENTS_MUST_BE_EQUAL(parsedElements, 2, 5);    
+    ELEMENT_MUST_BE_ADDRESS(parsedElements, 0); 
+
+    ELEMENTS_MUST_BE_EQUAL(parsedElements, 1, 4);
+    ELEMENTS_MUST_BE_EQUAL(parsedElements, 1, 5);    
+    ELEMENTS_MUST_BE_EQUAL(parsedElements, 3, 6);
 
     parsedElements->script_type = SCRIPT_TYPE_NFT_TRANSFER;
     return true;
 }
 
 #undef ELEMENTS_MUST_BE_EQUAL
+#undef ELEMENT_MUST_BE_ADDRESS

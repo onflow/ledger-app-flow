@@ -629,23 +629,23 @@ parser_error_t parser_getItem_internal(int8_t *displayIdx,
         switch (parser_tx_obj.parsedScript.script_type) {
             case SCRIPT_TYPE_NFT_SETUP_COLLECTION:
                 //validate basic assumptions on the script
-                if (parser_tx_obj.parsedScript.elements_count != 9) {
+                if (parser_tx_obj.parsedScript.elements_count != 11) {
                     return PARSER_UNEXPECTED_ERROR;
                 }
                 // storagePath should be preceeded with "/storage/"
-                if (parser_tx_obj.parsedScript.elements[2].data < parser_tx_obj.parsedScript.elements[1].data + (sizeof(storageString)-1) ||
-                    memcmp(parser_tx_obj.parsedScript.elements[2].data - (sizeof(storageString)-1), storageString, sizeof(storageString)-1)) {                    
+                if (parser_tx_obj.parsedScript.elements[4].data < parser_tx_obj.parsedScript.elements[3].data + (sizeof(storageString)-1) ||
+                    memcmp(parser_tx_obj.parsedScript.elements[4].data - (sizeof(storageString)-1), storageString, sizeof(storageString)-1)) {                    
                     return PARSER_UNEXPECTED_ERROR;
                 }
                 // publicCollectionContractName and publicCollectionName should be separated by a single '.'
-                if (parser_tx_obj.parsedScript.elements[5].data + parser_tx_obj.parsedScript.elements[5].length + 1 != 
-                    parser_tx_obj.parsedScript.elements[6].data ||
-                    parser_tx_obj.parsedScript.elements[5].data[parser_tx_obj.parsedScript.elements[5].length] != '.') {
+                if (parser_tx_obj.parsedScript.elements[7].data + parser_tx_obj.parsedScript.elements[7].length + 1 != 
+                    parser_tx_obj.parsedScript.elements[8].data ||
+                    parser_tx_obj.parsedScript.elements[7].data[parser_tx_obj.parsedScript.elements[7].length] != '.') {
                     return PARSER_UNEXPECTED_ERROR;
                 }
                 // publicPath should be preceeded with "/public/"
-                if (parser_tx_obj.parsedScript.elements[7].data < parser_tx_obj.parsedScript.elements[6].data + (sizeof(publicString)-1) ||
-                    memcmp(parser_tx_obj.parsedScript.elements[7].data - (sizeof(publicString)-1), publicString, sizeof(publicString)-1)) {                    
+                if (parser_tx_obj.parsedScript.elements[9].data < parser_tx_obj.parsedScript.elements[8].data + (sizeof(publicString)-1) ||
+                    memcmp(parser_tx_obj.parsedScript.elements[9].data - (sizeof(publicString)-1), publicString, sizeof(publicString)-1)) {                    
                     return PARSER_UNEXPECTED_ERROR;
                 }
 
@@ -657,57 +657,57 @@ parser_error_t parser_getItem_internal(int8_t *displayIdx,
                 SCREEN(true) {
                     snprintf(outKey, outKeyLen, "Contract Name");
                     pageStringExt(outVal, outValLen, 
-                                  (const char *) parser_tx_obj.parsedScript.elements[0].data,
-                                  parser_tx_obj.parsedScript.elements[0].length,
+                                  (const char *) parser_tx_obj.parsedScript.elements[2].data,
+                                  parser_tx_obj.parsedScript.elements[2].length,
                                   pageIdx, pageCount);
                     return PARSER_OK;
                 }
                 SCREEN(true) {
                     snprintf(outKey, outKeyLen, "Contract Address");
                     pageStringExt(outVal, outValLen, 
-                                  (const char *) parser_tx_obj.parsedScript.elements[1].data,
-                                  parser_tx_obj.parsedScript.elements[1].length,
+                                  (const char *) parser_tx_obj.parsedScript.elements[3].data,
+                                  parser_tx_obj.parsedScript.elements[3].length,
                                   pageIdx, pageCount);
                     return PARSER_OK;
                 }
                 SCREEN(true) {
                     snprintf(outKey, outKeyLen, "Storage Path");
                     pageStringExt(outVal, outValLen, 
-                                  (const char *) parser_tx_obj.parsedScript.elements[2].data - (sizeof(storageString)-1),
-                                  parser_tx_obj.parsedScript.elements[2].length + (sizeof(storageString)-1),
+                                  (const char *) parser_tx_obj.parsedScript.elements[4].data - (sizeof(storageString)-1),
+                                  parser_tx_obj.parsedScript.elements[4].length + (sizeof(storageString)-1),
                                   pageIdx, pageCount);
                     return PARSER_OK;
                 }
                 SCREEN(true) {
                     snprintf(outKey, outKeyLen, "Public Coll. Name");
                     pageStringExt(outVal, outValLen, 
-                                  (const char *) parser_tx_obj.parsedScript.elements[5].data,
-                                  parser_tx_obj.parsedScript.elements[5].length + parser_tx_obj.parsedScript.elements[6].length + 1,
+                                  (const char *) parser_tx_obj.parsedScript.elements[7].data,
+                                  parser_tx_obj.parsedScript.elements[7].length + parser_tx_obj.parsedScript.elements[8].length + 1,
                                   pageIdx, pageCount);
                     return PARSER_OK;
                 }
                 SCREEN(true) {
                     snprintf(outKey, outKeyLen, "Public Path");
                     pageStringExt(outVal, outValLen, 
-                                  (const char *) parser_tx_obj.parsedScript.elements[7].data - (sizeof(publicString)-1),
-                                  parser_tx_obj.parsedScript.elements[7].length + (sizeof(publicString)-1),
+                                  (const char *) parser_tx_obj.parsedScript.elements[9].data - (sizeof(publicString)-1),
+                                  parser_tx_obj.parsedScript.elements[9].length + (sizeof(publicString)-1),
                                   pageIdx, pageCount);
                     return PARSER_OK;
                 }
                 break;
             case SCRIPT_TYPE_NFT_TRANSFER:
                 //validate basic assumptions on the script
-                if (parser_tx_obj.parsedScript.elements_count != 7) {
+                if (parser_tx_obj.parsedScript.elements_count != 8) {
                     return PARSER_UNEXPECTED_ERROR;
                 }
                 // storagePath should be preceeded with "/storage/"
-                if (parser_tx_obj.parsedScript.elements[2].data < parser_tx_obj.parsedScript.elements[1].data + (sizeof(storageString)-1) ||
-                    memcmp(parser_tx_obj.parsedScript.elements[2].data - (sizeof(storageString)-1), storageString, sizeof(storageString)-1)) {                    
+                if (parser_tx_obj.parsedScript.elements[3].data < parser_tx_obj.parsedScript.elements[2].data + (sizeof(storageString)-1) ||
+                    memcmp(parser_tx_obj.parsedScript.elements[3].data - (sizeof(storageString)-1), storageString, sizeof(storageString)-1)) {                    
                     return PARSER_UNEXPECTED_ERROR;
                 }
                 // publicPath should be preceeded with "/public/"
-                if (parser_tx_obj.parsedScript.elements[6].data < parser_tx_obj.parsedScript.elements[5].data + (sizeof(publicString)-1) ||
-                    memcmp(parser_tx_obj.parsedScript.elements[6].data - (sizeof(publicString)-1), publicString, sizeof(publicString)-1)) {                    
+                if (parser_tx_obj.parsedScript.elements[7].data < parser_tx_obj.parsedScript.elements[6].data + (sizeof(publicString)-1) ||
+                    memcmp(parser_tx_obj.parsedScript.elements[7].data - (sizeof(publicString)-1), publicString, sizeof(publicString)-1)) {                    
                     return PARSER_UNEXPECTED_ERROR;
                 }
 
@@ -719,32 +719,32 @@ parser_error_t parser_getItem_internal(int8_t *displayIdx,
                 SCREEN(true) {
                     snprintf(outKey, outKeyLen, "Contract Name");
                     pageStringExt(outVal, outValLen, 
-                                  (const char *) parser_tx_obj.parsedScript.elements[0].data,
-                                  parser_tx_obj.parsedScript.elements[0].length,
-                                  pageIdx, pageCount);
-                    return PARSER_OK;
-                }
-                SCREEN(true) {
-                    snprintf(outKey, outKeyLen, "Contract Address");
-                    pageStringExt(outVal, outValLen, 
                                   (const char *) parser_tx_obj.parsedScript.elements[1].data,
                                   parser_tx_obj.parsedScript.elements[1].length,
                                   pageIdx, pageCount);
                     return PARSER_OK;
                 }
                 SCREEN(true) {
+                    snprintf(outKey, outKeyLen, "Contract Address");
+                    pageStringExt(outVal, outValLen, 
+                                  (const char *) parser_tx_obj.parsedScript.elements[2].data,
+                                  parser_tx_obj.parsedScript.elements[2].length,
+                                  pageIdx, pageCount);
+                    return PARSER_OK;
+                }
+                SCREEN(true) {
                     snprintf(outKey, outKeyLen, "Storage Path");
                     pageStringExt(outVal, outValLen, 
-                                  (const char *) parser_tx_obj.parsedScript.elements[2].data - (sizeof(storageString)-1),
-                                  parser_tx_obj.parsedScript.elements[2].length + (sizeof(storageString)-1),
+                                  (const char *) parser_tx_obj.parsedScript.elements[3].data - (sizeof(storageString)-1),
+                                  parser_tx_obj.parsedScript.elements[3].length + (sizeof(storageString)-1),
                                   pageIdx, pageCount);
                     return PARSER_OK;
                 }
                 SCREEN(true) {
                     snprintf(outKey, outKeyLen, "Public Path");
                     pageStringExt(outVal, outValLen, 
-                                  (const char *) parser_tx_obj.parsedScript.elements[6].data - (sizeof(publicString)-1),
-                                  parser_tx_obj.parsedScript.elements[6].length + (sizeof(publicString)-1),
+                                  (const char *) parser_tx_obj.parsedScript.elements[7].data - (sizeof(publicString)-1),
+                                  parser_tx_obj.parsedScript.elements[7].length + (sizeof(publicString)-1),
                                   pageIdx, pageCount);
                     return PARSER_OK;
                 }

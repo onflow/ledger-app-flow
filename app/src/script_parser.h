@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-#define MAX_SCRIPT_PARSED_ELEMENTS 9
+#define MAX_SCRIPT_PARSED_ELEMENTS 11
 
 typedef enum {
     SCRIPT_TYPE_UNKNOWN = 0x00,
