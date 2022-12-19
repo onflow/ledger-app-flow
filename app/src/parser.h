@@ -29,7 +29,8 @@ const char *parser_getErrorDescription(parser_error_t err);
 //// parses a tx buffer
 parser_error_t parser_parse(parser_context_t *ctx,
                             const uint8_t *data,
-                            size_t dataLen);
+                            size_t dataLen,
+                            script_parsed_type_t scriptType);
 
 //// verifies tx fields
 parser_error_t parser_validate(const parser_context_t *ctx);

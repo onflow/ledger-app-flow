@@ -12,6 +12,14 @@ const PAYLOAD_TYPE = {
     MESSAGE_LAST: 0x10,
 }
 
+const P2_UNUSED = 0x00;
+
+const PAYLOAD_TYPE_LAST_P2 = {
+  ARBITRARY_MESSAGE_SIGNING: 0x01,
+  NFT_SETUP_COLLECTION: 0x02,
+  NFT_TRANSFER: 0x03,
+}
+
 export function signIsLastAPDU(type) {
     return (type === PAYLOAD_TYPE.LAST || type === PAYLOAD_TYPE.MERKLE_TREE_LAST || PAYLOAD_TYPE.MESSAGE_LAST)
 }
@@ -23,7 +31,7 @@ function prepareBasicChunks(serializedPathBuffer, message) {
     const chunks = [];
 
     // First chunk (only path)
-    chunks.push({type: PAYLOAD_TYPE.INIT, buffer: serializedPathBuffer});
+    chunks.push({type: PAYLOAD_TYPE.INIT, p2: P2_UNUSED, buffer: serializedPathBuffer});
 
     const messageBuffer = Buffer.from(message);
 
@@ -33,7 +41,7 @@ function prepareBasicChunks(serializedPathBuffer, message) {
       if (i > buffer.length) {
         end = buffer.length;
       }
-      chunks.push({type: PAYLOAD_TYPE.ADD, buffer:buffer.slice(i, end)});
+      chunks.push({type: PAYLOAD_TYPE.ADD, p2: P2_UNUSED, buffer:buffer.slice(i, end)});
     }
 
     return chunks;
@@ -49,6 +57,8 @@ function signGetChunksv1(path, options, getVersionResponse, message) {
 //ExtraInfo is either
 // - script hash from merkleIndex - initiates transaction signing with metadata
 // - "Sign message" - initiates message signing
+// - "nft1" - initiates Setup NFT collection signing
+// - "nft2" - initiates Transfer NFT signing
 // - anything else - initiates transaction sining without metadata
 function signGetChunksv2(path, options, getVersionResponse, message, extraInfo) {
     const serializedPath = serializePath(path, getVersionResponse, options);
@@ -56,6 +66,19 @@ function signGetChunksv2(path, options, getVersionResponse, message, extraInfo) 
 
     if (extraInfo == "Sign message") {
       basicChunks[basicChunks.length-1].type = PAYLOAD_TYPE.MESSAGE_LAST
+      basicChunks[basicChunks.length-1].p2 = P2_UNUSED
+      return basicChunks;
+    }
+
+    if (extraInfo == "nft1") {
+      basicChunks[basicChunks.length-1].type = PAYLOAD_TYPE.LAST
+      basicChunks[basicChunks.length-1].p2 = PAYLOAD_TYPE_LAST_P2.NFT_SETUP_COLLECTION
+      return basicChunks;
+    }
+
+    if (extraInfo == "nft2") {
+      basicChunks[basicChunks.length-1].type = PAYLOAD_TYPE.LAST
+      basicChunks[basicChunks.length-1].p2 = PAYLOAD_TYPE_LAST_P2.NFT_TRANSFER
       return basicChunks;
     }
 
@@ -64,6 +87,7 @@ function signGetChunksv2(path, options, getVersionResponse, message, extraInfo) 
     const merkleI = merkleIndex[scriptHash.slice(0, 16)]
     if (merkleI === undefined) {
         basicChunks[basicChunks.length-1].type = PAYLOAD_TYPE.LAST
+        basicChunks[basicChunks.length-1].p2 = PAYLOAD_TYPE_LAST_P2.ARBITRARY_MESSAGE_SIGNING
         return basicChunks;
     }
     // other chunks
@@ -75,11 +99,11 @@ function signGetChunksv2(path, options, getVersionResponse, message, extraInfo) 
 
     return [
         ...basicChunks, 
-        { type: PAYLOAD_TYPE.TX_METADATA, buffer: Buffer.from(metadata, "hex"), },
-        { type: PAYLOAD_TYPE.MERKLE_TREE, buffer: Buffer.from(merkleTreeLevel1, "hex"), },
-        { type: PAYLOAD_TYPE.MERKLE_TREE, buffer: Buffer.from(merkleTreeLevel2, "hex"), },
-        { type: PAYLOAD_TYPE.MERKLE_TREE, buffer: Buffer.from(merkleTreeLevel3, "hex"), },
-        { type: PAYLOAD_TYPE.MERKLE_TREE_LAST, buffer: Buffer.from(merkleTreeLevel4, "hex"), },
+        { type: PAYLOAD_TYPE.TX_METADATA, p2: P2_UNUSED, buffer: Buffer.from(metadata, "hex"), },
+        { type: PAYLOAD_TYPE.MERKLE_TREE, p2: P2_UNUSED, buffer: Buffer.from(merkleTreeLevel1, "hex"), },
+        { type: PAYLOAD_TYPE.MERKLE_TREE, p2: P2_UNUSED, buffer: Buffer.from(merkleTreeLevel2, "hex"), },
+        { type: PAYLOAD_TYPE.MERKLE_TREE, p2: P2_UNUSED, buffer: Buffer.from(merkleTreeLevel3, "hex"), },
+        { type: PAYLOAD_TYPE.MERKLE_TREE_LAST, p2: P2_UNUSED, buffer: Buffer.from(merkleTreeLevel4, "hex"), },
     ]
 }
 

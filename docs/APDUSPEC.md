@@ -151,28 +151,34 @@ Each slot has the following structure
 
 #### Command
 
-| Field | Type     | Content                | Expected      |
-| ----- | -------- | ---------------------- | ------------- |
-| CLA   | byte (1) | Application Identifier | 0x33          |
-| INS   | byte (1) | Instruction ID         | 0x02          |
-| P1    | byte (1) | Payload desc           | 0 = init      |
-|       |          |                        | 1 = add       |
-|       |          |                        | 3 = template  |
-|       |          |                        | 4,5 = hashes |
-| P2    | byte (1) | ----                   | not used      |
-| L     | byte (1) | Bytes in payload       | (depends)     |
+| Field | Type     | Content                | Expected           |
+| ----- | -------- | ---------------------- | ------------------ |
+| CLA   | byte (1) | Application Identifier | 0x33               |
+| INS   | byte (1) | Instruction ID         | 0x02               |
+| P1    | byte (1) | Payload desc           | 0 = init           |
+|       |          |                        | 1 = add            |
+|       |          |                        | 2 = final          |
+|       |          |                        | 3 = metadata       |
+|       |          |                        | 4 = MT proof       |
+|       |          |                        | 5 = MT proof final |
+|       |          |                        | 10 = message final |
+| P2    | byte (1) | ----                   | (depends)          |
+| L     | byte (1) | Bytes in payload       | (depends)          |
 
 The first packet/chunk includes only the derivation path
 
-All other packets/chunks contain data chunks that are described below. There are three workflows as of now (typical sequences here, the app allows other combination of commands, too):
+All other packets/chunks contain data chunks that are described below. There are following workflows as of now (typical sequences here, the app allows other combination of commands, too):
 
 Merkle tree workflow - Init packet, several add packets, metadata packet, four Merkle tree packets (3x 0x04 and finaly 0x05).
 Arbitrary transaction signing - Init packet, several add packets, final packet.
+NFT workflow - Init packet, several add packets, final packet.
 Message signing workflow - Init packet, several add packets, final message packet (P1=0x10).
 
 ##### Init Packet P1 = 0x00
 
 | Field   | Type     | Content              | Expected |
+| ------- | -------- | -------------------- | -------- |
+| P2      | byte (1) |                      | not used |
 | ------- | -------- | -------------------- | -------- |
 | Path[0] | byte (4) | Derivation Path Data | 44'      |
 | Path[1] | byte (4) | Derivation Path Data | 539'     |
@@ -185,9 +191,11 @@ This clears data and sets detivation path and crypto options variable
 
 ##### Add Packet P1 = 0x01
 
-| Field | Type     | Content | Expected |
-| ----- | -------- | ------- | -------- |
-| Data  | bytes... | Message |          |
+| Field | Type     | Content    | Expected |
+| ----- | -------- | ---------- | -------- |
+| P2    | byte (1) |            | not used |
+| ----- | -------- | ---------- | -------- |
+| Data  | bytes... | see bellow |          |
 
 Data is defined as:
 
@@ -197,11 +205,16 @@ Data is defined as:
 
 Appends to data (transaction or message)
 
-##### Fimal Packet P1 = 0x02
+##### Final Packet P1 = 0x02
 
-| Field | Type     | Content | Expected |
-| ----- | -------- | ------- | -------- |
-| Data  | bytes... | Message |          |
+| Field | Type     | Content    | Expected   |
+| ----- | -------- | ---------- | ---------- |
+| P2    | byte (1) | workflow   | 1, 2, or 3 |
+| ----- | -------- | ---------- | ---------- |
+| Data  | bytes... | see bellow |            |
+
+Workflow is defined as: 1 - Arbitrary message signing, 2 - Setup NFT collection, 3 - Transfer NFT
+Arbitrary message signing requires expert mode and is able to handle any transaction. Setup NFT collection and Transfer NFT require the transaction to contain script (and arguments) conforming to NFT script templates (see script_parser.c).
 
 Data is defined as:
 
@@ -214,6 +227,8 @@ Appends to transaction data and initiates transaction signing without metadata (
 ##### Metadata Packet P1 = 0x03
 
 | Field | Type     | Content  | Expected |
+| ----- | -------- | -------- | -------- |
+| P2    | byte (1) |          | not used |
 | ----- | -------- | -------- | -------- |
 | Data  | bytes... | Metadata |          |
 
@@ -265,6 +280,8 @@ Four APDUs for four levels of internal merkle tree nodes. Each internal nerkle t
 
 | Field               | Type         | Content          | Expected |
 | ------------------- | ------------ | ---------------- | -------- |
+| P2                  | byte (1)     |                  | not used |
+| ------------------- | ------------ | ---------------- | -------- |
 | Merkle tree hash 1  | byte (32)    | Merkle tree hash |          |
 | Merkle tree hash 2  | byte (32)    | Merkle tree hash |          |
 | ...                 |              |                  |          |
@@ -275,6 +292,8 @@ Validates merkle tree node. Validates that previous hash (metadata hash or merkl
 ##### Final message signing Packet P1 = 0x10
 
 | Field | Type     | Content | Expected |
+| ----- | -------- | ------- | -------- |
+| P2    | byte (1) |         | not used |
 | ----- | -------- | ------- | -------- |
 | Data  | bytes... | Message |          |
 

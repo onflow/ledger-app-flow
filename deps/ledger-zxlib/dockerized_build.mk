@@ -346,6 +346,7 @@ speculos_port_5002_test_internal:
 	$(call run_nodejs_test,5002,40002,test-slot-transaction-interaction.js)	
 	$(call run_nodejs_test,5002,40002,test-transaction-expert-mode.js)
 	$(call run_nodejs_test,5002,40002,test-transaction-arbitrary.js)
+	$(call run_nodejs_test,5002,40002,test-transaction-nft.js)
 	$(call run_nodejs_test,5002,40002,test-messages.js)	
 	$(call run_nodejs_test,5002,40002,test-transactions.js)
 	@echo "# ALL TESTS COMPLETED!" | tee -a $(TESTS_SPECULOS_DIR)/speculos-port-5002.log

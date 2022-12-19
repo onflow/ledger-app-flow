@@ -177,11 +177,12 @@ export default class FlowApp {
 
     for (let i = 0; i < chunks.length; i += 1) {
       const payloadType = chunks[i].type
+      const p2 = chunks[i].p2
       const chunk = chunks[i].buffer
 
       // eslint-disable-next-line no-await-in-loop
       result = await this.transport
-        .send(CLA, INS.SIGN, payloadType, 0, chunk, [0x9000, 0x6984, 0x6a80])
+        .send(CLA, INS.SIGN, payloadType, p2, chunk, [0x9000, 0x6984, 0x6a80])
         .then((response) => {
           const errorCodeData = response.slice(-2);
           const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
