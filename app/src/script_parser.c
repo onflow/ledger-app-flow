@@ -41,15 +41,14 @@ bool parseScript(script_parsed_elements_t *parsedElements, const uint8_t NV_VOLA
             parsedElements->elements_count += 1;
             scriptRead += elementLen;
             templateRead += 1;
-
-            continue;
         }
-
-        if (templateChar != scriptToParse[scriptRead]) {
-            return false;
+        else { //character to match one in the script
+            if ((scriptRead >= scriptToParseSize) || (templateChar != scriptToParse[scriptRead])) {
+                return false;
+            }
+            scriptRead += 1;
+            templateRead += 1;
         }
-        scriptRead += 1;
-        templateRead += 1;
     }
 
     if (scriptRead != scriptToParseSize || templateRead != scriptTemplateSize) {
