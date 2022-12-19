@@ -81,7 +81,7 @@ bool parseScript(script_parsed_elements_t *parsedElements, const uint8_t NV_VOLA
 }                                                                                   
 
 
-// Elements :
+// Elements (see enum in script_parser.h) :
 // 0 - NonFungibleToken address
 // 1 - MetadataViews address
 // 2 - contractName
@@ -121,19 +121,19 @@ bool parseNFT1(script_parsed_elements_t *parsedElements, const uint8_t NV_VOLATI
         return false;
     }
 
-    ELEMENT_MUST_BE_ADDRESS(parsedElements, 0); 
-    ELEMENT_MUST_BE_ADDRESS(parsedElements, 1);
+    ELEMENT_MUST_BE_ADDRESS(parsedElements, PARSED_ELEMENTS_NFT1_NON_FUNGIBLE_TOKEN_ADDRESS); 
+    ELEMENT_MUST_BE_ADDRESS(parsedElements, PARSED_ELEMENTS_NFT1_METADATA_VIEWS_ADDRESS);
 
-    ELEMENTS_MUST_BE_EQUAL(parsedElements, 2, 5);
-    ELEMENTS_MUST_BE_EQUAL(parsedElements, 4, 6);    
-    ELEMENTS_MUST_BE_EQUAL(parsedElements, 4, 10);
+    ELEMENTS_MUST_BE_EQUAL(parsedElements, PARSED_ELEMENTS_NFT1_CONTRACT_NAME, PARSED_ELEMENTS_NFT1_CONTRACT_NAME2);
+    ELEMENTS_MUST_BE_EQUAL(parsedElements, PARSED_ELEMENTS_NFT1_STORAGE_PATH, PARSED_ELEMENTS_NFT1_STORAGE_PATH2);    
+    ELEMENTS_MUST_BE_EQUAL(parsedElements, PARSED_ELEMENTS_NFT1_STORAGE_PATH, PARSED_ELEMENTS_NFT1_STORAGE_PATH3);
 
     parsedElements->script_type = SCRIPT_TYPE_NFT_SETUP_COLLECTION;
     return true;
 }
 
 
-// Elements :
+// Elements (see enum in script_parser.h) :
 // 0 - NonFungibleToken address
 // 1 - contractName
 // 2 - contractAddress
@@ -180,11 +180,11 @@ bool parseNFT2(script_parsed_elements_t *parsedElements, const uint8_t NV_VOLATI
         return false;
     }
 
-    ELEMENT_MUST_BE_ADDRESS(parsedElements, 0); 
+    ELEMENT_MUST_BE_ADDRESS(parsedElements, PARSED_ELEMENTS_NFT2_NON_FUNGIBLE_TOKEN_ADDRESS); 
 
-    ELEMENTS_MUST_BE_EQUAL(parsedElements, 1, 4);
-    ELEMENTS_MUST_BE_EQUAL(parsedElements, 1, 5);    
-    ELEMENTS_MUST_BE_EQUAL(parsedElements, 3, 6);
+    ELEMENTS_MUST_BE_EQUAL(parsedElements, PARSED_ELEMENTS_NFT2_CONTRACT_NAME, PARSED_ELEMENTS_NFT2_CONTRACT_NAME2);
+    ELEMENTS_MUST_BE_EQUAL(parsedElements, PARSED_ELEMENTS_NFT2_CONTRACT_NAME, PARSED_ELEMENTS_NFT2_CONTRACT_NAME3);
+    ELEMENTS_MUST_BE_EQUAL(parsedElements, PARSED_ELEMENTS_NFT2_STORAGE_PATH, PARSED_ELEMENTS_NFT2_STORAGE_PATH2);
 
     parsedElements->script_type = SCRIPT_TYPE_NFT_TRANSFER;
     return true;
