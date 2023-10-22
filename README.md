@@ -44,7 +44,7 @@ In Ubuntu, you should install the following packages:
 
 ```
 sudo apt update && sudo apt-get -y install build-essential git wget cmake \
-libssl-dev libgmp-dev autoconf libtool
+libssl-dev libgmp-dev autoconf libtool pip
 ```
 
 - Install `node > v16.10.0`. We typically recommend using `n` for node version management. (This is used to run emulation tests)
