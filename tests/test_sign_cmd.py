@@ -363,6 +363,7 @@ def test_transaction_manifest(firmware, backend, navigator, test_name):
         if len(title_split) > 3 and title_split[-2] == "-":
             tx_name = tx_name+"-"+title_split[-1]
         chain = transaction["chainID"]
+        print(tx_name, chain)
         _check_transaction(client, firmware, navigator, f"{test_name}/{tx_name}-{chain}", transaction["encodedTransactionEnvelopeHex"], path, curve, hash_t, transaction["hash"])
         
 class Test_MESSAGE():
