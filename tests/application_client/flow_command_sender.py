@@ -186,6 +186,7 @@ class FlowCommandSender:
     @contextmanager
     def set_slot(
         self,
+        *,
         slot: int,
         address: str,
         path: str,

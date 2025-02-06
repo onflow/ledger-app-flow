@@ -1,6 +1,6 @@
 ## Generate merkle tree files from manifest files
 
-Before starting the generation proces you want to check if your manifest file does not contain new long transaction names and argument labels. If that is the case, then update `legerifyTxName`, `legerifyArgLabel` in `./tree/index.js`. If some of the new arguments is an enum argument built in in the app, you can update `enumToType`.
+Before starting the generation process you want to check if your manifest file does not contain new long transaction names and argument labels. If that is the case, then update `legerifyTxName`, `legerifyArgLabel` in `./tree/index.js`. If some of the new arguments is an enum argument built in in the app, you can update `enumToType`.
 
 ```
 nvm use 16.10.0

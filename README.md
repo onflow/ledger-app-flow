@@ -83,7 +83,7 @@ pytest tests/ --tb=short -v --device flex
 
 Note that in case ledger-app-dev-tools:latest is updated there is a chance that slight changes in gui happen. In that case it is necessary to re-generate the snapshots, e.g.
 ```shell
-pytest tests/ --tb=short -v --device nanos –golden_run
+pytest tests/ --tb=short -v --device nanos –-golden_run
 ```
 and review the changes in test/snapshots directory
 

@@ -7,5 +7,6 @@
     "generate": "node ./index.js ."
   },
   "dependencies": {
+    "jssha": "^3.3.1"
   }
 }

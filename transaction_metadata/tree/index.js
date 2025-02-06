@@ -35,6 +35,7 @@ const legerifyArgLabel = (name) => {
   const txArgTransforms = {
     "Networking Address":"Netw. Address",
     "Networking Key":"Netw. Key",
+    "Staking Key PoP":"St. Key PoP",
     "Public Keys":"Pub. Key",
     "Machine Account Public Key":"MA Pub. Key",
     "Raw Value for Machine Account Hash Algorithm Enum":"MA Hash Alg.",

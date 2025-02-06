@@ -35,7 +35,7 @@ typedef enum {
     ARGUMENT_TYPE_NODE_ROLE = 7,
 } argument_type_e;
 
-#define PARSER_MAX_ARGCOUNT          9
+#define PARSER_MAX_ARGCOUNT          10
 #define METADATA_HASH_SIZE           32  // CX_SHA256_SIZE
 #define MAX_METADATA_MAX_ARRAY_ITEMS 20
 
