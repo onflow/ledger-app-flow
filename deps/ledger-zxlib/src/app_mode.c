@@ -32,7 +32,7 @@ app_mode_temporary_t app_mode_temporary;
 uint8_t blindsign_required;
 
 #if defined(TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2) || defined(TARGET_STAX) || \
-    defined(TARGET_FLEX)
+    defined(TARGET_FLEX) || defined(TARGET_APEX_P)
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////

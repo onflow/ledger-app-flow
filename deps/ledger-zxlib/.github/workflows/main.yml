@@ -1,26 +1,101 @@
 name: "Main workflow"
 on: push
+permissions:
+  contents: read
 
 jobs:
   configure:
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.repository_owner == 'zondax' && 'zondax-runners' || 'ubuntu-latest' }}
     outputs:
       uid_gid: ${{ steps.get-user.outputs.uid_gid }}
     steps:
       - id: get-user
         run: echo "uid_gid=$(id -u):$(id -g)" >> $GITHUB_OUTPUT
 
-  build:
-    runs-on: ubuntu-latest
+  setup:
+    runs-on: ${{ github.repository_owner == 'zondax' && 'zondax-runners' || 'ubuntu-latest' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: true
-      - run: cmake -DCMAKE_BUILD_TYPE=Debug . && make
+      - name: Cache APT packages
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt/archives
+          key: ${{ runner.os }}-apt-${{ hashFiles('**/main.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-apt-
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl protobuf-compiler build-essential git wget unzip python3 python3-pip \
+            libssl-dev libffi-dev libreadline-dev zlib1g-dev libbz2-dev libsqlite3-dev libncurses5-dev \
+            libgdbm-dev libnss3-dev liblzma-dev libxml2-dev libxmlsec1-dev libffi-dev libyaml-dev
+      - name: Cache CMake installation
+        uses: actions/cache@v4
+        id: cmake-cache
+        with:
+          path: /opt/cmake
+          key: cmake-3.28.0-${{ runner.os }}
+      - name: Install CMake 3.28
+        if: steps.cmake-cache.outputs.cache-hit != 'true'
+        run: |
+          wget https://github.com/Kitware/CMake/releases/download/v3.28.0/cmake-3.28.0-linux-x86_64.sh
+          sudo mkdir -p /opt/cmake
+          sudo sh cmake-3.28.0-linux-x86_64.sh --skip-license --prefix=/opt/cmake
+      - name: Setup CMake symlinks
+        run: |
+          sudo ln -sf /opt/cmake/bin/cmake /usr/local/bin/cmake
+          sudo ln -sf /opt/cmake/bin/ctest /usr/local/bin/ctest
+      - name: Verify CMake version
+        run: cmake --version
+
+  build:
+    runs-on: ${{ github.repository_owner == 'zondax' && 'zondax-runners' || 'ubuntu-latest' }}
+    needs: setup
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Restore APT cache
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt/archives
+          key: ${{ runner.os }}-apt-${{ hashFiles('**/main.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-apt-
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl protobuf-compiler build-essential git wget unzip python3 python3-pip \
+            libssl-dev libffi-dev libreadline-dev zlib1g-dev libbz2-dev libsqlite3-dev libncurses5-dev \
+            libgdbm-dev libnss3-dev liblzma-dev libxml2-dev libxmlsec1-dev libffi-dev libyaml-dev
+      - name: Restore CMake cache
+        uses: actions/cache@v4
+        id: cmake-cache-restore
+        with:
+          path: /opt/cmake
+          key: cmake-3.28.0-${{ runner.os }}
+      - name: Install CMake 3.28 (if cache miss)
+        if: steps.cmake-cache-restore.outputs.cache-hit != 'true'
+        run: |
+          wget https://github.com/Kitware/CMake/releases/download/v3.28.0/cmake-3.28.0-linux-x86_64.sh
+          sudo mkdir -p /opt/cmake
+          sudo sh cmake-3.28.0-linux-x86_64.sh --skip-license --prefix=/opt/cmake
+      - name: Setup CMake symlinks
+        run: |
+          sudo ln -sf /opt/cmake/bin/cmake /usr/local/bin/cmake
+          sudo ln -sf /opt/cmake/bin/ctest /usr/local/bin/ctest
+      - name: Verify CMake version
+        run: cmake --version
+      - run: make build
+      - name: Run C++ tests
+        run: make test
 
   check_version:
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.repository_owner == 'zondax' && 'zondax-runners' || 'ubuntu-latest' }}
     outputs:
       version: ${{ steps.get-version.outputs.version }}
       exists: ${{ steps.get-version.outputs.exists }}
@@ -46,7 +121,9 @@ jobs:
         run: exit 1
 
   tag:
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.repository_owner == 'zondax' && 'zondax-runners' || 'ubuntu-latest' }}
+    permissions:
+      contents: write
     needs:
       - build
       - check_version

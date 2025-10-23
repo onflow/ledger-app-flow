@@ -21,6 +21,7 @@ TESTS_JS_PACKAGE?=
 TESTS_JS_DIR?=
 
 LEDGER_SRC=$(CURDIR)/app
+FUZZ_COVERAGE_DIR=$(CURDIR)/fuzz/coverage
 DOCKER_APP_SRC=/app
 DOCKER_APP_BIN=$(DOCKER_APP_SRC)/app/bin/app.elf
 
@@ -29,12 +30,14 @@ DOCKER_BOLOS_SDKX = NANOX_SDK
 DOCKER_BOLOS_SDKS2 = NANOSP_SDK
 DOCKER_BOLOS_SDKST = STAX_SDK
 DOCKER_BOLOS_SDKFL = FLEX_SDK
+DOCKER_BOLOS_SDKAP = APEX_P_SDK
 
 TARGET_S = nanos
 TARGET_X = nanox
 TARGET_S2 = nanos2
 TARGET_ST = stax
 TARGET_FL = flex
+TARGET_AP = apex_p
 
 # Note: This is not an SSH key, and being public represents no risk
 SCP_PUBKEY=049bc79d139c70c83a4b19e8922e5ee3e0080bb14a2e8b0752aa42cda90a1463f689b0fa68c1c0246845c2074787b649d0d8a6c0b97d4607065eee3057bdf16b83
@@ -49,7 +52,7 @@ $(info TESTS_ZEMU_DIR        : $(TESTS_ZEMU_DIR))
 $(info TESTS_JS_DIR          : $(TESTS_JS_DIR))
 $(info TESTS_JS_PACKAGE      : $(TESTS_JS_PACKAGE))
 
-DOCKER_IMAGE_ZONDAX=zondax/ledger-app-builder:ledger-493c1c105dc3e78415c25b3a292e2577ce183615
+DOCKER_IMAGE_ZONDAX=zondax/ledger-app-builder:ledger-ca5b0e8ca6730a7d8ba36bae8942a9a7bb6dc7fb
 DOCKER_IMAGE_LEDGER=ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
 
 ifdef INTERACTIVE
@@ -82,6 +85,7 @@ define run_docker
 	-e COIN=$(COIN) \
 	-e APP_TESTING=$(APP_TESTING) \
 	-e PRODUCTION_BUILD=$(PRODUCTION_BUILD) \
+	-e SKIP_NANOS=$(SKIP_NANOS) \
 	$(DOCKER_IMAGE_ZONDAX) "$(3)"
 endef
 
@@ -91,13 +95,18 @@ define run_docker_ledger
 	$(DOCKER_IMAGE_LEDGER) "$(1)"
 endef
 
+SKIP_NANOS ?= 0
+
 all:
 	@$(MAKE) clean
+ifeq ($(SKIP_NANOS), 0)
 	@$(MAKE) buildS
+endif
 	@$(MAKE) buildX
 	@$(MAKE) buildS2
 	@$(MAKE) buildST
 	@$(MAKE) buildFL
+	@$(MAKE) buildAP
 
 .PHONY: check_python
 check_python:
@@ -115,7 +124,7 @@ pull:
 
 .PHONY: ledger_lint
 ledger_lint:
-	$(call run_docker_ledger,"scan-build --use-cc=clang -analyze-headers -enable-checker security -enable-checker unix -enable-checker valist -o scan-build --status-bugs make default")
+	$(call run_docker,$(DOCKER_BOLOS_SDKS2),$(TARGET_S2),scan-build --use-cc=clang -analyze-headers -enable-checker security -enable-checker unix -enable-checker valist -o scan-build --status-bugs make)
 
 .PHONY: build_rustS
 build_rustS:
@@ -137,6 +146,10 @@ build_rustST:
 build_rustFL:
 	$(call run_docker,$(DOCKER_BOLOS_SDKFL),$(TARGET_FL),make -j $(NPROC) rust)
 
+.PHONY: build_rustAP
+build_rustAP:
+	$(call run_docker,$(DOCKER_BOLOS_SDKAP),$(TARGET_AP),make -j $(NPROC) rust)
+
 .PHONY: convert_icon
 convert_icon:
 	@convert $(LEDGER_SRC)/tmp.gif -monochrome -size 16x16 -depth 1 $(LEDGER_SRC)/nanos_icon.gif
@@ -144,7 +157,11 @@ convert_icon:
 
 .PHONY: buildS
 buildS:
+ifeq ($(SKIP_NANOS), 0)
 	$(call run_docker,$(DOCKER_BOLOS_SDKS),$(TARGET_S),make -j $(NPROC))
+else
+	@echo "Skipping NanoS build (SKIP_NANOS=1)"
+endif
 
 .PHONY: buildX
 buildX:
@@ -161,6 +178,10 @@ buildST:
 .PHONY: buildFL
 buildFL:
 	$(call run_docker,$(DOCKER_BOLOS_SDKFL),$(TARGET_FL),make -j $(NPROC))
+
+.PHONY: buildAP
+buildAP:
+	$(call run_docker,$(DOCKER_BOLOS_SDKAP),$(TARGET_AP),make -j $(NPROC))
 
 .PHONY: clean_output
 clean_output:
@@ -198,6 +219,10 @@ shellST:
 shellFL:
 	$(call run_docker,$(DOCKER_BOLOS_SDKFL) -t,$(TARGET_FL),bash)
 
+.PHONY: shellAP
+shellAP:
+	$(call run_docker,$(DOCKER_BOLOS_SDKAP) -t,$(TARGET_AP),bash)
+
 .PHONY: loadS
 loadS:
 	${LEDGER_SRC}/pkg/installer_s.sh load
@@ -226,9 +251,18 @@ deleteST:
 loadFL:
 	${LEDGER_SRC}/pkg/installer_flex.sh load
 
+.PHONY: loadAP
+loadAP:
+	${LEDGER_SRC}/pkg/installer_apex.sh load
+
 .PHONY: deleteFL
 deleteFL:
 	${LEDGER_SRC}/pkg/installer_flex.sh delete
+
+.PHONY: deleteAP
+deleteAP:
+	${LEDGER_SRC}/pkg/installer_apex.sh delete
+
 
 .PHONY: sizeS
 sizeS:
@@ -249,6 +283,10 @@ sizeST:
 .PHONY: sizeFL
 sizeFL:
 	$(CURDIR)/deps/ledger-zxlib/scripts/getSize.py flex
+
+.PHONY: sizeAP
+sizeAP:
+	$(CURDIR)/deps/ledger-zxlib/scripts/getSize.py apex
 
 .PHONY: show_info_recovery_mode
 show_info_recovery_mode:
@@ -363,8 +401,12 @@ cpp_test:
 
 .PHONY: fuzz_build
 fuzz_build:
-	cmake -B build -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug -DENABLE_FUZZING=1 -DENABLE_SANITIZERS=1 .
-	make -C build
+	cmake -B fuzz/build -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Debug -DENABLE_FUZZING=1 -DENABLE_SANITIZERS=1 .
+	make -C fuzz/build
+
+.PHONY: fuzz_clean
+fuzz_clean:
+	rm -rf fuzz/corpora fuzz/coverage fuzz/logs fuzz/build
 
 .PHONY: fuzz
 fuzz: fuzz_build
@@ -374,6 +416,35 @@ fuzz: fuzz_build
 fuzz_crash: FUZZ_LOGGING=1
 fuzz_crash: fuzz_build
 	./fuzz/run-fuzz-crashes.py
+
+.PHONY: fuzz_report
+fuzz_report:
+	@if [ ! -d "$(FUZZ_COVERAGE_DIR)" ] || [ -z "$$(ls -A $(FUZZ_COVERAGE_DIR) 2>/dev/null)" ]; then \
+		echo "Error: Coverage directory is empty. Please run the fuzzer with ENABLE_COVERAGE flag ON"; \
+		exit 1; \
+	fi
+	llvm-profdata merge -sparse $(FUZZ_COVERAGE_DIR)/*.profraw -o $(FUZZ_COVERAGE_DIR)/coverage.profdata
+	llvm-cov report fuzz/build/fuzz-parser_parse -instr-profile=$(FUZZ_COVERAGE_DIR)/coverage.profdata
+
+.PHONY: fuzz_report_html
+fuzz_report_html:
+	@if [ ! -d "$(FUZZ_COVERAGE_DIR)" ] || [ -z "$$(ls -A $(FUZZ_COVERAGE_DIR) 2>/dev/null)" ]; then \
+		echo "Error: Coverage directory is empty. Please run the fuzzer with ENABLE_COVERAGE flag ON"; \
+		exit 1; \
+	fi
+	llvm-profdata merge -sparse $(FUZZ_COVERAGE_DIR)/*.profraw -o $(FUZZ_COVERAGE_DIR)/coverage.profdata
+	llvm-cov show fuzz/build/fuzz-parser_parse -instr-profile=$(FUZZ_COVERAGE_DIR)/coverage.profdata -format=html -output-dir=$(FUZZ_COVERAGE_DIR)/report_html
+	open $(FUZZ_COVERAGE_DIR)/report_html/index.html
+
+.PHONY: fuzz_fmt
+fuzz_fmt:
+	@echo "🎨 Formatting Python files in fuzzing infrastructure..."
+	@$(MAKE) -C $(CURDIR)/deps/ledger-zxlib/fuzzing format
+
+.PHONY: fuzz_fmt_check
+fuzz_fmt_check:
+	@echo "🔍 Checking Python file formatting in fuzzing infrastructure..."
+	@$(MAKE) -C $(CURDIR)/deps/ledger-zxlib/fuzzing check
 
 .PHONY: format
 format:
@@ -394,3 +465,6 @@ ts_format:
 ts_lint:
 	if [ -d js ]; then cd js && bun run lint; fi
 	if [ -d tests_zemu ]; then cd tests_zemu && bun run lint; fi
+
+update_snapshots:
+	cd tests_zemu && rm -rf snapshots/* && cp -r snapshots-tmp/* snapshots/

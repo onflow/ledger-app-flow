@@ -91,6 +91,7 @@ typedef enum {
     REVIEW_GENERIC,
     REVIEW_TXN,
     REVIEW_MSG,
+    REVIEW_GROUP_TXN,
 } review_type_e;
 
 #ifdef APP_SECRET_MODE_ENABLED
@@ -119,14 +120,34 @@ void view_blindsign_error_show();
 void view_review_init(viewfunc_getItem_t viewfuncGetItem, viewfunc_getNumItems_t viewfuncGetNumItems,
                       viewfunc_accept_t viewfuncAccept);
 
-void view_review_init_progressive(
-    viewfunc_getItem_t viewfuncGetItem,
-    viewfunc_getNumItems_t viewfuncGetNumItems,
-    viewfunc_accept_t viewfuncAccept);
+void view_review_init_progressive(viewfunc_getItem_t viewfuncGetItem, viewfunc_getNumItems_t viewfuncGetNumItems,
+                                  viewfunc_accept_t viewfuncAccept);
 
 void view_inspect_init(viewfunc_getInnerItem_t view_funcGetInnerItem, viewfunc_getNumItems_t view_funcGetInnerNumItems,
                        viewfunc_canInspectItem_t view_funcCanInspectItem);
 
 void view_review_show(review_type_e reviewKind);
 
+void view_review_show_with_intent(review_type_e reviewKind, const char *intent);
+
+void view_spinner_show(const char *text);
+
 void view_review_show_generic(review_type_e reviewKind, const char *title, const char *validate);
+
+#if defined(TARGET_STAX) || defined(TARGET_FLEX) || defined(TARGET_APEX_P)
+typedef enum {
+    EXPERT_MODE = 0,
+#ifdef APP_ACCOUNT_MODE_ENABLED
+    ACCOUNT_MODE,
+#endif
+#ifdef APP_SECRET_MODE_ENABLED
+    SECRET_MODE,
+#endif
+#ifdef APP_BLINDSIGN_MODE_ENABLED
+    BLINDSIGN_MODE,
+#endif
+    SETTINGS_SWITCHES_NB_LEN
+} settings_list_e;
+
+void view_set_switch_subtext(settings_list_e switch_id, const char *subtext);
+#endif  // TARGET_STAX || TARGET_FLEX || TARGET_APEX_P

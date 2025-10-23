@@ -16,7 +16,7 @@
 #pragma once
 
 #if !defined(TARGET_NANOS) && !defined(TARGET_NANOX) && !defined(TARGET_NANOS2) && !defined(TARGET_STAX) && \
-    !defined(TARGET_FLEX)
+    !defined(TARGET_FLEX) && !defined(TARGET_APEX_P)
 
 // This macros are kept for backwards compatibility
 // the most recent SDK has unified implementations and deprecated the original os_***

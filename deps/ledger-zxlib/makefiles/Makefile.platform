@@ -17,93 +17,11 @@
 
 ############
 # Platform
-
-DEFINES       += PRINTF\(...\)=
-
-APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
-DEFINES       += APPVERSION=\"$(APPVERSION)\"
-
-DEFINES       += OS_IO_SEPROXYHAL
-DEFINES       += HAVE_SPRINTF
-DEFINES       += HAVE_IO_USB HAVE_L4_USBLIB IO_USB_MAX_ENDPOINTS=7 IO_HID_EP_LENGTH=64 HAVE_USB_APDU
-
-DEFINES       += LEDGER_MAJOR_VERSION=$(APPVERSION_M) LEDGER_MINOR_VERSION=$(APPVERSION_N) LEDGER_PATCH_VERSION=$(APPVERSION_P)
-
-DEFINES       += USB_SEGMENT_SIZE=64
 DEFINES       += HAVE_BOLOS_APP_STACK_CANARY
 DEFINES       += HAVE_ZONDAX_CANARY
 
-DEFINES       += HAVE_WEBUSB WEBUSB_URL_SIZE_B=0 WEBUSB_URL=""
-
-ifeq ($(TARGET_NAME),TARGET_NANOS)
-# Nano S
-	DEFINES += IO_SEPROXYHAL_BUFFER_SIZE_B=128
-	DEFINES += HAVE_BAGL
-else ifeq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_STAX TARGET_FLEX))
-# Stax and Flex
-	DEFINES += IO_SEPROXYHAL_BUFFER_SIZE_B=300
-	DEFINES += NBGL_QRCODE
-	SDK_SOURCE_PATH += qrcode
-
-#	Required by SDK
-	DEFINES += UNUSED\(x\)=\(void\)x
-else
-# Nano X/S+
-DEFINES       += IO_SEPROXYHAL_BUFFER_SIZE_B=300
-
-DEFINES       += HAVE_GLO096
-DEFINES       += HAVE_BAGL BAGL_WIDTH=128 BAGL_HEIGHT=64
-DEFINES       += HAVE_BAGL_ELLIPSIS # long label truncation feature
-DEFINES       += HAVE_BAGL_FONT_OPEN_SANS_REGULAR_11PX
-DEFINES       += HAVE_BAGL_FONT_OPEN_SANS_EXTRABOLD_11PX
-DEFINES       += HAVE_BAGL_FONT_OPEN_SANS_LIGHT_16PX
-DEFINES       += HAVE_UX_FLOW
-endif
-
-BLE_TARGETS := TARGET_STAX TARGET_NANOX TARGET_FLEX
-ifeq ($(TARGET_NAME),$(filter $(TARGET_NAME), $(BLE_TARGETS)))
-# X/Stax specific
-DEFINES       += HAVE_BLE
-DEFINES       += HAVE_BLE_APDU BLE_COMMAND_TIMEOUT_MS=2000
-
-SDK_SOURCE_PATH  += lib_blewbxx lib_blewbxx_impl
-endif
-
 #Feature temporarily disabled
 DEFINES   += LEDGER_SPECIFIC
-
-# Compiler, assembler, and linker
-
-ifneq ($(BOLOS_ENV),)
-$(info BOLOS_ENV is $(BOLOS_ENV))
-CLANGPATH := /usr/bin/
-GCCPATH := /usr/bin/
-else
-$(info BOLOS_ENV is not set: falling back to CLANGPATH and GCCPATH)
-endif
-
-ifeq ($(CLANGPATH),)
-$(info CLANGPATH is not set: clang will be used from PATH)
-endif
-
-ifeq ($(GCCPATH),)
-$(info GCCPATH is not set: arm-none-eabi-* will be used from PATH)
-endif
-
-#########################
-
-CC := $(CLANGPATH)clang
-
-AS := $(GCCPATH)arm-none-eabi-gcc
-AFLAGS +=
-
-LD       := $(GCCPATH)arm-none-eabi-gcc
-LDLIBS   += -lm -lgcc -lc
-
-##########################
-include $(BOLOS_SDK)/Makefile.glyphs
-
-APP_SOURCE_PATH += $(CURDIR)/src
 
 ZXLIB_DIR := $(CURDIR)/../deps/ledger-zxlib/
 APP_SOURCE_PATH += $(ZXLIB_DIR)/include
@@ -111,8 +29,16 @@ APP_SOURCE_PATH += $(ZXLIB_DIR)/src
 APP_SOURCE_PATH += $(ZXLIB_DIR)/app/common
 APP_SOURCE_PATH += $(ZXLIB_DIR)/app/ui
 
-SDK_SOURCE_PATH += lib_stusb lib_stusb_impl
+# Set default value for ENABLE_EVM if not already defined
+ENABLE_EVM ?= 0
+# Add EVM source path conditionally
+ifeq ($(ENABLE_EVM), 1)
+APP_SOURCE_PATH += $(ZXLIB_DIR)/evm
+endif
 
-ifneq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_STAX TARGET_FLEX))
-	SDK_SOURCE_PATH += lib_ux
+include $(BOLOS_SDK)/Makefile.standard_app
+
+ifeq ($(TARGET_NAME),TARGET_NANOS)
+# Nano S
+DEFINES += HAVE_UX_LEGACY
 endif

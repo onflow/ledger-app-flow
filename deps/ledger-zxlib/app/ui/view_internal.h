@@ -27,13 +27,19 @@
 
 #if defined(TARGET_NANOX) || defined(TARGET_NANOS2)
 #define MAX_CHARS_PER_KEY_LINE 64
+#ifdef ZXLIB_LIGHT_MODE
+#define MAX_CHARS_PER_VALUE1_LINE 256
+#else
 #define MAX_CHARS_PER_VALUE1_LINE 4096
+#endif
+#define MAX_CHARS_SUBMSG_LINE 2048
 #define MAX_CHARS_HEXMESSAGE 160
-#elif defined(TARGET_STAX) || defined(TARGET_FLEX)
+#elif defined(TARGET_STAX) || defined(TARGET_FLEX) || defined(TARGET_APEX_P)
 #include "nbgl_use_case.h"
 #define MAX_LINES_PER_PAGE_REVIEW NB_MAX_LINES_IN_REVIEW
 #define MAX_CHARS_PER_KEY_LINE 64
-#define MAX_CHARS_PER_VALUE1_LINE 120
+#define MAX_CHARS_PER_VALUE1_LINE 180
+#define MAX_CHARS_SUBMSG_LINE 180
 #define MAX_CHARS_HEXMESSAGE 160
 #else
 #ifndef MAX_CHARS_PER_VALUE_LINE
@@ -41,6 +47,7 @@
 #endif
 #define MAX_CHARS_PER_KEY_LINE (MAX_CHARS_PER_VALUE_LINE + 1)
 #define MAX_CHARS_PER_VALUE1_LINE (2 * MAX_CHARS_PER_VALUE_LINE + 1)
+#define MAX_CHARS_PER_SUBMSG_LINE (2 * MAX_CHARS_PER_VALUE_LINE + 1)
 #define MAX_CHARS_PER_VALUE2_LINE (MAX_CHARS_PER_VALUE_LINE + 1)
 #define MAX_CHARS_HEXMESSAGE 40
 #endif
@@ -83,11 +90,13 @@ static const char *review_skip_key_msg = "Tx details";
 static const char *review_skip_value_msg = "not verifiable";
 static const char *review_skip_key_msg_2 = "Could lose";
 static const char *review_skip_value_msg_2 = "all assets";
+static const char *review_msgvalue = "Review";
+static const char *review_msgvalue_2 = "Message";
 
 // Review msg string can be customizable in each app
 #if !defined(REVIEW_MSG_TITLE) && !defined(REVIEW_MSG_VALUE)
-#define REVIEW_MSG_TITLE "Please"
-#define REVIEW_MSG_VALUE "review"
+#define REVIEW_MSG_TITLE "Review"
+#define REVIEW_MSG_VALUE "Message"
 #endif
 
 static const char *review_msgKey = REVIEW_MSG_TITLE;
@@ -112,7 +121,7 @@ static const char *shortcut_value = SHORTCUT_VALUE;
 
 // FIXME: Wait to be fixed on SDK:
 // https://github.com/LedgerHQ/ledger-secure-sdk/blob/fe169b19c7445f2477c26035a827c22ba9f84964/lib_nbgl/include/nbgl_use_case.h#L59
-#if defined(TARGET_STAX) || defined(TARGET_FLEX)
+#if defined(TARGET_STAX) || defined(TARGET_FLEX) || defined(TARGET_APEX_P)
 #ifdef NB_MAX_DISPLAYED_PAIRS_IN_REVIEW
 #undef NB_MAX_DISPLAYED_PAIRS_IN_REVIEW
 #define NB_MAX_DISPLAYED_PAIRS_IN_REVIEW 6
@@ -121,7 +130,7 @@ static const char *shortcut_value = SHORTCUT_VALUE;
 
 typedef struct {
     struct {
-#if defined(TARGET_STAX) || defined(TARGET_FLEX)
+#if defined(TARGET_STAX) || defined(TARGET_FLEX) || defined(TARGET_APEX_P)
         char *key;
         char *value;
         char keys[NB_MAX_DISPLAYED_PAIRS_IN_REVIEW][MAX_CHARS_PER_KEY_LINE];
@@ -207,7 +216,11 @@ void view_message_impl(const char *title, const char *message);
 
 void view_error_show_impl();
 
+void view_settings_show_impl();
+
 void view_custom_error_show_impl();
+
+void view_spinner_impl(const char *text);
 
 void view_blindsign_error_show_impl();
 
@@ -216,6 +229,8 @@ void h_paging_init();
 void h_inspect_init();
 
 void view_review_show_impl(unsigned int requireReply, const char *title, const char *validate);
+
+void view_review_show_with_intent_impl(unsigned int requireReply, const char *intent);
 
 void view_inspect_show_impl();
 

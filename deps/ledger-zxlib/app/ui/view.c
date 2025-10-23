@@ -19,6 +19,8 @@
 #include "view_internal.h"
 #include "zxmacros.h"
 
+#define DEFAULT_SPINNER_TEXT "Processing..."
+
 view_t viewdata;
 unsigned int review_type = 0;
 
@@ -47,6 +49,8 @@ void view_idle_show(uint8_t item_idx, const char *statusString) { view_idle_show
 
 void view_message_show(const char *title, const char *message) { view_message_impl(title, message); }
 
+void view_spinner_show(const char *text) { view_spinner_impl(text ? text : DEFAULT_SPINNER_TEXT); }
+
 void view_review_init(viewfunc_getItem_t viewfuncGetItem, viewfunc_getNumItems_t viewfuncGetNumItems,
                       viewfunc_accept_t viewfuncAccept) {
     viewdata.viewfuncGetItem = viewfuncGetItem;
@@ -56,20 +60,15 @@ void view_review_init(viewfunc_getItem_t viewfuncGetItem, viewfunc_getNumItems_t
 #if defined(TARGET_NANOS) || defined(TARGET_NANOS2) || defined(TARGET_NANOX)
     viewdata.with_confirmation = false;
 #endif
-
 }
 
-void view_review_init_progressive(
-    viewfunc_getItem_t viewfuncGetItem,
-    viewfunc_getNumItems_t viewfuncGetNumItems,
-    viewfunc_accept_t viewfuncAccept) {
-
+void view_review_init_progressive(viewfunc_getItem_t viewfuncGetItem, viewfunc_getNumItems_t viewfuncGetNumItems,
+                                  viewfunc_accept_t viewfuncAccept) {
     view_review_init(viewfuncGetItem, viewfuncGetNumItems, viewfuncAccept);
 
 #if defined(TARGET_NANOS) || defined(TARGET_NANOS2) || defined(TARGET_NANOX)
     viewdata.with_confirmation = true;
 #endif
-
 }
 
 void view_initialize_init(viewfunc_initialize_t viewFuncInit) { viewdata.viewfuncInitialize = viewFuncInit; }
@@ -77,6 +76,11 @@ void view_initialize_init(viewfunc_initialize_t viewFuncInit) { viewdata.viewfun
 void view_review_show(review_type_e reviewKind) {
     // Set > 0 to reply apdu message
     view_review_show_impl((unsigned int)reviewKind, NULL, NULL);
+}
+
+void view_review_show_with_intent(review_type_e reviewKind, const char *intent) {
+    // New function that explicitly handles intent
+    view_review_show_with_intent_impl((unsigned int)reviewKind, intent);
 }
 
 void view_review_show_generic(review_type_e reviewKind, const char *title, const char *validate) {
@@ -103,7 +107,7 @@ void h_reject(unsigned int requireReply) {
     view_idle_show(0, NULL);
     UX_WAIT();
 
-    if (requireReply != REVIEW_UI && requireReply != REVIEW_MSG) {
+    if (requireReply != REVIEW_UI) {
         app_reject();
     }
 }

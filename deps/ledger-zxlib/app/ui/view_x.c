@@ -31,7 +31,6 @@
 #include "view_nano_inspect.h"
 #include "view_templates.h"
 #include "zxmacros.h"
-#include "menu_handler.h"
 
 #ifdef APP_SECRET_MODE_ENABLED
 #include "secret.h"
@@ -39,6 +38,9 @@
 
 #include <stdio.h>
 #include <string.h>
+
+char intro_msg_buf[MAX_CHARS_PER_KEY_LINE];
+char intro_submsg_buf[MAX_CHARS_SUBMSG_LINE];
 
 bool custom_callback_active = false;
 // Add global variable to store original callback at the top with other globals
@@ -54,7 +56,6 @@ static void h_review_loop_inside();
 static void h_review_loop_end();
 static unsigned int handle_button_push(unsigned int button_mask, unsigned int button_mask_counter);
 static void set_button_callback(unsigned int slot);
-static void h_view_address();
 
 #ifdef APP_SECRET_MODE_ENABLED
 static void h_secret_click();
@@ -80,8 +81,8 @@ static void run_ux_review_flow(review_type_e reviewType, const ux_flow_step_t *c
 const ux_flow_step_t *ux_review_flow[MAX_REVIEW_UX_SCREENS];
 
 #include "ux.h"
-ux_state_t G_ux;
-bolos_ux_params_t G_ux_params;
+extern ux_state_t G_ux;
+extern bolos_ux_params_t G_ux_params;
 uint8_t flow_inside_loop;
 extern unsigned int review_type;
 
@@ -102,24 +103,27 @@ UX_STEP_NOCB(ux_idle_flow_3_step, bn,
                  APPVERSION_LINE2,
              });
 
-UX_STEP_NOCB_INIT(
-    ux_review_skip_step,
-    nn,
-    {
-        // This will execute during initialization without requiring validation
-        custom_callback_active = true;
-        set_button_callback(stack_slot);
-    },
-    {
-      "Press right to read",
-      "Double-press to skip"
-    });
+UX_STEP_NOCB_INIT(ux_review_skip_step, nn,
+                  {
+                      // This will execute during initialization without requiring validation
+                      custom_callback_active = true;
+                      set_button_callback(stack_slot);
+                  },
+                  {"Press right to read", "Double-press to skip"});
 
-UX_STEP_CB(ux_idle_flow_4_step, bn, h_view_address(), 
+#ifdef APP_SECRET_MODE_ENABLED
+UX_STEP_CB(ux_idle_flow_4_step, bn, h_secret_click(),
            {
-               "View",
-               "address",
+               "Developed by:",
+               "Zondax.ch",
            });
+#else
+UX_STEP_NOCB(ux_idle_flow_4_step, bn,
+             {
+                 "Developed by:",
+                 "Zondax.ch",
+             });
+#endif
 
 UX_STEP_NOCB(ux_idle_flow_5_step, bn,
              {
@@ -254,6 +258,12 @@ UX_FLOW_DEF_NOCB(ux_review_flow_1_review_title, pbb,
                      REVIEW_SCREEN_TITLE,
                      REVIEW_SCREEN_TXN_VALUE,
                  });
+UX_FLOW_DEF_NOCB(ux_review_flow_1_review_group_title, pbb,
+                 {
+                     &C_icon_app,
+                     intro_msg_buf,
+                     intro_submsg_buf,
+                 });
 UX_FLOW_DEF_NOCB(ux_review_flow_2_review_title, pbb,
                  {
                      &C_icon_app,
@@ -268,11 +278,10 @@ UX_FLOW_DEF_NOCB(ux_review_flow_3_review_title, pbb,
                  });
 UX_FLOW_DEF_NOCB(ux_review_flow_4_review_title, pbb,
                  {
-                     &C_icon_app,
+                     &C_icon_certificate,
                      REVIEW_MSG_TITLE,
                      REVIEW_MSG_VALUE,
                  });
-
 UX_STEP_INIT(ux_review_flow_2_start_step, NULL, NULL, { h_review_loop_start(); });
 #ifdef HAVE_INSPECT
 UX_STEP_CB_INIT(ux_review_flow_2_step, bnnn_paging, h_review_loop_inside(), inspect_init(),
@@ -295,20 +304,23 @@ UX_STEP_VALID(ux_review_flow_3_step_blindsign, pnn, h_approve(0),
 UX_STEP_VALID(ux_review_flow_3_step, pb, h_approve(0), {&C_icon_validate_14, APPROVE_LABEL});
 
 UX_STEP_VALID(ux_review_flow_4_step, pb, h_reject(review_type), {&C_icon_crossmark, REJECT_LABEL});
-UX_STEP_VALID(ux_review_flow_6_step, pb, h_approve(0), {&C_icon_validate_14, "Ok"});
+UX_STEP_VALID(ux_review_flow_6_step, pb, h_approve(0), {&C_icon_validate_14, APPROVE_LABEL});
 
 UX_STEP_CB_INIT(ux_review_flow_5_step, pb, NULL, h_shortcut(0), {&C_icon_eye, SHORTCUT_STR});
 
-//////////////////////////
-//////////////////////////
-//////////////////////////
-//////////////////////////
-//////////////////////////
+UX_STEP_NOCB(ux_spinner_flow_step, pb,
+             {
+                 &C_icon_processing,
+                 viewdata.key,
+             });
 
-static void h_view_address() {
-    handleMenuShowAddress();
-//    view_review_show_impl();
-}
+UX_FLOW(ux_spinner_flow, &ux_spinner_flow_step);
+
+//////////////////////////
+//////////////////////////
+//////////////////////////
+//////////////////////////
+//////////////////////////
 
 void h_review_update() {
     zxerr_t err = h_review_update_data();
@@ -357,23 +369,20 @@ void h_review_loop_end() {
                 ux_layout_bnnn_paging_reset();
                 // If we're at the end of current item and there's more to show
                 if (viewdata.with_confirmation &&
-                    (review_type == REVIEW_TXN || review_type == REVIEW_MSG) &&
-                    viewdata.pageIdx == viewdata.pageCount - 1               &&
+                    (review_type == REVIEW_TXN || review_type == REVIEW_GROUP_TXN || review_type == REVIEW_MSG) &&
+                    viewdata.pageIdx == viewdata.pageCount - 1 &&
                     // Ensure that at least the first item is displayed.
                     // The UI design may vary between applications. For example, item 0 might
                     // serve as a title for the transaction type rather than a regular item.
                     // In this implementation, we check if there is more than one item (>1).
                     // If so, we treat item 0 as a title and display the skip menu after it.
                     // This approach allows for flexible UI designs while maintaining essential functionality.
-                    viewdata.itemIdx > 1                                     &&
-                    viewdata.itemIdx < viewdata.itemCount - 1) {
-
+                    viewdata.itemIdx > 1 && viewdata.itemIdx < viewdata.itemCount - 1) {
                     // Show skip screen and enable button handler
                     uint8_t index = 0;
 
                     ux_review_flow[index++] = &ux_review_skip_step;
                     ux_review_flow[index++] = FLOW_END_STEP;
-
 
                     unsigned int current_slot = G_ux.stack_count - 1;
                     ux_flow_init(current_slot, ux_review_flow, NULL);
@@ -556,6 +565,76 @@ void view_review_show_impl(unsigned int requireReply, const char *title, const c
 
 void run_root_txn_flow() { run_ux_review_flow(review_type, &ux_review_flow_2_start_step); }
 
+void view_review_show_with_intent_impl(unsigned int requireReply, const char *intent) {
+    review_type = requireReply;
+    h_paging_init();
+    h_paging_decrease();
+
+    // Format the intro message based on the intent
+    if (intent != NULL && strlen(intent) > 0) {
+        // Put "Review transaction" or "Review message" on first line
+        const char *first_line = (review_type == REVIEW_MSG) ? "Review message" : "Review transaction";
+        snprintf(intro_msg_buf, sizeof(intro_msg_buf), "%s", first_line);
+
+        // Put "to {intent}" on second line
+        const size_t max_intent_len = sizeof(intro_submsg_buf) - 4;  // Reserve 4 bytes: "to " (3) + null terminator (1)
+        int ret = snprintf(intro_submsg_buf, sizeof(intro_submsg_buf), "to %.*s", (int)max_intent_len, intent);
+
+        // Check if truncation occurred and add ellipsis if needed
+        if (ret >= (int)sizeof(intro_submsg_buf)) {
+            const size_t buf_len = sizeof(intro_submsg_buf);
+            if (buf_len >= 4) {
+                intro_submsg_buf[buf_len - 4] = '.';
+                intro_submsg_buf[buf_len - 3] = '.';
+                intro_submsg_buf[buf_len - 2] = '.';
+                intro_submsg_buf[buf_len - 1] = '\0';
+            }
+        }
+
+        // Use the dynamic review flow for transactions and messages with intent
+        if (review_type == REVIEW_TXN) {
+            flow_inside_loop = 0;
+            if (G_ux.stack_count == 0) {
+                ux_stack_push();
+            }
+            // Build flow with dynamic title for transaction
+            uint8_t index = 0;
+            ux_review_flow[index++] = &ux_review_flow_1_review_group_title;
+            ux_review_flow[index++] = &ux_review_flow_2_start_step;
+            ux_review_flow[index++] = &ux_review_flow_2_step;
+            ux_review_flow[index++] = &ux_review_flow_2_end_step;
+            ux_review_flow[index++] = &ux_review_flow_3_step;
+            ux_review_flow[index++] = FLOW_END_STEP;
+            ux_flow_init(0, ux_review_flow, NULL);
+            return;
+        } else if (review_type == REVIEW_MSG) {
+            // Create custom flow for message with intent
+            flow_inside_loop = 0;
+            if (G_ux.stack_count == 0) {
+                ux_stack_push();
+            }
+            // Build flow with dynamic title for message
+            uint8_t index = 0;
+            // Use the group title flow which displays intro_msg_buf
+            ux_review_flow[index++] = &ux_review_flow_1_review_group_title;
+            ux_review_flow[index++] = &ux_review_flow_2_start_step;
+            ux_review_flow[index++] = &ux_review_flow_2_step;
+            ux_review_flow[index++] = &ux_review_flow_2_end_step;
+            ux_review_flow[index++] = &ux_review_flow_6_step;
+            ux_review_flow[index++] = FLOW_END_STEP;
+            ux_flow_init(0, ux_review_flow, NULL);
+            return;
+        }
+    }
+
+    // Fallback to normal review flow if no intent or other review types
+    flow_inside_loop = 0;
+    if (G_ux.stack_count == 0) {
+        ux_stack_push();
+    }
+    run_ux_review_flow((review_type_e)review_type, NULL);
+}
+
 // Build review UX flow and run it
 void run_ux_review_flow(review_type_e reviewType, const ux_flow_step_t *const start_step) {
     uint8_t index = 0;
@@ -570,6 +649,12 @@ void run_ux_review_flow(review_type_e reviewType, const ux_flow_step_t *const st
             break;
 
         case REVIEW_MSG:
+#ifdef APP_BLINDSIGN_MODE_ENABLED
+            if (app_mode_blindsign_required()) {
+                ux_review_flow[index++] = &ux_approval_blind_signing_warning_step;
+                ux_review_flow[index++] = &ux_approval_blind_signing_message_step;
+            }
+#endif
             ux_review_flow[index++] = &ux_review_flow_4_review_title;
             break;
 
@@ -582,7 +667,13 @@ void run_ux_review_flow(review_type_e reviewType, const ux_flow_step_t *const st
                 ux_review_flow[index++] = &ux_approval_blind_signing_message_step;
             }
 #endif
-            ux_review_flow[index++] = &ux_review_flow_1_review_title;
+            if (reviewType == REVIEW_GROUP_TXN) {
+                viewdata.viewfuncGetItem(0xFF, intro_msg_buf, MAX_CHARS_PER_KEY_LINE, intro_submsg_buf,
+                                         MAX_CHARS_PER_VALUE1_LINE, 0, &viewdata.pageCount);
+                ux_review_flow[index++] = &ux_review_flow_1_review_group_title;
+            } else {
+                ux_review_flow[index++] = &ux_review_flow_1_review_title;
+            }
             if (app_mode_shortcut()) {
                 ux_review_flow[index++] = &ux_review_flow_5_step;
             }
@@ -594,10 +685,18 @@ void run_ux_review_flow(review_type_e reviewType, const ux_flow_step_t *const st
     ux_review_flow[index++] = &ux_review_flow_2_end_step;
 
     if (reviewType == REVIEW_MSG) {
+#ifdef APP_BLINDSIGN_MODE_ENABLED
+        if (app_mode_blindsign_required()) {
+            ux_review_flow[index++] = &ux_review_flow_3_step_blindsign;
+        } else {
+            ux_review_flow[index++] = &ux_review_flow_6_step;
+        }
+#else
         ux_review_flow[index++] = &ux_review_flow_6_step;
+#endif
     } else {
 #ifdef APP_BLINDSIGN_MODE_ENABLED
-        if (app_mode_blindsign_required() && reviewType == REVIEW_TXN) {
+        if (app_mode_blindsign_required() && (reviewType == REVIEW_TXN || reviewType == REVIEW_GROUP_TXN)) {
             ux_review_flow[index++] = &ux_review_flow_3_step_blindsign;
         } else {
             ux_review_flow[index++] = &ux_review_flow_3_step;
@@ -605,8 +704,8 @@ void run_ux_review_flow(review_type_e reviewType, const ux_flow_step_t *const st
 #else
         ux_review_flow[index++] = &ux_review_flow_3_step;
 #endif
-        ux_review_flow[index++] = &ux_review_flow_4_step;
     }
+    ux_review_flow[index++] = &ux_review_flow_4_step;
     ux_review_flow[index++] = FLOW_END_STEP;
 
     ux_flow_init(0, ux_review_flow, start_step);
@@ -639,6 +738,15 @@ void view_custom_error_show_impl() {
 }
 
 void view_blindsign_error_show_impl() { ux_flow_init(0, ux_warning_blind_sign_flow, NULL); }
+
+void view_spinner_impl(const char *text) {
+    snprintf(viewdata.key, MAX_CHARS_PER_KEY_LINE, "%s", text);
+    ux_layout_bnnn_paging_reset();
+    if (G_ux.stack_count == 0) {
+        ux_stack_push();
+    }
+    ux_flow_init(0, ux_spinner_flow, NULL);
+}
 
 static unsigned int handle_button_push(unsigned int button_mask, unsigned int button_mask_counter) {
     UNUSED(button_mask_counter);

@@ -2,3 +2,16 @@
 \.idea/
 \.vscode/
 cmake-build-debug/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+build/*
+
+fuzzing/fuzz_local/build/
+fuzzing/fuzz_local/corpora/
+fuzzing/fuzz_local/logs/
+fuzzing/fuzz_local/coverage/
+

@@ -44,7 +44,11 @@ echo -e "${APPHEX}" > ${BIN_HEX_FILE}
 case "$1" in
   'load')
   cd "$TMP_HEX_DIR" || exit
-  python3 -m ledgerblue.loadApp "${LOAD_PARAMS[@]}" --path ${APPPATH} --path "44'/1'"
+  LOAD_CMD="python3 -m ledgerblue.loadApp ${LOAD_PARAMS[@]}"
+  for path in "${APPPATHS[@]}"; do
+    LOAD_CMD="$LOAD_CMD --path \"$path\""
+  done
+  eval "$LOAD_CMD"
   ;;
   'delete')
   python3 -m ledgerblue.deleteApp "${DELETE_PARAMS[@]}"

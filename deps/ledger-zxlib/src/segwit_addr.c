@@ -26,8 +26,9 @@
 
 uint32_t bech32_polymod_step(uint32_t pre) {
     uint8_t b = pre >> 25u;
-    return ((pre & 0x1FFFFFFu) << 5u) ^ (-((b >> 0u) & 1u) & 0x3b6a57b2UL) ^ (-((b >> 1u) & 1u) & 0x26508e6dUL) ^
-           (-((b >> 2u) & 1u) & 0x1ea119faUL) ^ (-((b >> 3u) & 1u) & 0x3d4233ddUL) ^ (-((b >> 4u) & 1u) & 0x2a1462b3UL);
+    return ((pre & 0x1FFFFFF) << 5) ^ ((uint32_t) - ((b >> 0) & 1) & 0x3b6a57b2UL) ^
+           ((uint32_t) - ((b >> 1) & 1) & 0x26508e6dUL) ^ ((uint32_t) - ((b >> 2) & 1) & 0x1ea119faUL) ^
+           ((uint32_t) - ((b >> 3) & 1) & 0x3d4233ddUL) ^ ((uint32_t) - ((b >> 4) & 1) & 0x2a1462b3UL);
 }
 
 static uint32_t bech32_final_constant(bech32_encoding enc) {
@@ -148,8 +149,15 @@ int convert_bits(uint8_t *out, size_t *outlen, int outBits, const uint8_t *in, s
     uint32_t val = 0;
     int bits = 0;
     uint32_t maxv = (((uint32_t)1u) << outBits) - 1u;
-    while (inLen--) {
-        val = (val << inBits) | *(in++);
+    uint32_t max_acc = (((uint32_t)1u) << (inBits + outBits - 1u)) - 1u;
+
+    while (inLen > 0) {
+        inLen--;
+        uint8_t value = *(in++);
+        if (value >> inBits) {
+            return 0;
+        }
+        val = ((val << inBits) | value) & max_acc;
         bits += inBits;
         while (bits >= outBits) {
             bits -= outBits;

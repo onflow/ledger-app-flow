@@ -50,7 +50,7 @@ extern void explicit_bzero(void *s, size_t n) __THROW __nonnull((1));
 #endif
 
 #if defined(TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2) || defined(TARGET_STAX) || \
-    defined(TARGET_FLEX)
+    defined(TARGET_FLEX) || defined(TARGET_APEX_P)
 #include "zxmacros_ledger.h"
 #else
 
@@ -100,7 +100,7 @@ void zemu_log_stack(const char *ctx);
     }
 
 #if (defined(TARGET_NANOS) || defined(TARGET_NANOX) || defined(TARGET_NANOS2) || defined(TARGET_STAX)) || \
-    defined(TARGET_FLEX)
+    defined(TARGET_FLEX) || defined(TARGET_APEX_P)
 #if defined(ZEMU_LOGGING)
 __Z_INLINE void zemu_log(const char *buf) {
     asm volatile(

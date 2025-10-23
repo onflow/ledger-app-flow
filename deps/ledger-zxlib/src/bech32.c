@@ -42,13 +42,15 @@ zxerr_t bech32EncodeFromBytes(char *out, size_t out_len, const char *hrp, const 
     size_t tmp_size = 0;
     MEMZERO(tmp_data, sizeof(tmp_data));
 
-    convert_bits(tmp_data, &tmp_size, 5, in, in_len, 8, pad);
+    if (!convert_bits(tmp_data, &tmp_size, 5, in, in_len, 8, pad)) {
+        return zxerr_encoding_failed;
+    }
+
     if (tmp_size >= out_len) {
         return zxerr_out_of_bounds;
     }
 
-    int err = bech32_encode(out, hrp, tmp_data, tmp_size, enc);
-    if (err == 0) {
+    if (!bech32_encode(out, hrp, tmp_data, tmp_size, enc)) {
         return zxerr_encoding_failed;
     }
 

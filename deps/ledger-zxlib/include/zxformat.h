@@ -19,6 +19,8 @@
 extern "C" {
 #endif
 
+#include <stdbool.h>
+
 #include "zxerror.h"
 #include "zxmacros.h"
 
@@ -43,7 +45,7 @@ extern "C" {
             tmp = number % 10;                                                       \
             tmp = tmp < 0 ? -tmp : tmp;                                              \
             *(p++) = (char)('0' + tmp);                                              \
-            number /= 10u;                                                           \
+            number /= 10;                                                            \
         }                                                                            \
         while (p > data) {                                                           \
             p--;                                                                     \
@@ -118,31 +120,80 @@ __Z_INLINE void bip32_to_str(char *s, uint32_t max, const uint32_t *path, uint8_
 
 __Z_INLINE void bip44_to_str(char *s, uint32_t max, const uint32_t path[5]) { bip32_to_str(s, max, path, 5); }
 
+__Z_INLINE uint64_t parse_digits_to_uint64(const char *start, const char *end, uint64_t limit, char *error) {
+    if (error != NULL) {
+        *error = 0;
+    }
+
+    uint64_t value = 0;
+    bool has_digits = false;
+
+    for (const char *s = start; s < end; s++) {
+        uint64_t delta = (uint64_t)(*s - '0');
+        if (delta <= 9u) {
+            has_digits = true;
+            // Check for overflow before multiplication and addition
+            if (value > (limit - delta) / 10u) {
+                if (error != NULL) {
+                    *error = 1;
+                }
+                return 0;
+            }
+            value = value * 10u + delta;
+        } else {
+            if (error != NULL) {
+                *error = 1;
+            }
+            return 0;
+        }
+    }
+
+    // Check if no digits were processed
+    if (!has_digits) {
+        if (error != NULL) {
+            *error = 1;
+        }
+        return 0;
+    }
+
+    return value;
+}
+
 __Z_INLINE int8_t str_to_int8(const char *start, const char *end, char *error) {
+    if (start > end) {
+        if (error != NULL) {
+            *error = 1;
+        }
+        return 0;
+    }
+
     int sign = 1;
     if (*start == '-') {
         sign = -1;
         start++;
     }
 
-    int64_t value = 0;
-    int multiplier = 1;
-    for (const char *s = end - 1; s >= start; s--) {
-        int delta = (*s - '0');
-        if (delta >= 0 && delta <= 9) {
-            value += (delta * multiplier);
-            multiplier *= 10;
-        } else {
-            if (error != NULL) {
-                *error = 1;
-                return 0;
-            }
-        }
+    const uint64_t limit = (sign < 0) ? ((uint64_t)INT64_MAX + 1u) : (uint64_t)INT64_MAX;
+    uint64_t value = parse_digits_to_uint64(start, end, limit, error);
+
+    // If parsing failed, error is already set by the helper function
+    if (error != NULL && *error != 0) {
+        return 0;
     }
 
-    value *= sign;
-    if (value >= INT8_MIN && value <= INT8_MAX) {
-        return (int8_t)value;
+    int64_t signed_value;
+    if (sign < 0) {
+        if (value == ((uint64_t)INT64_MAX + 1u)) {
+            signed_value = INT64_MIN;
+        } else {
+            signed_value = -(int64_t)value;
+        }
+    } else {
+        signed_value = (int64_t)value;
+    }
+
+    if (signed_value >= INT8_MIN && signed_value <= INT8_MAX) {
+        return (int8_t)signed_value;
     }
     if (error != NULL) {
         *error = 1;
@@ -151,28 +202,34 @@ __Z_INLINE int8_t str_to_int8(const char *start, const char *end, char *error) {
 }
 
 __Z_INLINE int64_t str_to_int64(const char *start, const char *end, char *error) {
+    if (start > end) {
+        if (error != NULL) {
+            *error = 1;
+        }
+        return 0;
+    }
+
     int sign = 1;
     if (*start == '-') {
         sign = -1;
         start++;
     }
 
-    int64_t value = 0;
-    int64_t multiplier = 1;
-    for (const char *s = end - 1; s >= start; s--) {
-        int64_t delta = (*s - '0');
-        if (delta >= 0 && delta <= 9) {
-            value += delta * multiplier;
-            multiplier *= 10;
-        } else {
-            if (error != NULL) {
-                *error = 1;
-                return 0;
-            }
-        }
+    const uint64_t limit = (sign < 0) ? ((uint64_t)INT64_MAX + 1u) : (uint64_t)INT64_MAX;
+    uint64_t value = parse_digits_to_uint64(start, end, limit, error);
+
+    // If parsing failed, error is already set by the helper function
+    if (error != NULL && *error != 0) {
+        return 0;
     }
 
-    return value * sign;
+    if (sign < 0) {
+        if (value == ((uint64_t)INT64_MAX + 1u)) {
+            return INT64_MIN;
+        }
+        return -(int64_t)value;
+    }
+    return (int64_t)value;
 }
 
 uint8_t intstr_to_fpstr_inplace(char *number, size_t number_max_size, uint8_t decimalPlaces);
@@ -367,7 +424,7 @@ __Z_INLINE zxerr_t array_to_lowercase(uint8_t *input, uint16_t inputLen) {
     }
 
     for (uint16_t i = 0; i < inputLen; i++) {
-        to_uppercase(input + i);
+        to_lowercase(input + i);
     }
     return zxerr_ok;
 }
@@ -442,7 +499,7 @@ __Z_INLINE zxerr_t formatBufferData(const uint8_t *ptr, uint64_t len, char *outV
                                     uint8_t pageIdx, uint8_t *pageCount) {
     char bufferUI[500 + 1];
     MEMZERO(bufferUI, sizeof(bufferUI));
-    MEMZERO(outValue, 0);
+    MEMZERO(outValue, outValueLen);
     CHECK_APP_CANARY()
 
     if (len >= sizeof(bufferUI)) {

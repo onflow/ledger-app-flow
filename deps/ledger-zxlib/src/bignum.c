@@ -57,12 +57,14 @@ void bignumLittleEndian_to_bcd(uint8_t *bcdOut, uint16_t bcdOutLen, const uint8_
     for (uint32_t bitIdx = 0; bitIdx < binValueLen * 8; bitIdx++) {
         // Fix bcd
         for (uint16_t j = 0; j < bcdOutLen; j++) {
+            uint16_t tmp = bcdOut[j];
             if ((bcdOut[j] & 0x0Fu) > 0x04u) {
-                bcdOut[j] += 0x03u;
+                tmp += 0x03u;
             }
             if ((bcdOut[j] & 0xF0u) > 0x40u) {
-                bcdOut[j] += 0x30u;
+                tmp += 0x30u;
             }
+            bcdOut[j] = (uint8_t)tmp;
         }
 
         // get bit
@@ -73,7 +75,7 @@ void bignumLittleEndian_to_bcd(uint8_t *bcdOut, uint16_t bcdOutLen, const uint8_
         // Shift bcd
         for (uint16_t j = 0; j < bcdOutLen; j++) {
             uint8_t carry2 = (uint8_t)(bcdOut[bcdOutLen - j - 1] > 127u);
-            bcdOut[bcdOutLen - j - 1] <<= 1u;
+            bcdOut[bcdOutLen - j - 1] = (uint8_t)(bcdOut[bcdOutLen - j - 1] << 1u);
             bcdOut[bcdOutLen - j - 1] += carry;
             carry = carry2;
         }
@@ -121,12 +123,14 @@ void bignumBigEndian_to_bcd(uint8_t *bcdOut, uint16_t bcdOutLen, const uint8_t *
     for (uint32_t bitIdx = 0; bitIdx < binValueLen * 8; bitIdx++) {
         // Fix bcd
         for (uint16_t j = 0; j < bcdOutLen; j++) {
+            uint16_t tmp = bcdOut[j];
             if ((bcdOut[j] & 0x0Fu) > 0x04u) {
-                bcdOut[j] += 0x03u;
+                tmp += 0x03u;
             }
             if ((bcdOut[j] & 0xF0u) > 0x40u) {
-                bcdOut[j] += 0x30u;
+                tmp += 0x30u;
             }
+            bcdOut[j] = (uint8_t)tmp;
         }
 
         // get bit
@@ -137,8 +141,8 @@ void bignumBigEndian_to_bcd(uint8_t *bcdOut, uint16_t bcdOutLen, const uint8_t *
         // Shift bcd
         for (uint16_t j = 0; j < bcdOutLen; j++) {
             uint8_t carry2 = (uint8_t)(bcdOut[j] > 127u);
-            bcdOut[j] <<= 1u;
-            bcdOut[j] += carry;
+            uint16_t temp = ((uint16_t)bcdOut[j] << 1u) + carry;
+            bcdOut[j] = (uint8_t)(temp & 0xFF);
             carry = carry2;
         }
     }

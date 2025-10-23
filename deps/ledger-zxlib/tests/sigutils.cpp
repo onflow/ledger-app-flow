@@ -1,29 +1,33 @@
 /*******************************************************************************
-*   (c) 2018 - 2024 Zondax AG
-*
-*  Licensed under the Apache License, Version 2.0 (the "License");
-*  you may not use this file except in compliance with the License.
-*  You may obtain a copy of the License at
-*
-*      http://www.apache.org/licenses/LICENSE-2.0
-*
-*  Unless required by applicable law or agreed to in writing, software
-*  distributed under the License is distributed on an "AS IS" BASIS,
-*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-*  See the License for the specific language governing permissions and
-*  limitations under the License.
-********************************************************************************/
-
-#include "gmock/gmock.h"
-#include <string>
-#include <hexutils.h>
-#include <zxmacros.h>
-#include <zxformat.h>
+ *   (c) 2018 - 2024 Zondax AG
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ ********************************************************************************/
 
 #include "sigutils.h"
 
+#include <hexutils.h>
+#include <zxformat.h>
+#include <zxmacros.h>
+
+#include <string>
+
+#include "gmock/gmock.h"
+
 TEST(SIGUTILS, convertBasic) {
-    char inSignatureDERStr[] = "304402206878b5690514437a2342405029426cc2b25b4a03fc396fef845d656cf62bad2c022018610a8d37e3384245176ab49ddbdbe8da4133f661bf5ea7ad4e3d2b912d856f01";
+    char inSignatureDERStr[] =
+        "304402206878b5690514437a2342405029426cc2b25b4a03fc396fef845d656cf62bad2c022018610a8d37e3384245176ab49ddbdbe8da"
+        "4133f661bf5ea7ad4e3d2b912d856f01";
     auto inSignatureDER = std::vector<uint8_t>(71);
 
     auto length = parseHexString(inSignatureDER.data(), inSignatureDER.size(), inSignatureDERStr);
@@ -48,7 +52,9 @@ TEST(SIGUTILS, convertBasic) {
 }
 
 TEST(SIGUTILS, convertBasic2) {
-    char inSignatureDERStr[] = "30430220035942178e9e8d447cf9e6886f99c41bf942fb2880fd79aa2d4626489ec7821b021f6b3277dea0355c161d20a120ec9165500b5c9a2cd0fce1c4b8a5260bf6831f";
+    char inSignatureDERStr[] =
+        "30430220035942178e9e8d447cf9e6886f99c41bf942fb2880fd79aa2d4626489ec7821b021f6b3277dea0355c161d20a120ec9165500b"
+        "5c9a2cd0fce1c4b8a5260bf6831f";
     auto inSignatureDER = std::vector<uint8_t>(71);
 
     auto length = parseHexString(inSignatureDER.data(), inSignatureDER.size(), inSignatureDERStr);
@@ -69,9 +75,9 @@ TEST(SIGUTILS, convertBasic2) {
     parseHexString(inSignatureDER_S.data(), inSignatureDER_S.size(), inSignatureDERStr_S);
 
     char buffer[100];
-    array_to_hexstr(buffer, sizeof(buffer), R, (int16_t) sizeof(R));
+    array_to_hexstr(buffer, sizeof(buffer), R, (int16_t)sizeof(R));
     std::cout << buffer << std::endl;
-    array_to_hexstr(buffer, sizeof(buffer), S, (int16_t) sizeof(S));
+    array_to_hexstr(buffer, sizeof(buffer), S, (int16_t)sizeof(S));
     std::cout << buffer << std::endl;
 
     EXPECT_THAT(R, ::testing::ElementsAreArray(inSignatureDER_R));
@@ -79,7 +85,9 @@ TEST(SIGUTILS, convertBasic2) {
 }
 
 TEST(SIGUTILS, convertBasic3) {
-    char inSignatureDERStr[] = "3045022100e9b508a9cd66410b43992c01622cf9e1a6aa1353d836d7f428a6d1317f96f27d02200ca01cee5480388bad3802c08e0bcf357c091f3a5921e1e5d1e0e115dd14ff23";
+    char inSignatureDERStr[] =
+        "3045022100e9b508a9cd66410b43992c01622cf9e1a6aa1353d836d7f428a6d1317f96f27d02200ca01cee5480388bad3802c08e0bcf35"
+        "7c091f3a5921e1e5d1e0e115dd14ff23";
     auto inSignatureDER = std::vector<uint8_t>(71);
 
     auto length = parseHexString(inSignatureDER.data(), inSignatureDER.size(), inSignatureDERStr);
@@ -104,7 +112,9 @@ TEST(SIGUTILS, convertBasic3) {
 }
 
 TEST(SIGUTILS, convertShort1) {
-    char inSignatureDERStr[] = "3041021e544670fe5627f2d483484582284f627d9cfd1e0ab123984e81611a8da4fc021f6d99f9afd3c4fa62cee8dff21786f9c23c8d2f524d8fd363acc6c6567dc380";
+    char inSignatureDERStr[] =
+        "3041021e544670fe5627f2d483484582284f627d9cfd1e0ab123984e81611a8da4fc021f6d99f9afd3c4fa62cee8dff21786f9c23c8d2f"
+        "524d8fd363acc6c6567dc380";
     char inSignatureDERStr_R[] = "0000544670fe5627f2d483484582284f627d9cfd1e0ab123984e81611a8da4fc";
     char inSignatureDERStr_S[] = "006d99f9afd3c4fa62cee8dff21786f9c23c8d2f524d8fd363acc6c6567dc380";
 
@@ -119,7 +129,6 @@ TEST(SIGUTILS, convertShort1) {
 
     auto ret = convertDERtoRSV(inSignatureDER.data(), 0, R, S, &V);
     EXPECT_EQ(ret, 0);
-
 
     char R_str[200];
     char S_str[200];

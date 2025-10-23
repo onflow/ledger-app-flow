@@ -1,25 +1,25 @@
 /*******************************************************************************
-*   (c) 2018 - 2023 Zondax AG
-*
-*  Licensed under the Apache License, Version 2.0 (the "License");
-*  you may not use this file except in compliance with the License.
-*  You may obtain a copy of the License at
-*
-*      http://www.apache.org/licenses/LICENSE-2.0
-*
-*  Unless required by applicable law or agreed to in writing, software
-*  distributed under the License is distributed on an "AS IS" BASIS,
-*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-*  See the License for the specific language governing permissions and
-*  limitations under the License.
-********************************************************************************/
+ *   (c) 2018 - 2023 Zondax AG
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ ********************************************************************************/
 #include "bolos_target.h"
 
 #if defined(TARGET_NANOS) || defined(TARGET_NANOS2) || defined(TARGET_NANOX)
-#include "view_nano_inspect.h"
 #include "view_internal.h"
-#include "view_templates.h"
 #include "view_nano.h"
+#include "view_nano_inspect.h"
+#include "view_templates.h"
 #include "zxmacros.h"
 
 void h_inspect_init() {
@@ -33,8 +33,7 @@ void h_inspect_init() {
     viewdata.innerField.paging.itemCount = 0xFF;
 }
 
-void view_inspect_init(viewfunc_getInnerItem_t view_funcGetInnerItem,
-                       viewfunc_getNumItems_t view_funcGetInnerNumItems,
+void view_inspect_init(viewfunc_getInnerItem_t view_funcGetInnerItem, viewfunc_getNumItems_t view_funcGetInnerNumItems,
                        viewfunc_canInspectItem_t view_funcCanInspectItem) {
     viewdata.viewfuncGetInnerItem = view_funcGetInnerItem;
     viewdata.viewfuncGetInnerNumItems = view_funcGetInnerNumItems;
@@ -42,13 +41,12 @@ void view_inspect_init(viewfunc_getInnerItem_t view_funcGetInnerItem,
 }
 
 bool h_paging_inspect_go_to_root_screen() {
-    return (viewdata.innerField.paging.itemIdx == 0)
-           && (viewdata.innerField.trace[0] != 0);
+    return (viewdata.innerField.paging.itemIdx == 0) && (viewdata.innerField.trace[0] != 0);
 }
 
 bool h_paging_inspect_back_screen() {
-    return (viewdata.innerField.paging.itemIdx == (viewdata.innerField.paging.itemCount - 1))
-            && (viewdata.innerField.trace[0] != 0);
+    return (viewdata.innerField.paging.itemIdx == (viewdata.innerField.paging.itemCount - 1)) &&
+           (viewdata.innerField.trace[0] != 0);
 }
 
 bool h_can_increase(paging_t *paging, uint8_t actionsCount) {
@@ -137,7 +135,7 @@ zxerr_t h_inspect_update_data() {
     viewdata.innerField.paging.itemCount += 2;
     viewdata.innerField.paging.pageCount = 1;
     if (h_paging_inspect_go_to_root_screen()) {
-        snprintf(viewdata.key, MAX_CHARS_PER_KEY_LINE, "%s","");
+        snprintf(viewdata.key, MAX_CHARS_PER_KEY_LINE, "%s", "");
         snprintf(viewdata.value, MAX_CHARS_PER_VALUE1_LINE, "%s", "Go to root");
         splitValueField();
         page.pageIdx = 0;
@@ -145,7 +143,7 @@ zxerr_t h_inspect_update_data() {
     }
 
     if (h_paging_inspect_back_screen()) {
-        snprintf(viewdata.key, MAX_CHARS_PER_KEY_LINE, "%s","");
+        snprintf(viewdata.key, MAX_CHARS_PER_KEY_LINE, "%s", "");
         snprintf(viewdata.value, MAX_CHARS_PER_VALUE1_LINE, "%s", "BACK");
         splitValueField();
         page.pageIdx = 0;
@@ -165,10 +163,7 @@ zxerr_t h_inspect_update_data() {
         .pageCount = &viewdata.innerField.paging.pageCount,
     };
 
-    CHECK_ZXERR(viewdata.viewfuncGetInnerItem(
-                            viewdata.innerField.level,
-                            viewdata.innerField.trace,
-                            &thisItem))
+    CHECK_ZXERR(viewdata.viewfuncGetInnerItem(viewdata.innerField.level, viewdata.innerField.trace, &thisItem))
 
     return zxerr_ok;
 }

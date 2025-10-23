@@ -16,7 +16,7 @@
 
 #include "bolos_target.h"
 
-#if defined(TARGET_STAX) || defined(TARGET_FLEX)
+#if defined(TARGET_STAX) || defined(TARGET_FLEX) || defined(TARGET_APEX_P)
 
 #include "actions.h"
 #include "app_mode.h"
@@ -24,7 +24,6 @@
 #include "nbgl_use_case.h"
 #include "ux.h"
 #include "view_internal.h"
-#include "menu_handler.h"
 
 #ifdef APP_SECRET_MODE_ENABLED
 zxerr_t secret_enabled();
@@ -35,21 +34,43 @@ zxerr_t account_enabled();
 #endif
 
 #define APPROVE_LABEL_NBGL "Sign transaction?"
+#define APPROVE_LABEL_NBGL_MSG "Sign message?"
 #define APPROVE_LABEL_NBGL_GENERIC "Accept operation?"
 #define CANCEL_LABEL "Cancel"
 #define VERIFY_TITLE_LABEL_GENERIC "Verify operation"
-#define INFO_LIST_SIZE 2
+#define INFO_LIST_SIZE 4
 #define SETTING_CONTENTS_NB 1
+
+// Define icon variables based on target platform
+#if defined(TARGET_STAX) || defined(TARGET_FLEX)
+#define C_IMPORTANT_CIRCLE_ICON C_Important_Circle_64px
+#define C_WARNING_ICON C_Warning_64px
+#define C_REVIEW_ICON C_Review_64px
+#define C_ICON C_icon_stax_64
+#elif defined(TARGET_APEX_P)
+#define C_IMPORTANT_CIRCLE_ICON C_Important_Circle_24px
+#define C_WARNING_ICON C_Warning_24px
+#define C_REVIEW_ICON C_Review_48px
+#define C_ICON C_icon_apex_p_48
+#endif
+
 static const char HOME_TEXT[] =
     "This application enables\nsigning transactions on the\n" MENU_MAIN_APP_LINE1 " network";
 
 static const char ADDRESS_TEXT[] = "Verify " MENU_MAIN_APP_LINE1 "\naddress";
 
-ux_state_t G_ux;
-bolos_ux_params_t G_ux_params;
+extern ux_state_t G_ux;
+extern bolos_ux_params_t G_ux_params;
 extern unsigned int review_type;
 
 const char *intro_message = NULL;
+const char *intro_submessage = NULL;
+char intro_msg_buf[MAX_CHARS_PER_VALUE1_LINE];
+char intro_submsg_buf[MAX_CHARS_SUBMSG_LINE];
+char approval_label_buf[MAX_CHARS_SUBMSG_LINE];
+
+#define REVIEW_STANDALONE_SIZE 22
+#define REVIEW_MESSAGE_SIZE 18
 
 static nbgl_layoutTagValue_t pairs[NB_MAX_DISPLAYED_PAIRS_IN_REVIEW];
 
@@ -57,20 +78,6 @@ static nbgl_layoutTagValue_t pair;
 static nbgl_layoutTagValueList_t pairList;
 
 static nbgl_layoutTagValueList_t *extraPagesPtr = NULL;
-
-typedef enum {
-    EXPERT_MODE = 0,
-#ifdef APP_ACCOUNT_MODE_ENABLED
-    ACCOUNT_MODE,
-#endif
-#ifdef APP_SECRET_MODE_ENABLED
-    SECRET_MODE,
-#endif
-#ifdef APP_BLINDSIGN_MODE_ENABLED
-    BLINDSIGN_MODE,
-#endif
-    SETTINGS_SWITCHES_NB_LEN
-} settings_list_e;
 
 typedef enum {
     EXPERT_MODE_TOKEN = FIRST_USER_TOKEN,
@@ -88,22 +95,17 @@ static void h_reject_internal(void) { h_reject(review_type); }
 
 static void h_approve_internal(void) { h_approve(review_type); }
 
-static void h_view_address(void);
-
 #ifdef TARGET_STAX
 #define MAX_INFO_LIST_ITEM_PER_PAGE 3
-#else  // TARGET_FLEX
+#else  // TARGET_FLEX || TARGET_APEX_P
 #define MAX_INFO_LIST_ITEM_PER_PAGE 2
 #endif
 
-static const char *const INFO_KEYS_PAGE[] = {"Version", "License"};
-static const char *const INFO_VALUES_PAGE[] = {APPVERSION, "Apache 2.0"};
-
-static const char SHOW_STORED_PUBKEY_TEXT[] = "Show address";
+static const char *const INFO_KEYS_PAGE[] = {"Version", "Developed by", "Website", "License"};
+static const char *const INFO_VALUES_PAGE[] = {APPVERSION, "Zondax AG", "https://zondax.ch", "Apache 2.0"};
 
 static nbgl_contentInfoList_t infoList = {0};
 static nbgl_genericContents_t settingContents = {0};
-static nbgl_homeAction_t showStoredPubkey = {};
 static nbgl_contentSwitch_t switches[SETTINGS_SWITCHES_NB_LEN];
 
 static void h_expert_toggle() { app_mode_set_expert(!app_mode_expert()); }
@@ -113,6 +115,16 @@ static void h_blindsign_toggle() { app_mode_set_blindsign(!app_mode_blindsign())
 #endif
 
 static void confirm_error(__Z_UNUSED bool confirm) { h_error_accept(0); }
+
+static void goto_settings(bool confirm) {
+    if (confirm) {
+        view_settings_show_impl();
+    } else {
+        view_idle_show_impl(0, NULL);
+    }
+    UX_WAIT();
+    app_reply_error();
+}
 
 static void reviewAddressChoice(bool confirm) {
     if (confirm) {
@@ -127,6 +139,14 @@ static void reviewTransactionChoice(bool confirm) {
         nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, h_approve_internal);
     } else {
         nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, h_reject_internal);
+    }
+}
+
+static void reviewMessageChoice(bool confirm) {
+    if (confirm) {
+        nbgl_useCaseReviewStatus(STATUS_TYPE_MESSAGE_SIGNED, h_approve_internal);
+    } else {
+        nbgl_useCaseReviewStatus(STATUS_TYPE_MESSAGE_REJECTED, h_reject_internal);
     }
 }
 
@@ -169,18 +189,25 @@ void view_custom_error_show(const char *upper, const char *lower) {
     MEMZERO(viewdata.value, MAX_CHARS_PER_VALUE1_LINE);
     snprintf(viewdata.key, MAX_CHARS_PER_KEY_LINE, "%s", upper);
     snprintf(viewdata.value, MAX_CHARS_PER_VALUE1_LINE, "%s", lower);
-
-    nbgl_useCaseChoice(&C_Important_Circle_64px, viewdata.key, viewdata.value, "Ok", "", confirm_error);
+    nbgl_useCaseChoice(&C_IMPORTANT_CIRCLE_ICON, viewdata.key, viewdata.value, "Ok", "", confirm_error);
 }
 
 void view_blindsign_error_show() {
-    nbgl_useCaseChoice(&C_Warning_64px, "This message cannot\nbe clear-signed",
-                       "Enable blind-signing in\nthe settings to sign\nthis transaction.", "Exit", "", confirm_error);
+    nbgl_useCaseChoice(&C_WARNING_ICON, "This transaction cannot\nbe clear-signed",
+                       "Enable blind signing in the\nsettings to sign this\ntransaction.", "Go to settings",
+                       "Reject Transaction", goto_settings);
 }
 
 void view_error_show_impl() {
-    nbgl_useCaseChoice(&C_Important_Circle_64px, viewdata.key, viewdata.value, "Ok", NULL, confirm_setting);
+    nbgl_useCaseChoice(&C_IMPORTANT_CIRCLE_ICON, viewdata.key, viewdata.value, "Ok", NULL, confirm_setting);
 }
+
+void view_settings_show_impl() {
+    nbgl_useCaseHomeAndSettings(MENU_MAIN_APP_LINE1, &C_ICON, HOME_TEXT, 0, &settingContents, &infoList, NULL,
+                                app_quit);
+}
+
+void view_spinner_impl(const char *text) { nbgl_useCaseSpinner(text); }
 
 static uint8_t get_pair_number() {
     uint8_t numItems = 0;
@@ -291,14 +318,18 @@ static void settings_screen_callback(uint8_t index, nbgl_content_t *content) {
     UNUSED(index);
     switches[EXPERT_MODE].initState = app_mode_expert();
     switches[EXPERT_MODE].text = "Expert mode";
-    switches[EXPERT_MODE].subText = "";
+    if ((switches[EXPERT_MODE].subText) == NULL) {
+        switches[EXPERT_MODE].subText = "Enable to review extra fields.";
+    }
     switches[EXPERT_MODE].tuneId = TUNE_TAP_CASUAL;
     switches[EXPERT_MODE].token = EXPERT_MODE_TOKEN;
 
 #ifdef APP_BLINDSIGN_MODE_ENABLED
     switches[BLINDSIGN_MODE].initState = app_mode_blindsign();
     switches[BLINDSIGN_MODE].text = "Blind sign";
-    switches[BLINDSIGN_MODE].subText = "";
+    if ((switches[BLINDSIGN_MODE].subText) == NULL) {
+        switches[BLINDSIGN_MODE].subText = "Enable transaction blind signing.";
+    }
     switches[BLINDSIGN_MODE].tuneId = TUNE_TAP_CASUAL;
     switches[BLINDSIGN_MODE].token = BLINDSIGN_MODE_TOKEN;
 #endif
@@ -307,7 +338,9 @@ static void settings_screen_callback(uint8_t index, nbgl_content_t *content) {
     if (app_mode_expert() || app_mode_account()) {
         switches[ACCOUNT_MODE].initState = app_mode_account();
         switches[ACCOUNT_MODE].text = "Crowdloan account";
-        switches[ACCOUNT_MODE].subText = "";
+        if ((switches[ACCOUNT_MODE].subText) == NULL) {
+            switches[ACCOUNT_MODE].subText = "";
+        }
         switches[ACCOUNT_MODE].tuneId = TUNE_TAP_CASUAL;
         switches[ACCOUNT_MODE].token = ACCOUNT_MODE_TOKEN;
     }
@@ -317,7 +350,9 @@ static void settings_screen_callback(uint8_t index, nbgl_content_t *content) {
     if (app_mode_expert() || app_mode_secret()) {
         switches[SECRET_MODE].initState = app_mode_secret();
         switches[SECRET_MODE].text = "Secret mode";
-        switches[SECRET_MODE].subText = "";
+        if ((switches[SECRET_MODE].subText) == NULL) {
+            switches[SECRET_MODE].subText = "";
+        }
         switches[SECRET_MODE].tuneId = TUNE_TAP_CASUAL;
         switches[SECRET_MODE].token = SECRET_MODE_TOKEN;
     }
@@ -351,13 +386,8 @@ void view_idle_show_impl(__Z_UNUSED uint8_t item_idx, const char *statusString) 
     infoList.infoContents = INFO_VALUES_PAGE;
     infoList.infoTypes = INFO_KEYS_PAGE;
 
-    showStoredPubkey.text = SHOW_STORED_PUBKEY_TEXT;
-    showStoredPubkey.icon = NULL;
-    showStoredPubkey.callback =  h_view_address;
-    showStoredPubkey.style = SOFT_HOME_ACTION;
-
-    nbgl_useCaseHomeAndSettings(MENU_MAIN_APP_LINE1, &C_icon_stax_64, home_text, INIT_HOME_PAGE, &settingContents,
-                                &infoList, &showStoredPubkey, app_quit);
+    nbgl_useCaseHomeAndSettings(MENU_MAIN_APP_LINE1, &C_ICON, home_text, INIT_HOME_PAGE, &settingContents, &infoList,
+                                NULL, app_quit);
 }
 
 void view_message_impl(const char *title, const char *message) {
@@ -385,7 +415,7 @@ static void review_configuration() {
         view_error_show();
     }
 
-    nbgl_useCaseChoice(&C_Important_Circle_64px, viewdata.key, viewdata.value, "Accept", "Reject", confirm_setting);
+    nbgl_useCaseChoice(&C_IMPORTANT_CIRCLE_ICON, viewdata.key, viewdata.value, "Accept", "Reject", confirm_setting);
 }
 
 static void config_useCaseAddressReview() {
@@ -423,7 +453,7 @@ static void config_useCaseAddressReview() {
 #else
     intro_message = ADDRESS_TEXT;
 #endif
-    nbgl_useCaseAddressReview(viewdata.value, extraPagesPtr, &C_icon_stax_64, intro_message, NULL, reviewAddressChoice);
+    nbgl_useCaseAddressReview(viewdata.value, extraPagesPtr, &C_ICON, intro_message, NULL, reviewAddressChoice);
 }
 
 static nbgl_layoutTagValue_t *update_item_callback(uint8_t index) {
@@ -451,14 +481,39 @@ static void config_useCaseReview(nbgl_operationType_t type) {
     pairList.pairs = NULL;  // to indicate that callback should be used
     pairList.callback = update_item_callback;
     pairList.startIndex = 0;
+
     if (app_mode_blindsign_required()) {
-        nbgl_useCaseReviewBlindSigning(type, &pairList, &C_icon_stax_64,
-                                       (intro_message == NULL ? "Review transaction" : intro_message), NULL,
+        nbgl_useCaseReviewBlindSigning(type, &pairList, &C_ICON,
+                                       (intro_message == NULL ? "Review transaction" : intro_message), intro_submessage,
                                        "Accept risk and sign transaction ?", NULL, reviewTransactionChoice);
     } else {
-        nbgl_useCaseReview(type, &pairList, &C_icon_stax_64,
-                           (intro_message == NULL ? "Review transaction" : intro_message), NULL, APPROVE_LABEL_NBGL,
+        nbgl_useCaseReview(type, &pairList, &C_ICON, (intro_message == NULL ? "Review transaction" : intro_message),
+                           intro_submessage, (approval_label_buf[0] != '\0' ? approval_label_buf : APPROVE_LABEL_NBGL),
                            reviewTransactionChoice);
+    }
+}
+
+static void config_useCaseMessageReview() {
+    if (viewdata.viewfuncGetNumItems == NULL) {
+        ZEMU_LOGF(50, "GetNumItems==NULL\n")
+        view_error_show();
+        return;
+    }
+
+    pairList.nbMaxLinesForValue = NB_MAX_LINES_IN_REVIEW;
+    pairList.nbPairs = get_pair_number();
+    pairList.pairs = NULL;  // to indicate that callback should be used
+    pairList.callback = update_item_callback;
+    pairList.startIndex = 0;
+    if (app_mode_blindsign_required()) {
+        nbgl_useCaseReviewBlindSigning(TYPE_MESSAGE, &pairList, &C_REVIEW_ICON,
+                                       (intro_message == NULL ? "Review Message" : intro_message), NULL,
+                                       "Accept risk and sign message ?", NULL, reviewMessageChoice);
+    } else {
+        nbgl_useCaseReview(TYPE_MESSAGE, &pairList, &C_REVIEW_ICON,
+                           (intro_message == NULL ? "Review Message" : intro_message), intro_submessage,
+                           (approval_label_buf[0] != '\0' ? approval_label_buf : APPROVE_LABEL_NBGL_MSG),
+                           reviewMessageChoice);
     }
 }
 
@@ -475,30 +530,36 @@ static void config_useCaseReviewLight(const char *title, const char *validate) {
     pairList.callback = update_item_callback;
     pairList.startIndex = 0;
 
-    nbgl_useCaseReviewLight(TYPE_OPERATION, &pairList, &C_icon_stax_64,
-                            (title == NULL ? VERIFY_TITLE_LABEL_GENERIC : title), NULL,
-                            (validate == NULL ? APPROVE_LABEL_NBGL_GENERIC : validate), reviewGenericChoice);
+    nbgl_useCaseReviewLight(TYPE_OPERATION, &pairList, &C_ICON, (title == NULL ? VERIFY_TITLE_LABEL_GENERIC : title),
+                            NULL, (validate == NULL ? APPROVE_LABEL_NBGL_GENERIC : validate), reviewGenericChoice);
 }
 
 void view_review_show_impl(unsigned int requireReply, const char *title, const char *validate) {
     review_type = (review_type_e)requireReply;
 
-    // Retrieve intro text for transaction
     intro_message = NULL;
+    intro_submessage = NULL;
+    intro_msg_buf[0] = '\0';
+    intro_submsg_buf[0] = '\0';
+    approval_label_buf[0] = '\0';
     viewdata.key = viewdata.keys[0];
     viewdata.value = viewdata.values[0];
+    // Retrieve intro text for transaction
     if (viewdata.viewfuncGetItem != NULL) {
-        const zxerr_t err = viewdata.viewfuncGetItem(0xFF, viewdata.key, MAX_CHARS_PER_KEY_LINE, viewdata.value,
-                                                     MAX_CHARS_PER_VALUE1_LINE, 0, &viewdata.pageCount);
-        if (err == zxerr_ok) {
-            intro_message = viewdata.value;
+        viewdata.viewfuncGetItem(0xFF, intro_msg_buf, MAX_CHARS_PER_KEY_LINE, intro_submsg_buf,
+                                 MAX_CHARS_PER_VALUE1_LINE, 0, &viewdata.pageCount);
+        if (strlen(intro_msg_buf) > strlen(" ")) {
+            intro_message = intro_msg_buf;
+        }
+        if (strlen(intro_submsg_buf) > strlen(" ")) {
+            intro_submessage = intro_submsg_buf;
         }
     }
     h_paging_init();
 
     switch (review_type) {
         case REVIEW_UI:
-            nbgl_useCaseReviewStart(&C_icon_stax_64, "Review configuration", NULL, CANCEL_LABEL, review_configuration,
+            nbgl_useCaseReviewStart(&C_ICON, "Review configuration", NULL, CANCEL_LABEL, review_configuration,
                                     h_reject_internal);
             break;
         case REVIEW_ADDRESS: {
@@ -509,6 +570,10 @@ void view_review_show_impl(unsigned int requireReply, const char *title, const c
             config_useCaseReviewLight(title, validate);
             break;
         }
+        case REVIEW_MSG: {
+            config_useCaseMessageReview();
+            break;
+        }
         case REVIEW_TXN:
         default:
             config_useCaseReview(TYPE_TRANSACTION);
@@ -516,8 +581,87 @@ void view_review_show_impl(unsigned int requireReply, const char *title, const c
     }
 }
 
-static void h_view_address() {
-    handleMenuShowAddress();
+void view_review_show_with_intent_impl(unsigned int requireReply, const char *intent) {
+    review_type = (review_type_e)requireReply;
+
+    intro_message = NULL;
+    intro_submessage = NULL;
+    intro_msg_buf[0] = '\0';
+    intro_submsg_buf[0] = '\0';
+    approval_label_buf[0] = '\0';
+    viewdata.key = viewdata.keys[0];
+    viewdata.value = viewdata.values[0];
+
+    // Format the intro message based on the intent
+    if (intent != NULL && strlen(intent) > 0) {
+        // Show everything on a single line for NBGL
+        const char *review_text = (review_type == REVIEW_MSG) ? "Review message" : "Review transaction";
+        int ret = snprintf(intro_msg_buf, sizeof(intro_msg_buf), "%s to %s", review_text, intent);
+
+        // Check for snprintf error
+        if (ret < 0) {
+            // Handle encoding error - use a default message
+            strncpy(intro_msg_buf, review_text, sizeof(intro_msg_buf) - 1);
+            intro_msg_buf[sizeof(intro_msg_buf) - 1] = '\0';
+        }
+        // Check if truncation occurred and add ellipsis if needed
+        else if ((size_t)ret >= sizeof(intro_msg_buf)) {
+            const size_t buf_len = sizeof(intro_msg_buf);
+            if (buf_len >= 4) {
+                intro_msg_buf[buf_len - 4] = '.';
+                intro_msg_buf[buf_len - 3] = '.';
+                intro_msg_buf[buf_len - 2] = '.';
+                intro_msg_buf[buf_len - 1] = '\0';
+            }
+        }
+        intro_message = intro_msg_buf;
+        intro_submessage = NULL;  // No second line for NBGL
+
+        // Format the approval label with intent for the final approval screen
+        const char *sign_text = (review_type == REVIEW_MSG) ? "Sign message" : "Sign transaction";
+        ret = snprintf(approval_label_buf, sizeof(approval_label_buf), "%s to %s?", sign_text, intent);
+
+        // Check for snprintf error
+        if (ret < 0) {
+            // Handle encoding error - use a default message
+            strncpy(approval_label_buf, sign_text, sizeof(approval_label_buf) - 1);
+            approval_label_buf[sizeof(approval_label_buf) - 1] = '\0';
+        }
+        // Check if truncation occurred and add ellipsis if needed
+        else if ((size_t)ret >= sizeof(approval_label_buf)) {
+            const size_t buf_len = sizeof(approval_label_buf);
+            if (buf_len >= 4) {
+                approval_label_buf[buf_len - 4] = '.';
+                approval_label_buf[buf_len - 3] = '.';
+                approval_label_buf[buf_len - 2] = '.';
+                approval_label_buf[buf_len - 1] = '\0';
+            }
+        }
+    } else {
+        // Use default labels if no intent
+        snprintf(approval_label_buf, sizeof(approval_label_buf), "%s",
+                 (review_type == REVIEW_MSG) ? APPROVE_LABEL_NBGL_MSG : APPROVE_LABEL_NBGL);
+    }
+
+    h_paging_init();
+
+    switch (review_type) {
+        case REVIEW_MSG: {
+            config_useCaseMessageReview();
+            break;
+        }
+        case REVIEW_TXN:
+        default:
+            config_useCaseReview(TYPE_TRANSACTION);
+            break;
+    }
+}
+
+void view_set_switch_subtext(settings_list_e switch_id, const char *subtext) {
+    if (switch_id >= SETTINGS_SWITCHES_NB_LEN) {
+        return;
+    }
+    switches[switch_id].subText = subtext;
 }
 
 #endif

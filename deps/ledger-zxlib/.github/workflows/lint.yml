@@ -1,0 +1,52 @@
+name: Lint and format 💅
+
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  lint:
+    runs-on: ${{ github.repository_owner == 'zondax' && 'zondax-runners' || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            clang-format \
+            clang-tidy \
+            wget
+
+      - name: Lint and format 💅
+        uses: cpp-linter/cpp-linter-action@v2
+        id: linter
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          file-annotations: true
+          files-changed-only: false
+          ignore: "build|.github|cmake|fuzzing|.vscode|.idea"
+          step-summary: true
+          style: file # uses .clang-format
+          thread-comments: true
+          tidy-checks: "-*" # disable clang-tidy, only use clang-format
+          format-review-errors: false # ignore parsing errors, only check formatting
+
+      - name: Fail if errors
+        if: ${{ steps.linter.outputs['checks-failed'] > 0 }}
+        run: |
+          echo "Linter or formatter failed!"
+          exit 1
