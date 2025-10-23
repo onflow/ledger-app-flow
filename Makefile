@@ -29,7 +29,7 @@ include $(BOLOS_SDK)/Makefile.defines
 APPNAME = "Flow"
 
 APPVERSION_M=0
-APPVERSION_N=15
+APPVERSION_N=16
 APPVERSION_P=0
 APPVERSION = "$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)"
 
@@ -49,6 +49,7 @@ ICON_NANOX = icons/nanox_icon.gif
 ICON_NANOSP = icons/nanox_icon.gif
 ICON_STAX = icons/stax_icon.gif
 ICON_FLEX = icons/flex_icon.png
+ICON_APEX_P = icons/apex_p_icon.png
 
 # Application allowed derivation curves.
 # Possibles curves are: secp256k1, secp256r1, ed25519 and bls12381g1
@@ -105,15 +106,12 @@ ENABLE_BLUETOOTH = 1
 ########################################
 # These advanced settings allow to disable some feature that are by
 # default enabled in the SDK `Makefile.standard_app`.
-DISABLE_STANDARD_APP_FILES = 1
+# DISABLE_STANDARD_APP_FILES = 1
 #DISABLE_DEFAULT_IO_SEPROXY_BUFFER_SIZE = 1 # To allow custom size declaration
 #DISABLE_STANDARD_APP_DEFINES = 1 # Will set all the following disablers
 #DISABLE_STANDARD_SNPRINTF = 1
 #DISABLE_STANDARD_USB = 1
 #DISABLE_STANDARD_WEBUSB = 1
-ifeq ($(TARGET_NAME),TARGET_NANOS)
-DISABLE_STANDARD_BAGL_UX_FLOW = 1
-endif
 
 ########################################
 #        Main app configuration        #
@@ -121,10 +119,6 @@ endif
 
 DEFINES   += HAVE_BOLOS_APP_STACK_CANARY
 DEFINES   += LEDGER_SPECIFIC
-
-ifeq ($(TARGET_NAME),TARGET_NANOS)
-APP_STACK_MIN_SIZE:=2480
-endif
 
 ########################################
 #        Unit tests and misc           #

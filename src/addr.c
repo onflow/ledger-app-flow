@@ -71,17 +71,12 @@ zxerr_t addr_getItem_internal(int8_t *displayIdx,
                 pageString(outVal, outValLen, "account data.", pageIdx, pageCount);
                 return zxerr_ok;
             case SHOW_ADDRESS_EMPTY_SLOT:
-#if defined(TARGET_NANOS)
-                snprintf(outKey, outKeyLen, "Account data");
-                pageString(outVal, outValLen, "not saved on the device.", pageIdx, pageCount);
-#else
                 snprintf(outKey, outKeyLen, "Address:");
                 pageString(outVal,
                            outValLen,
                            "Account data not saved on the device.",
                            pageIdx,
                            pageCount);
-#endif
                 return zxerr_ok;
             case SHOW_ADDRESS_HDPATHS_NOT_EQUAL:
                 snprintf(outKey, outKeyLen, "Address:");
@@ -107,24 +102,12 @@ zxerr_t addr_getItem_internal(int8_t *displayIdx,
     }
 
     SCREEN(show_address_yes) {
-#if defined(TARGET_NANOS)
-        snprintf(outKey, outKeyLen, "Verify if this");
-        snprintf(outVal, outValLen, " public key was   added to");
-#else
         snprintf(outKey, outKeyLen, "Warning:");
         snprintf(outVal, outValLen, "Verify if this public key was added to");
-#endif
         return zxerr_ok;
     }
 
     SCREEN(show_address_yes) {
-#if defined(TARGET_NANOS)
-        array_to_hexstr(outKey,
-                        outKeyLen,
-                        address_to_display.data,
-                        sizeof(address_to_display.data));
-        snprintf(outVal, outValLen, " using any Flow  blockch. explorer.");
-#else
         char buffer[2 * sizeof(address_to_display.data) + 1];
         array_to_hexstr(buffer,
                         sizeof(buffer),
@@ -132,7 +115,6 @@ zxerr_t addr_getItem_internal(int8_t *displayIdx,
                         sizeof(address_to_display.data));
         snprintf(outVal, outValLen, "%s using any Flow blockchain explorer.", buffer);
         snprintf(outKey, outKeyLen, "");
-#endif
         return zxerr_ok;
     }
 

@@ -1,7 +1,7 @@
 [app]
 build_directory = "./"
 sdk = "C"
-devices = ["nanos+", "nanox", "stax", "flex"]
+devices = ["nanos+", "nanox", "stax", "flex", "apex_p"]
 
 [tests]
 unit_directory = "./unit-tests/"
